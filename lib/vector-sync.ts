@@ -15,17 +15,17 @@ export interface SyncStats {
 }
 
 /**
- * Syncs a single memory document to Pinecone with enhanced metadata and error handling.
+ * Syncs a single memory document to vector storage with enhanced metadata and error handling.
  */
 export async function syncMemoryToPinecone(memoryId: string, data: ALMAMemory) {
   const index = await getPineconeIndex();
-  if (!index) throw new Error('Pinecone index not initialized');
+  if (!index) throw new Error('Vector storage not initialized');
 
   try {
     // 1. Ensure we have an embedding
     let embedding = data.embedding;
     if (!embedding || embedding.length === 0) {
-      console.log(`[VectorSync] Generating missing embedding for memory ${memoryId}...`);
+      console.log(`[Sync] Generating missing embedding for memory ${memoryId}...`);
       embedding = await hfEmbed(data.content);
     }
 
@@ -33,10 +33,10 @@ export async function syncMemoryToPinecone(memoryId: string, data: ALMAMemory) {
       throw new Error(`Could not generate embedding for memory ${memoryId}`);
     }
 
-    // 2. Prepare metadata (sanitized for Pinecone)
+    // 2. Prepare metadata (sanitized for storage)
     const metadata: Record<string, any> = {
       leadId: data.leadId || 'global',
-      content: data.content.substring(0, 10000), // Pinecone metadata limit
+      content: data.content.substring(0, 10000), // Storage metadata limit
       category: data.category || 'general',
       layer: data.layer || 'long-term',
       importance: data.importance || 1,
@@ -46,8 +46,8 @@ export async function syncMemoryToPinecone(memoryId: string, data: ALMAMemory) {
     if (data.sessionId) metadata.sessionId = data.sessionId;
     if (data.agentName) metadata.agentName = data.agentName;
 
-    // 3. Upsert to Pinecone
-    console.log(`[VectorSync] Upserting record ${memoryId} to Pinecone (dim: ${embedding.length})...`);
+    // 3. Upsert to vector storage
+    console.log(`[Sync] Upserting record ${memoryId} to vector storage (dim: ${embedding.length})...`);
     
     try {
       // @ts-ignore
@@ -59,7 +59,7 @@ export async function syncMemoryToPinecone(memoryId: string, data: ALMAMemory) {
         }]
       });
     } catch (upsertError: any) {
-      console.error(`[VectorSync] Upsert failed for ${memoryId}:`, upsertError);
+      console.error(`[Sync] Upsert failed for ${memoryId}:`, upsertError);
       throw upsertError;
     }
 
@@ -71,22 +71,22 @@ export async function syncMemoryToPinecone(memoryId: string, data: ALMAMemory) {
         await docRef.update({
           syncedToVector: true,
           lastSyncedAt: new Date().toISOString()
-        }).catch(err => console.warn(`[VectorSync] Could not update sync status in Firestore: ${err.message}`));
+        }).catch(err => console.warn(`[Sync] Could not update sync status in Firestore: ${err.message}`));
       } else {
-        console.log(`[VectorSync] Document ${memoryId} not found in Firestore, skipping status update.`);
+        console.log(`[Sync] Document ${memoryId} not found in Firestore, skipping status update.`);
       }
     }
 
-    console.log(`[VectorSync] Successfully synced memory ${memoryId} to Pinecone.`);
+    console.log(`[Sync] Successfully synced memory ${memoryId} to vector storage.`);
     return true;
   } catch (error: any) {
-    console.error(`[VectorSync] Error syncing memory ${memoryId}:`, error);
+    console.error(`[Sync] Error syncing memory ${memoryId}:`, error);
     return false;
   }
 }
 
 /**
- * Deletes a memory from Pinecone.
+ * Deletes a memory from vector storage.
  */
 export async function deleteMemoryFromPinecone(memoryId: string) {
   const index = await getPineconeIndex();
@@ -95,9 +95,9 @@ export async function deleteMemoryFromPinecone(memoryId: string) {
   try {
     // @ts-ignore
     await index.deleteMany({ ids: [memoryId] });
-    console.log(`[VectorSync] Successfully deleted memory ${memoryId} from Pinecone.`);
+    console.log(`[Sync] Successfully deleted memory ${memoryId} from vector storage.`);
   } catch (error) {
-    console.error(`[VectorSync] Error deleting memory ${memoryId}:`, error);
+    console.error(`[Sync] Error deleting memory ${memoryId}:`, error);
   }
 }
 

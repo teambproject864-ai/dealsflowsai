@@ -39,8 +39,11 @@ export function useFeatures() {
 
       snapshot.forEach((doc) => {
         const data = doc.data() as Feature;
-        updatedFeatures.push({ ...data, id: doc.id });
-        if (data.version > maxVersion) maxVersion = data.version;
+        const featureWithId = { ...data, id: doc.id };
+        updatedFeatures.push(featureWithId);
+        if (data.version && data.version > maxVersion) {
+          maxVersion = data.version;
+        }
       });
 
       // 3. Cache Invalidation Logic

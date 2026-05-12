@@ -15,7 +15,6 @@ const rateLimiter = new RateLimiterMemory({
 
 export interface GatewayConfig {
   schema?: z.ZodSchema;
-  requireAuth?: boolean;
   rateLimitPoints?: number;
 }
 
@@ -57,16 +56,7 @@ export function withSecureGateway(
         }
       }
 
-      // 4. Authorization (OAuth 2.0 / Zero-Trust Verification)
-      if (config.requireAuth) {
-        const authHeader = req.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-        // Verification logic would go here
-      }
-
-      // 5. Immutable Audit Logging (Blockchain Foundation)
+      // 4. Immutable Audit Logging (Blockchain Foundation)
       await logSecurityEvent('API_ACCESS', { 
         ip, 
         method: req.method, 
@@ -94,7 +84,7 @@ async function logSecurityEvent(type: string, data: any) {
     type,
     ...data,
     timestamp: new Date().toISOString(),
-    version: 'Veritas-ALMA-1.0'
+    protocol: 'Standard-Validation-Layer'
   };
 
   try {

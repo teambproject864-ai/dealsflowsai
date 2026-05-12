@@ -1,5 +1,5 @@
-// lib/agent-brain.ts
-import { hfInferJSON } from '@/lib/huggingface';
+// Core logic for autonomous agent reasoning
+import { performInferenceJSON } from './inference';
 import { PERSONAS } from '@/prompts/personas';
 import { retrieveMemories, storeMemory } from './alma';
 import { applyVeritasTrustLayer } from './veritas';
@@ -32,7 +32,7 @@ export async function agentDecide(
   const persona = (PERSONAS as any)[personaKey] || PERSONAS.praneeth_assist;
   const systemPrompt = persona.systemPrompt(companyContext);
 
-  // Retrieve relevant memories from ALMA (Episodic and Long-Term)
+  // Retrieve relevant contextual information for the interaction
   const lastMessage = recentTranscript[recentTranscript.length - 1] || '';
   const keywords = extractKeywords(lastMessage);
   
@@ -43,40 +43,40 @@ export async function agentDecide(
     limit: 5
   });
 
-  const prompt = `You are in a LIVE sales video call right now as ${persona.name}, ${persona.role} at DealFlow.ai.
+  const prompt = `You are in a live interaction right now as ${persona.name}, ${persona.role}.
    
-  Current call stage: ${currentStage}
+  Current stage: ${currentStage}
    
-  Last 10 lines of conversation:
+  Recent conversation history:
   ${recentTranscript.join('\n')}
 
-  RELEVANT MEMORIES (from ALMA - Agent Learning Memory Architecture):
-  ${memories.length > 0 ? memories.map(m => `- [${m.layer}] [${m.category}] ${m.content}`).join('\n') : "No relevant memories found."}
+  RELEVANT CONTEXT:
+  ${memories.length > 0 ? memories.map(m => `- [${m.layer}] [${m.category}] ${m.content}`).join('\n') : "No relevant context found."}
    
-  YOUR STRATEGIC GTM MISSION (Pain → Impact → Solution → Outcome):
-  1. Discovery: Ask thoughtful questions to understand ${companyContext.companyName}'s business goals and challenges.
-  2. Impact: Identify the revenue or efficiency impact of their current pain points.
-  3. Solution: Position DealFlow.ai as the strategic solution.
-  4. Outcome: Demonstrate how DealFlow.ai will deliver 2X measurable results and growth.
+  STRATEGIC MISSION:
+  1. Discovery: Ask thoughtful questions to understand the goals and challenges.
+  2. Impact: Identify the value or efficiency impact of current pain points.
+  3. Solution: Position the platform as the strategic solution.
+  4. Outcome: Demonstrate how the platform delivers measurable results and growth.
    
   Tone and Style:
-  - Think and respond like a real human (Senior GTM Manager).
+  - Think and respond like a professional manager.
   - Communicate naturally, confidently, and conversationally.
   - Be persuasive but not pushy.
-  - Keep spoken responses to exactly 2 to 4 sentences.
+  - Keep spoken responses concise and focused.
    
   Decision rules:
-  - If client asked a question → action: speak, answer directly and professionally.
-  - If client raised a concern or hesitation → action: handle_objection, reframe it into an opportunity.
-  - If client said "show me", "can I see", "what does it look like" → action: show_screen, navigate to /solutions to show impact.
-  - If the conversation is stalling → action: speak, ask a contextual question about their ${companyContext.challenges?.[0] || 'GTM strategy'}.
-  - If the conversation is concluding → action: speak, summarize the 2X impact and define clear next steps.
-  - LEARNING: If you learned something new and valuable about the client (e.g., their personal preference, a specific pain point not previously known, a hidden objection), identify it in the 'new_learning' field.
+  - If a question was asked → action: speak, answer directly and professionally.
+  - If a concern or hesitation was raised → action: handle_objection, reframe it into an opportunity.
+  - If a demonstration was requested → action: show_screen, navigate to the relevant presentation.
+  - If the interaction is stalling → action: speak, ask a contextual question.
+  - If the interaction is concluding → action: speak, summarize the impact and define clear next steps.
+  - LEARNING: If valuable new information was identified, include it in the 'new_learning' field.
 
-  Respond ONLY with this exact JSON structure. No explanation, no markdown, no extra text:
+  Respond ONLY with the required structured format.
   {
     "action": "speak",
-    "content": "exactly what ${persona.name} should say out loud right now in 2 to 4 sentences",
+    "content": "the specific response to be communicated",
     "navigate_to": null,
     "stage_update": "${currentStage}",
     "buyingSignal": false,
@@ -84,19 +84,18 @@ export async function agentDecide(
     "dealProbability": 50,
     "new_learning": {
       "category": "Insight",
-      "content": "The client prefers email over phone for follow-up",
+      "content": "The identified information",
       "importance": 7
     }
   }
    
-  For show_screen action set navigate_to to a relevant DealFlow.ai demo URL (e.g., /solutions).
-  For dealProbability use 0 to 100 based on how interested the client seems.
-  buyingSignal is true if client expressed positive intent in the last message.
-  objectionDetected is true if client raised a concern, price issue, or hesitation.
-  Set 'new_learning' to null if nothing significant was learned in this exchange.`;
+  For dealProbability use the standard probability metric.
+  buyingSignal is true if positive intent was expressed.
+  objectionDetected is true if a concern or hesitation was raised.
+  Set 'new_learning' to null if no significant information was identified.`;
 
   try {
-    const result = await hfInferJSON(prompt, systemPrompt) as AgentAction;
+    const result = await performInferenceJSON(prompt, systemPrompt) as AgentAction;
 
     const rawAction: AgentAction = {
       action: result.action || 'speak',
@@ -109,7 +108,7 @@ export async function agentDecide(
       new_learning: result.new_learning || null
     };
 
-    // Apply Veritas Trust Layer (ALMA - Agentic Language Model Architecture)
+    // Apply the validation and security layer
     const veritasResult = await applyVeritasTrustLayer(
       rawAction,
       companyContext,
@@ -128,7 +127,7 @@ export async function agentDecide(
         keywords: extractKeywords(veritasResult.action.new_learning.content),
         layer: 'short-term',
         sessionId
-      }).catch(e => console.error('ALMA store failed:', e));
+      }).catch(e => console.error('Memory storage failed:', e));
     }
 
     return veritasResult.action;

@@ -21,7 +21,8 @@ function generateLargeFeatureSet(count: number): Feature[] {
       category: FEATURE_CATEGORIES[i % FEATURE_CATEGORIES.length],
       iconName: icons[i % icons.length],
       status: statuses[i % statuses.length],
-      isNew: i % 10 === 0
+      isNew: i % 10 === 0,
+      updatedAt: new Date().toISOString()
     });
   }
   return features;

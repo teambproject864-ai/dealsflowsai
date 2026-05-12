@@ -1,11 +1,11 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 
-const apiKey = process.env.PINECONE_API_KEY || 'pcsk_4Em3JR_5sqNkjzntNSc2njjhuLpGeq36A3HP5BHC5Y67sdKQ8Gab29zbsv8MHN8BAoqQFU';
+const apiKey = (process.env.PINECONE_API_KEY || "").trim();
 const indexName = process.env.PINECONE_INDEX || 'quickstart';
 const dimension = parseInt(process.env.PINECONE_DIMENSION || '384'); // Matching HuggingFace all-MiniLM-L6-v2
 const metric = (process.env.PINECONE_METRIC as 'cosine' | 'euclidean' | 'dotproduct') || 'cosine';
 
-if (!apiKey || apiKey.startsWith('pcsk_') && apiKey.length < 20) {
+if (!apiKey) {
   console.warn('PINECONE_API_KEY is missing or invalid. Vector operations will be limited.');
 }
 

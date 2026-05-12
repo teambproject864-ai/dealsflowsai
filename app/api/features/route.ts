@@ -84,6 +84,8 @@ export async function POST(request: Request) {
       version: nextVersion,
       timestamp,
       author,
+      type: 'deploy',
+      status: 'success',
       changes: JSON.stringify(updates)
     };
     batch.set(deploymentRef, deploymentEvent);

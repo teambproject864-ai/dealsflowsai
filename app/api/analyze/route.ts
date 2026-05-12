@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hfInferJSON } from '@/lib/huggingface'; 
+import { performInferenceJSON } from '@/lib/inference'; 
 import { db } from '@/lib/firebase-admin';
 import { buildAnalysisUserPrompt } from "@/lib/prompts";
 
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       "You are a senior GTM analyst. Return ONLY valid JSON. No markdown. No extra text.";
     const prompt = buildAnalysisUserPrompt(companyData as any);
 
-    const analysis = await hfInferJSON(prompt, systemPrompt) as any;
+    const analysis = await performInferenceJSON(prompt, systemPrompt) as any;
     
     const analysisRef = await db.collection('analyses').add({ 
       leadId, 

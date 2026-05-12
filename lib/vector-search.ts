@@ -20,26 +20,26 @@ export interface VectorSearchResult {
 }
 
 /**
- * Performs a comprehensive semantic search in Pinecone with advanced metadata filtering
- * and optional Firestore document enrichment.
+ * Performs a comprehensive semantic search in vector storage with advanced metadata filtering
+ * and optional document enrichment.
  */
 export async function vectorSearch(params: VectorSearchParams): Promise<VectorSearchResult[]> {
   const index = await getPineconeIndex();
   if (!index) {
-    console.error('[VectorSearch] Pinecone index not available');
+    console.error('[Search] Vector storage not available');
     return [];
   }
 
   try {
     // 1. Generate query embedding
-    console.log(`[VectorSearch] Generating embedding for query: "${params.query.substring(0, 50)}..."`);
+    console.log(`[Search] Generating embedding for query: "${params.query.substring(0, 50)}..."`);
     const queryEmbedding = await hfEmbed(params.query);
     if (!queryEmbedding) {
-      console.error('[VectorSearch] Failed to generate embedding');
+      console.error('[Search] Failed to generate embedding');
       return [];
     }
 
-    // 2. Build filter for Pinecone
+    // 2. Build filter for retrieval
     const filter: any = {};
     if (params.leadId) {
       // Search specifically for this lead or global knowledge
@@ -55,8 +55,8 @@ export async function vectorSearch(params: VectorSearchParams): Promise<VectorSe
       filter.layer = params.layer;
     }
 
-    // 3. Query Pinecone
-    console.log('[VectorSearch] Querying Pinecone with filters:', JSON.stringify(filter));
+    // 3. Query vector storage
+    console.log('[Search] Querying vector storage with filters:', JSON.stringify(filter));
     const queryResponse = await index.query({
       vector: queryEmbedding,
       topK: params.limit || 10,
@@ -65,7 +65,7 @@ export async function vectorSearch(params: VectorSearchParams): Promise<VectorSe
     });
 
     if (!queryResponse.matches || queryResponse.matches.length === 0) {
-      console.log('[VectorSearch] No matches found');
+      console.log('[Search] No matches found');
       return [];
     }
 
@@ -80,9 +80,9 @@ export async function vectorSearch(params: VectorSearchParams): Promise<VectorSe
         score: match.score || 0,
       }));
 
-    // 5. Optionally enrich with full Firestore documents
+    // 5. Optionally enrich with full data records
     if (params.includeFullDoc && results.length > 0 && db) {
-      console.log(`[VectorSearch] Enriching ${results.length} results with Firestore data...`);
+      console.log(`[Search] Enriching ${results.length} results with record data...`);
       const enrichedResults = await Promise.all(
         results.map(async (res) => {
           try {
@@ -122,6 +122,7 @@ export async function vectorSearch(params: VectorSearchParams): Promise<VectorSe
  */
 export async function hybridSearch(params: VectorSearchParams) {
   // Currently, we primarily use vector search with metadata filtering as it's most efficient
-  // for the ALMA memory system. 
-  return vectorSearch(params);
+  // for the agent memory system. 
+  const results = await vectorSearch(params);
+  return results.slice(0, params.limit || 10);
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -28,10 +30,17 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://calendly.com" />
       </head>
       <body
-        className={`${inter.variable} min-h-screen bg-dealflow-blue font-sans text-foreground antialiased`}
+        className={`${inter.variable} min-h-screen bg-dealflow-blue font-sans text-foreground antialiased flex flex-col`}
       >
         <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(120,119,198,0.25),transparent)]" />
-        <div className="relative z-10">{children}</div>
+        
+        <Header />
+        
+        <div className="relative z-10 flex-grow">
+          {children}
+        </div>
+
+        <Footer />
       </body>
     </html>
   );

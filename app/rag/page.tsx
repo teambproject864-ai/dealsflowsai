@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { MODEL_REGISTRY } from "@/lib/model-registry";
 
 type RagSource = {
   docId: string;
@@ -40,7 +41,7 @@ function parseSseBlock(block: string) {
 export default function RagPage() {
   const [question, setQuestion] = useState("Summarize the key product capabilities.");
   const [provider, setProvider] = useState<"nvidia" | "huggingface">("nvidia");
-  const [model, setModel] = useState("google/gemma-4-31b-it");
+  const [model, setModel] = useState(MODEL_REGISTRY.nvidia[0].id);
   const [topK, setTopK] = useState(6);
 
   const [answer, setAnswer] = useState("");
@@ -133,9 +134,6 @@ export default function RagPage() {
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-white">RAG Ask (Streaming)</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Streams tokens from <span className="text-white">/api/rag/ask</span> via SSE.
-        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -171,12 +169,18 @@ export default function RagPage() {
 
               <div className="space-y-2">
                 <label className="text-xs font-medium text-gray-300">Model (NVIDIA)</label>
-                <Input
+                <select
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
-                  className="bg-white/5 border-white/10"
+                  className="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white"
                   disabled={isStreaming || provider !== "nvidia"}
-                />
+                >
+                  {MODEL_REGISTRY.nvidia.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">

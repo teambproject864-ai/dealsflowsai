@@ -39,7 +39,7 @@ export class SimpleAuthProvider implements AuthProvider {
 }
 
 /**
- * Middleware for MCPServer to handle Auth.
+ * Middleware for the protocol server to handle authentication.
  */
 export class MCPAuthMiddleware {
   private provider: AuthProvider;

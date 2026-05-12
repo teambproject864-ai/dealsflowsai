@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hfInfer } from '@/lib/huggingface'; 
+import { performInference } from '@/lib/inference'; 
 import { db } from '@/lib/firebase-admin';
 import { PERSONAS } from "@/prompts/personas";
 
@@ -72,7 +72,7 @@ Constraints:
     
     Respond as ${persona.name}:`;
 
-    const response = await hfInfer(conversationPrompt, systemPrompt);
+    const response = await performInference(conversationPrompt, systemPrompt);
 
     return NextResponse.json({ response }); 
   } catch (error) {

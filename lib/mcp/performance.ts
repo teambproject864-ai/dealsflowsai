@@ -5,7 +5,7 @@ import {
 import type { Transport } from "./client";
 
 /**
- * Request Batcher for MCP.
+ * Request Batcher for the communication protocol.
  * Combines multiple requests into a single batch if sent within a short window.
  */
 export class MCPRequestBatcher {
@@ -46,7 +46,7 @@ export class MCPRequestBatcher {
     const currentBatch = this.queue.splice(0, this.batchSize);
     if (currentBatch.length === 0) return;
 
-    // MCP actually supports JSON-RPC batching: [Req1, Req2, ...]
+    // The protocol supports JSON-RPC batching: [Req1, Req2, ...]
     // But our transport interface expects single requests.
     // For this implementation, we'll send them sequentially or adapt transport.
     // Let's assume the transport can handle an array for batching.
@@ -65,7 +65,7 @@ export class MCPRequestBatcher {
 }
 
 /**
- * Simple Cache for MCP Resource Reads.
+ * Simple Cache for resource access.
  */
 export class MCPResourceCache {
   private cache: Map<string, { data: any; expires: number }> = new Map();

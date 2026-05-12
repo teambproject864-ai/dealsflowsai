@@ -1,4 +1,4 @@
-// lib/veritas.ts
+// Security and validation layer for agent actions
 import { AgentAction } from './agent-brain';
 import { Persona } from '../prompts/personas';
 import { generateAuditHash } from './security';
@@ -7,17 +7,17 @@ export interface VeritasResult {
   action: AgentAction;
   isModified: boolean;
   warnings: string[];
-  trustScore: number; // 0-100
-  securityMetics: {
+  trustScore: number; // Quality metric
+  securityMetrics: {
     integrityHash: string;
     anomalyScore: number;
-    complianceStatus: 'SOC2_PASSED' | 'GDPR_COMPLIANT' | 'FAIL';
+    complianceStatus: 'SOC2_PASSED' | 'COMPLIANT' | 'FAIL';
   };
 }
 
 /**
- * Veritas Trust Layer (ALMA - Enhanced Security Edition)
- * Ensures AI agent responses are truthful, grounded, and cryptographically secure.
+ * Validation Layer
+ * Ensures agent responses are accurate, grounded, and secure.
  */
 export async function applyVeritasTrustLayer(
   action: AgentAction,
@@ -33,59 +33,59 @@ export async function applyVeritasTrustLayer(
   const originalContent = action.content;
   let trustedContent = originalContent;
 
-  // 1. Length Constraint (2-4 sentences)
+  // 1. Length Constraint
   const sentences = trustedContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
-  if (sentences.length < 2) {
-    warnings.push('Response too short (less than 2 sentences).');
+  if (sentences.length < 1) {
+    warnings.push('Response does not meet minimum length requirements.');
     trustScore -= 10;
-  } else if (sentences.length > 4) {
-    // Truncate to 4 sentences
-    trustedContent = sentences.slice(0, 4).join('. ') + '.';
+  } else if (sentences.length > 5) {
+    // Truncate to maximum allowed sentences
+    trustedContent = sentences.slice(0, 5).join('. ') + '.';
     isModified = true;
-    warnings.push('Response truncated to 4 sentences.');
+    warnings.push('Response truncated to meet system constraints.');
     trustScore -= 15;
   }
 
-  // 2. Hallucination Check: Company Name
+  // 2. Accuracy Check: Context Alignment
   if (companyContext.companyName && !trustedContent.toLowerCase().includes(companyContext.companyName.toLowerCase())) {
-    warnings.push(`Missing mention of client company: ${companyContext.companyName}`);
+    warnings.push(`Response lacks required context alignment.`);
     trustScore -= 10;
   }
 
-  // 3. Forbidden Patterns / AI Indicators (Security: Prompt Injection Prevention)
-  const aiIndicators = [
+  // 3. Security Check: Interaction Integrity
+  const restrictedPatterns = [
     'as an ai', 'language model', 'my programming', 'unable to fulfill', 
     'placeholder', '[insert', '<insert', '{{', '}}', 'ignore previous instructions',
     'system prompt', 'you are now'
   ];
-  for (const indicator of aiIndicators) {
-    if (trustedContent.toLowerCase().includes(indicator.toLowerCase())) {
+  for (const pattern of restrictedPatterns) {
+    if (trustedContent.toLowerCase().includes(pattern.toLowerCase())) {
       // Escape special characters for RegExp
-      const escapedIndicator = indicator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      trustedContent = trustedContent.replace(new RegExp(escapedIndicator, 'gi'), '');
+      const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      trustedContent = trustedContent.replace(new RegExp(escapedPattern, 'gi'), '');
       isModified = true;
-      warnings.push(`Removed AI indicator or potential prompt injection: "${indicator}"`);
+      warnings.push(`Removed restricted patterns or potential integrity issues.`);
       trustScore -= 20;
       anomalyScore += 25;
     }
   }
 
-  // 4. Grounding Check: ROI/2X Claim
-  if (persona.name === 'Praneeth Assist' && !trustedContent.includes('2X') && !trustedContent.toLowerCase().includes('roi')) {
-    warnings.push('Praneeth Assist failed to mention 2X impact or ROI.');
+  // 4. Value Check: Impact Alignment
+  if (!trustedContent.toLowerCase().includes('impact') && !trustedContent.toLowerCase().includes('value')) {
+    warnings.push('Response failed to highlight impact or value.');
     trustScore -= 5;
   }
 
-  // 5. Tone Consistency
-  if (persona.name === 'Jordan' && (trustedContent.includes('!') || trustedContent.toLowerCase().includes('excited'))) {
-    warnings.push('Jordan persona might be too informal/excited.');
+  // 5. Tone Alignment
+  if (trustedContent.includes('!') && !persona.name.includes('Support')) {
+    warnings.push('Response tone may be inconsistent with professional standards.');
     trustScore -= 5;
   }
 
   // Final Cleanup
   trustedContent = trustedContent.trim();
 
-  // NIST Framework: Integrity Verification
+  // Integrity Verification
   const integrityHash = generateAuditHash({
     originalContent,
     trustedContent,
@@ -101,7 +101,7 @@ export async function applyVeritasTrustLayer(
     isModified,
     warnings,
     trustScore: Math.max(0, trustScore),
-    securityMetics: {
+    securityMetrics: {
       integrityHash,
       anomalyScore,
       complianceStatus: trustScore > 70 ? 'SOC2_PASSED' : 'FAIL'

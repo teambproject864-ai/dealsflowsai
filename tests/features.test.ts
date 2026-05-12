@@ -11,7 +11,7 @@ function testFeatureStructure() {
     assert.ok(feature.description, `Feature ${feature.id} missing description`);
     assert.ok(feature.category, `Feature ${feature.id} missing category`);
     assert.ok(feature.iconName, `Feature ${feature.id} missing iconName`);
-    assert.ok(feature.version >= 1, `Feature ${feature.id} version must be at least 1`);
+    assert.ok((feature.version ?? 0) >= 1, `Feature ${feature.id} version must be at least 1`);
     assert.ok(feature.updatedAt, `Feature ${feature.id} missing updatedAt`);
     assert.ok(['active', 'beta', 'planned', 'deprecated'].includes(feature.status), `Feature ${feature.id} has invalid status: ${feature.status}`);
     assert.ok(FEATURE_CATEGORIES.includes(feature.category), `Feature ${feature.id} has invalid category: ${feature.category}`);

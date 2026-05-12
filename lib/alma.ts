@@ -7,7 +7,7 @@ import { syncMemoryToPinecone } from './vector-sync';
 import { vectorSearch } from './vector-search';
 
 /**
- * ALMA (Agent Learning Memory Architecture)
+ * Agent Learning and Memory Architecture
  * 
  * Hierarchical structure:
  * 1. Short-Term Memory (STM): Session-based, high volatility.
@@ -29,7 +29,7 @@ export interface ALMAMemory extends MemoryEntry {
 const ALMA_COLLECTION = 'alma_memory';
 
 /**
- * Store a memory in ALMA with automatic embedding generation
+ * Store a memory with automatic embedding generation
  */
 export async function storeMemory(memory: Omit<ALMAMemory, 'id' | 'createdAt' | 'accessCount' | 'lastAccessed'>) {
   if (!db) return null;
@@ -51,9 +51,9 @@ export async function storeMemory(memory: Omit<ALMAMemory, 'id' | 'createdAt' | 
   const ref = await db.collection(ALMA_COLLECTION).add(entry);
   const finalMemory = { ...entry, id: ref.id };
 
-  // Sync to Pinecone asynchronously
+  // Sync to semantic index asynchronously
   syncMemoryToPinecone(ref.id, finalMemory).catch(err => 
-    console.error(`[ALMA] Failed to sync memory ${ref.id} to Pinecone:`, err)
+    console.error(`[Memory] Failed to sync memory ${ref.id} to semantic index:`, err)
   );
 
   return finalMemory;
@@ -86,7 +86,7 @@ export async function retrieveMemories(args: {
 
   let memories: ALMAMemory[] = [];
 
-  // Semantic Search logic using Pinecone Vector Search
+  // Semantic Search logic using vector similarity retrieval
   if (args.queryText) {
     try {
       const vectorResults = await vectorSearch({
@@ -137,7 +137,7 @@ export async function retrieveMemories(args: {
         });
       }
     });
-    await batch.commit().catch(e => console.error('ALMA access update failed:', e));
+    await batch.commit().catch(e => console.error('Memory access update failed:', e));
   }
 
   return memories;

@@ -9,7 +9,13 @@ import {
   Search, 
   Filter,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2,
+  Trophy,
+  Target,
+  Rocket,
+  ShieldCheck,
+  Cpu
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +28,7 @@ import {
 } from "@/lib/features";
 import { useFeatures } from "@/lib/feature-hooks";
 import Link from "next/link";
+import { MemoryPalaceMapping } from "@/components/MemoryPalaceMapping";
 
 function FeaturesContent() {
   const { features, loading, error } = useFeatures();
@@ -62,156 +69,189 @@ function FeaturesContent() {
   }
 
   return (
-    <div className="space-y-12">
-      {/* Header Section */}
-      <header className="space-y-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-400">
-          <Sparkles className="h-3 w-3" />
+    <div className="container mx-auto px-4 py-16 space-y-24">
+      {/* Hero Section */}
+      <section className="text-center space-y-6 max-w-4xl mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-sm font-medium text-violet-400"
+        >
+          <Sparkles className="h-4 w-4" />
           <span>Product Capabilities</span>
-        </div>
-        <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Everything you need to <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-emerald-400">scale your GTM.</span>
-        </h1>
-        <p className="max-w-2xl text-lg text-muted-foreground">
-          Discover our comprehensive suite of AI agents, automation tools, and security features designed for modern sales teams.
-        </p>
-      </header>
+        </motion.div>
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-5xl font-extrabold tracking-tight text-white sm:text-7xl"
+        >
+          The Future of <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-emerald-400 to-blue-400">Autonomous Sales.</span>
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-xl text-muted-foreground max-w-2xl mx-auto"
+        >
+          Scale your Go-To-Market strategy with AI agents that analyze, engage, and close deals while you sleep.
+        </motion.p>
+      </section>
 
-      {/* Filters Section */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-sm">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-          <Input 
-            placeholder="Search features..." 
-            className="pl-10 bg-black/20 border-white/10 text-white placeholder:text-muted-foreground focus:ring-violet-500/50"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Search features"
-          />
-        </div>
-        
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat === "All" ? null : cat)}
-              aria-pressed={selectedCategory === cat || (cat === "All" && !selectedCategory)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                (selectedCategory === cat || (cat === "All" && !selectedCategory))
-                  ? "bg-violet-600 text-white shadow-lg shadow-violet-600/20"
-                  : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white border border-white/5"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Competitive Advantages */}
+      <section className="grid md:grid-cols-3 gap-8">
+        {[
+          {
+            title: "Unmatched Accuracy",
+            desc: "Our integrated validation layer ensures 99.9% factual accuracy in all AI-driven customer interactions.",
+            icon: Trophy,
+            color: "text-amber-400",
+            bg: "bg-amber-400/10"
+          },
+          {
+            title: "Infinite Scalability",
+            desc: "Deploy thousands of autonomous agents simultaneously across multiple timezones and languages.",
+            icon: Rocket,
+            color: "text-emerald-400",
+            bg: "bg-emerald-400/10"
+          },
+          {
+            title: "Data Intelligence",
+            desc: "Leverage vector-based semantic search and intelligent data integration for deep lead understanding.",
+            icon: Target,
+            color: "text-blue-400",
+            bg: "bg-blue-400/10"
+          }
+        ].map((item, i) => (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1 }}
+            className="p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-white/20 transition-colors"
+          >
+            <div className={`p-3 rounded-2xl w-fit mb-6 ${item.bg} ${item.color}`}>
+              <item.icon className="h-8 w-8" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-3">{item.title}</h3>
+            <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+          </motion.div>
+        ))}
+      </section>
 
-      {/* Grid Section */}
-      <div 
-        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-        aria-live="polite"
-        aria-busy={loading}
-      >
-        <AnimatePresence mode="popLayout">
-          {filteredFeatures.length > 0 ? (
-            filteredFeatures.map((f, i) => {
+      {/* Feature Explorer */}
+      <section className="space-y-12">
+        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between border-b border-white/10 pb-12">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold text-white">Explore our platform</h2>
+            <p className="text-muted-foreground">Discover the tools powering the next generation of sales.</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search features..." 
+                className="pl-10 w-full sm:w-[300px] bg-white/5 border-white/10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {categories.slice(0, 4).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat === "All" ? null : cat)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    (selectedCategory === cat || (cat === "All" && !selectedCategory))
+                      ? "bg-violet-600 text-white"
+                      : "bg-white/5 text-muted-foreground hover:bg-white/10"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <AnimatePresence mode="popLayout">
+            {filteredFeatures.map((f, i) => {
               const Icon = getIconComponent(f.iconName);
               return (
                 <motion.div
                   key={f.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2, delay: i * 0.05 }}
-                  role="article"
-                  aria-labelledby={`feature-title-${f.id}`}
+                  transition={{ delay: i * 0.05 }}
                 >
-                  <Card className="group h-full border-white/10 bg-white/5 hover:bg-white/[0.08] transition-all duration-300 overflow-hidden hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-500/10">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="p-3 rounded-xl bg-violet-500/10 text-violet-400 group-hover:bg-violet-500 group-hover:text-white transition-colors duration-300">
-                          <Icon className="h-6 w-6" aria-hidden="true" />
+                  <Card className="h-full bg-white/5 border-white/10 hover:bg-white/[0.08] transition-all group overflow-hidden">
+                    <CardHeader>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="p-3 rounded-xl bg-violet-500/10 text-violet-400 group-hover:bg-violet-500 group-hover:text-white transition-colors">
+                          <Icon className="h-6 w-6" />
                         </div>
-                        <div className="flex gap-2">
-                          {f.isNew && (
-                            <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                              New
-                            </Badge>
-                          )}
-                          <Badge variant="outline" className={`
-                            capitalize border-white/10
-                            ${f.status === 'active' ? 'text-emerald-400 bg-emerald-400/5' : 
-                              f.status === 'beta' ? 'text-amber-400 bg-amber-400/5' : 
-                              'text-muted-foreground bg-white/5'}
-                          `}>
-                            <span className="sr-only">Status: </span>
-                            {f.status}
-                          </Badge>
-                        </div>
+                        {f.isNew && (
+                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">New</Badge>
+                        )}
                       </div>
-                      <CardTitle 
-                        id={`feature-title-${f.id}`}
-                        className="text-xl text-white group-hover:text-violet-400 transition-colors duration-300"
-                      >
+                      <CardTitle className="text-xl text-white group-hover:text-violet-400 transition-colors">
                         {f.name}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-muted-foreground leading-relaxed text-sm">
+                      <p className="text-muted-foreground text-sm leading-relaxed">
                         {f.description}
                       </p>
-                      <div className="pt-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-violet-300/50">
-                          <span className="sr-only">Category: </span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-violet-300/50">
+                          <Cpu className="h-3 w-3" />
                           {f.category}
-                        </span>
+                        </div>
+                        {f.version && (
+                          <div className="text-[10px] font-mono text-slate-500">
+                            v{f.version}.0
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                 </motion.div>
               );
-            })
-          ) : (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="col-span-full py-20 text-center space-y-4"
-            >
-              <div className="flex justify-center">
-                <Search className="h-12 w-12 text-muted-foreground/30" />
-              </div>
-              <h3 className="text-xl font-medium text-white">No features found</h3>
-              <p className="text-muted-foreground">Try adjusting your search or filters.</p>
-              <Button 
-                variant="link" 
-                className="text-violet-400"
-                onClick={() => { setSearchQuery(""); setSelectedCategory(null); }}
-              >
-                Clear all filters
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            })}
+          </AnimatePresence>
+        </div>
+      </section>
 
-      {/* Footer CTA */}
-      <section className="mt-20 rounded-3xl border border-white/10 bg-gradient-to-br from-violet-600/20 via-transparent to-emerald-600/10 p-12 text-center backdrop-blur-sm">
-        <h2 className="text-3xl font-bold text-white mb-4">Want to see these in action?</h2>
-        <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-          Schedule a live demo to see how our AI features can transform your specific sales workflow.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button asChild size="lg" className="bg-violet-600 hover:bg-violet-700 h-14 px-10 text-lg shadow-xl shadow-violet-600/20">
-            <Link href="/book-demo">
-              Book a Free Demo
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="lg" className="h-14 px-10 border-white/10 hover:bg-white/5">
-            <Link href="/">Back to Intake</Link>
+      {/* Memory Palace Integration */}
+      <section id="memory-palace">
+        <MemoryPalaceMapping />
+      </section>
+
+      {/* Benefits Section */}
+      <section className="bg-gradient-to-b from-violet-600/20 to-transparent p-12 md:p-24 rounded-[3rem] border border-violet-500/20 text-center space-y-12">
+        <h2 className="text-4xl font-bold text-white">Why leading teams choose DealFlow.ai</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {[
+            { label: "Revenue Growth", value: "40%", desc: "Increase in sales velocity" },
+            { label: "Cost Reduction", value: "65%", desc: "Lower GTM overhead costs" },
+            { label: "Agent Response", value: "< 2s", desc: "Instant lead engagement" },
+            { label: "Data Accuracy", value: "100%", desc: "Secure & compliant analysis" }
+          ].map((stat) => (
+            <div key={stat.label} className="space-y-2">
+              <div className="text-4xl font-black text-violet-400">{stat.value}</div>
+              <div className="text-lg font-bold text-white">{stat.label}</div>
+              <div className="text-sm text-muted-foreground">{stat.desc}</div>
+            </div>
+          ))}
+        </div>
+        <div className="pt-8">
+          <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-white px-12 h-14 rounded-full text-lg font-bold">
+            Get Started for Free <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </section>
@@ -221,20 +261,14 @@ function FeaturesContent() {
 
 export default function FeaturesPage() {
   return (
-    <main className="min-h-screen bg-[#030712] selection:bg-violet-500/30">
-      <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[120px] pointer-events-none" />
-      
-      <div className="relative mx-auto max-w-7xl px-4 pt-24 pb-32 sm:px-6 lg:px-8">
-        <Suspense fallback={
-          <div className="flex min-h-[60vh] items-center justify-center">
-            <Loader2 className="h-10 w-10 animate-spin text-violet-500" />
-          </div>
-        }>
-          <FeaturesContent />
-        </Suspense>
-      </div>
-    </main>
+    <div className="min-h-screen bg-[#0a0a1a]">
+      <Suspense fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-violet-500" />
+        </div>
+      }>
+        <FeaturesContent />
+      </Suspense>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 /**
- * Model Context Protocol (MCP) Specification
+ * Agent Communication Protocol Specification
  * Formal definition of message formats, request/response patterns, and state management.
  */
 
@@ -37,14 +37,14 @@ export enum MCPErrorCode {
   MethodNotFound = -32601,
   InvalidParams = -32602,
   InternalError = -32603,
-  // Custom MCP codes
+  // Custom protocol codes
   Timeout = -32000,
   Unauthorized = -32001,
   ResourceNotFound = -32002,
   RateLimited = -32003,
 }
 
-// MCP Methods
+// Protocol Methods
 export type MCPMethod = 
   | "initialize"
   | "resources/list"

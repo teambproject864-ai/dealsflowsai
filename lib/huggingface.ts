@@ -50,11 +50,67 @@ export async function hfInferJSON(
   infer: typeof hfInfer = hfInfer
 ): Promise<any> { 
   const jsonSystem = `${systemPrompt}\n\nIMPORTANT: Respond ONLY with valid JSON. No explanation, no markdown, no backticks. Raw JSON only. Ensure no trailing commas.`; 
+  const jsonOpts: any = { temperature: 0.2, max_tokens: 1600 };
+  const jsonFixerSystem = `You fix invalid JSON. Return ONLY valid JSON. No markdown, no backticks, no explanation. Do not add commentary.`;
 
   const stripFences = (t: string) => t.replace(/```json\s*|```/gi, "").trim();
 
+  const extractBalancedJson = (t: string) => {
+    const s = t.trim();
+    const firstObj = s.indexOf("{");
+    const firstArr = s.indexOf("[");
+    if (firstObj === -1 && firstArr === -1) return null;
+    const start =
+      firstObj !== -1 && firstArr !== -1 ? Math.min(firstObj, firstArr) : (firstObj !== -1 ? firstObj : firstArr);
+    const open = s[start];
+    const close = open === "{" ? "}" : "]";
+    const stack: string[] = [];
+    let inString = false;
+    let escape = false;
+
+    for (let i = start; i < s.length; i++) {
+      const ch = s[i];
+      if (inString) {
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (ch === "\\") {
+          escape = true;
+          continue;
+        }
+        if (ch === '"') inString = false;
+        continue;
+      }
+
+      if (ch === '"') {
+        inString = true;
+        continue;
+      }
+
+      if (ch === "{" || ch === "[") {
+        stack.push(ch);
+        continue;
+      }
+
+      if (ch === "}" || ch === "]") {
+        const last = stack[stack.length - 1];
+        if ((ch === "}" && last === "{") || (ch === "]" && last === "[")) {
+          stack.pop();
+          if (stack.length === 0 && ch === close) {
+            return s.slice(start, i + 1);
+          }
+        }
+      }
+    }
+
+    return null;
+  };
+
   const extractJsonCandidate = (t: string) => {
     const s = t.trim();
+    const balanced = extractBalancedJson(s);
+    if (balanced) return balanced;
     const firstObj = s.indexOf("{");
     const lastObj = s.lastIndexOf("}");
     const firstArr = s.indexOf("[");
@@ -94,16 +150,21 @@ export async function hfInferJSON(
 
   let raw1 = "";
   try {
-    raw1 = await infer(prompt, jsonSystem);
+    raw1 = await infer(prompt, jsonSystem, jsonOpts);
     return parseLenient(raw1);
-  } catch {
+  } catch (e1) {
     const candidate = repairJson(extractJsonCandidate(stripFences(String(raw1 || ""))));
     const clipped = candidate.length > 6000 ? candidate.slice(0, 6000) : candidate;
-    const repairPrompt = clipped
-      ? `The following is intended to be JSON but is invalid:\n${clipped}\n\nReturn corrected JSON only.`
-      : `Return the JSON again, ensuring it is strictly valid JSON (no trailing commas).`;
-    const raw2 = await infer(`${prompt}\n\n${repairPrompt}`, jsonSystem, { temperature: 0.2 });
-    return parseLenient(raw2);
+    try {
+      const repairPrompt = clipped
+        ? `Fix this invalid JSON and return corrected JSON only:\n${clipped}`
+        : `Return the JSON again, ensuring it is strictly valid JSON (no trailing commas).`;
+      const raw2 = await infer(repairPrompt, jsonFixerSystem, { temperature: 0, max_tokens: 1600 });
+      return parseLenient(raw2);
+    } catch (e2) {
+      const raw3 = await infer(prompt, jsonSystem, { temperature: 0, max_tokens: 1800 });
+      return parseLenient(raw3);
+    }
   }
 } 
 

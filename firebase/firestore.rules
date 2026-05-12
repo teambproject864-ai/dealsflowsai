@@ -1,26 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if user is authenticated
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Helper function to check if user is accessing their own data
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    // Leads are written only from Next.js API routes via the Admin SDK.
-    // Lock down client access; adjust if you add a client-side Firebase app.
+    // Leads are public read-only for now as auth is removed.
+    // In production, you would use API keys or other server-side checks.
     match /leads/{leadId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if false; // Only via Admin SDK
     }
 
     // ALMA Memories
     match /alma_memory/{memoryId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if false; // Only via Admin SDK
     }
 
@@ -30,10 +20,9 @@ service cloud.firestore {
       allow write: if false; // Only via Admin SDK/API
     }
 
-    // User profiles
+    // User profiles - Removed as auth is removed
     match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow write: if isOwner(userId);
+      allow read, write: if false;
     }
 
     match /{document=**} {

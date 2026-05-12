@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { isValidMeetingUrl } from "@/lib/meeting-utils";
 
 function SetupContent() {
   const searchParams = useSearchParams();
@@ -23,6 +24,7 @@ function SetupContent() {
   const [meetingUrl, setMeetingUrl] = useState("");
   const [isActivating, setIsActivating] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [urlError, setUrlError] = useState("");
 
   useEffect(() => {
     if (!callId) return;
@@ -47,10 +49,14 @@ function SetupContent() {
   }, [callId]);
 
   const handleActivate = async () => {
-    if (!meetingUrl) return alert("Please enter a meeting URL");
+    if (!meetingUrl) return setUrlError("Please enter a meeting URL");
+    if (!isValidMeetingUrl(meetingUrl)) return setUrlError("Please enter a valid URL (e.g. https://zoom.us/...)");
+    
     setIsActivating(true);
+    setUrlError("");
 
     try {
+      // 1. Create the meeting bot
       const createRes = await fetch("/api/meeting/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,6 +65,18 @@ function SetupContent() {
 
       if (!createRes.ok) throw new Error("Failed to create meeting bot");
 
+      // 2. Send internal notification about activation
+      await fetch("/api/notifications/meeting-activated", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          callId, 
+          meetingUrl, 
+          persona: selectedPersona 
+        }),
+      });
+
+      // 3. Send pre-call notification to the lead
       await fetch("/api/notifications/pre-call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -146,9 +164,18 @@ function SetupContent() {
                 <Input
                   placeholder="https://meet.google.com/abc-defg-hij"
                   value={meetingUrl}
-                  onChange={(e) => setMeetingUrl(e.target.value)}
-                  className="h-12"
+                  onChange={(e) => {
+                    setMeetingUrl(e.target.value);
+                    if (urlError) setUrlError("");
+                  }}
+                  className={`h-12 ${urlError ? "border-red-500" : ""}`}
                 />
+                {urlError && (
+                  <p className="text-xs text-red-500 flex items-center">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    {urlError}
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   Your AI agent will join this link 1-2 minutes after activation.
                 </p>

@@ -15,6 +15,8 @@ import {
   testRagParseTxt,
   testRagSearchMappingWithStubs,
 } from "@/tests/rag.test";
+import { run3DInitTests } from "@/tests/solutions-3d.test";
+import { runICPTests } from "@/tests/icp.test";
 
 async function testIcsParsing() {
   const raw = [
@@ -158,6 +160,17 @@ async function testHfInferJsonLenientTrailingCommas() {
   assert.deepEqual(out, { a: [1, 2], b: { c: 3 } });
 }
 
+async function testHfInferJsonExtractsBalancedJsonFromText() {
+  const out = (await hfInferJSON(
+    "p",
+    "s",
+    async () =>
+      "Sure — here you go:\n\n```json\n{\n  \"a\": [\n    {\"x\": 1},\n    {\"y\": 2}\n  ]\n}\n```\n\nThanks!"
+  )) as any;
+
+  assert.deepEqual(out, { a: [{ x: 1 }, { y: 2 }] });
+}
+
 async function testCreateCallSchemaAllowsMissingAnalysisId() {
   const parsed = createCallSchema.parse({
     leadId: "lead_123",
@@ -209,6 +222,7 @@ async function main() {
     testBotHealthStatusClassifier,
     testDailySchedulerIST7PM,
     testHfInferJsonLenientTrailingCommas,
+    testHfInferJsonExtractsBalancedJsonFromText,
     testCreateCallSchemaAllowsMissingAnalysisId,
     testNoShowDetection,
     testTemplateInterpolationAndRedaction,
@@ -219,6 +233,8 @@ async function main() {
     testRagAnswerUsesStubInfer,
     testRagAnswerUsesNvidiaProviderWithStubbedFetch,
     testNvidiaChatCompletionStreamParsesTokens,
+    run3DInitTests,
+    runICPTests,
   ];
 
   for (const t of tests) {

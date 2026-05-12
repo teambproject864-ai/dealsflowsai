@@ -26,7 +26,7 @@ export class MCPClient {
   }
 
   /**
-   * Initializes the connection with the MCP server.
+   * Initializes the connection with the protocol server.
    */
   public async initialize(clientName: string, clientVersion: string): Promise<InitializeResult> {
     const params: InitializeParams = {

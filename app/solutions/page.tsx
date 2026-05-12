@@ -1,118 +1,63 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { SolutionCards, HowDealflowWorks } from "@/components/SolutionCards";
+import { Suspense } from "react";
+import { ThreeScene } from "@/components/solutions-3d/ThreeScene";
+import { useSystemInitialization } from "@/components/solutions-3d/useSystemInitialization";
+import { Loader2, AlertTriangle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles, ArrowRight } from "lucide-react";
-import type { AnalysisResult } from "@/lib/types";
-
-function SolutionsContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const analysisId = searchParams.get("analysisId");
-  
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!analysisId) {
-      router.replace("/");
-      return;
-    }
-
-    async function fetchAnalysis() {
-      try {
-        // We need an API to fetch analysis by ID. Let's assume we'll create one.
-        const res = await fetch(`/api/analysis/${analysisId}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to fetch analysis");
-        setAnalysis(data);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Something went wrong");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchAnalysis();
-  }, [analysisId, router]);
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-        <Loader2 className="h-10 w-10 animate-spin text-violet-500" />
-        <p className="mt-4 text-muted-foreground">Loading your tailored solutions...</p>
-      </div>
-    );
-  }
-
-  if (error || !analysis) {
-    return (
-      <div className="mx-auto max-w-lg py-20 text-center">
-        <h2 className="text-xl font-semibold text-white">Something went wrong</h2>
-        <p className="mt-2 text-muted-foreground">{error}</p>
-        <Button asChild variant="outline" className="mt-6">
-          <Link href="/">Back to intake</Link>
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-12">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-          Your Dealflow.ai Roadmap
-        </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Tailored solutions mapped to your company&apos;s unique challenges.
-        </p>
-      </header>
-
-      <div className="space-y-16">
-        <section>
-          <div className="mb-8 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-violet-400" />
-            <h2 className="text-xl font-semibold text-white">Tailored Solutions & Expected Results</h2>
-          </div>
-          <SolutionCards solutions={analysis.solutions} />
-        </section>
-
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-8 md:p-12">
-          <HowDealflowWorks companyName={analysis.companyName || "your company"} />
-        </section>
-
-        <div className="flex flex-col items-center justify-center gap-6 py-10">
-          <h2 className="text-2xl font-bold text-white text-center">
-            Ready to accelerate your growth?
-          </h2>
-          <Button asChild size="lg" className="bg-violet-600 hover:bg-violet-700 h-14 px-10 text-lg">
-            <Link href={`/book-demo?analysisId=${analysisId}`}>
-              Book Your Free Demo Call
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function SolutionsPage() {
-  return (
-    <main className="min-h-screen pb-20">
-      <div className="mx-auto max-w-6xl px-4 pt-16 sm:pt-24">
-        <Suspense fallback={
-          <div className="flex min-h-[60vh] items-center justify-center">
-            <Loader2 className="h-10 w-10 animate-spin text-violet-500" />
+  const { data, loading, error, retry } = useSystemInitialization();
+
+  if (error) {
+    return (
+      <main className="fixed inset-0 flex items-center justify-center bg-slate-950 p-6">
+        <div className="max-w-md w-full bg-slate-900 border border-red-500/30 rounded-2xl p-8 text-center shadow-2xl">
+          <div className="flex justify-center mb-6">
+            <div className="p-4 rounded-full bg-red-500/10">
+              <AlertTriangle className="h-10 w-10 text-red-500" />
+            </div>
           </div>
-        }>
-          <SolutionsContent />
-        </Suspense>
-      </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Initialization Failed</h2>
+          <p className="text-slate-400 mb-8 leading-relaxed">
+            The immersive environment could not be established. This might be due to a connection issue or system latency.
+          </p>
+          <div className="bg-black/40 p-3 rounded font-mono text-xs text-red-400 mb-8 text-left border border-red-500/10">
+            Error: {error}
+          </div>
+          <Button onClick={retry} className="w-full bg-violet-600 hover:bg-violet-700 h-12 gap-2">
+            <RefreshCcw className="h-4 w-4" />
+            Retry Connection
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
+  if (loading || !data) {
+    return (
+      <main className="fixed inset-0 flex items-center justify-center bg-slate-950">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full bg-violet-500/20 blur-xl animate-pulse" />
+            <Loader2 className="h-16 w-16 animate-spin text-violet-500 relative z-10" />
+          </div>
+          <div className="text-center">
+            <p className="text-violet-400 font-mono tracking-[0.3em] uppercase text-sm animate-pulse mb-1">
+              Establishing Neural Link
+            </p>
+            <p className="text-slate-500 text-[10px] uppercase tracking-widest">
+              Initializing Immersive Environment...
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="fixed inset-0 overflow-hidden bg-slate-950">
+      <ThreeScene data={data} />
     </main>
   );
 }

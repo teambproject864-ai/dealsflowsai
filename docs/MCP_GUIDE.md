@@ -1,62 +1,36 @@
-# Model Context Protocol (MCP) Implementation Guide
+# Agent Communication Protocol
 
-DealFlow.ai uses a structured Model Context Protocol (MCP) to enable secure and efficient communication between AI agents (like ALMA) and the execution environment.
+This platform uses a structured communication protocol to enable secure and efficient interaction between autonomous logic agents and the execution environment.
 
-## Architecture
+## System Architecture
 
-The MCP implementation is divided into four main layers:
+The communication framework is divided into five functional layers:
 
-1.  **Protocol Layer** ([protocol.ts](file:///d:/DealFlow.ai/lib/mcp/protocol.ts)): Defines the JSON-RPC 2.0 message formats, error codes, and MCP-specific methods (tools, resources, prompts).
-2.  **Server Layer** ([server.ts](file:///d:/DealFlow.ai/lib/mcp/server.ts)): Handles request routing, tool registration, and resource management.
-3.  **Client Layer** ([client.ts](file:///d:/DealFlow.ai/lib/mcp/client.ts)): Provides a high-level API for agents to interact with the server.
-4.  **Security Layer** ([security.ts](file:///d:/DealFlow.ai/lib/mcp/security.ts)): Manages authentication and authorization for tool/resource access.
-5.  **Performance Layer** ([performance.ts](file:///d:/DealFlow.ai/lib/mcp/performance.ts)): Implements request batching and resource caching.
+1.  **Standardization Layer**: Defines the communication formats, status codes, and methods.
+2.  **Routing Layer**: Handles request orchestration, capability registration, and resource management.
+3.  **Interaction Layer**: Provides a high-level interface for agents to engage with the environment.
+4.  **Security Layer**: Manages access control and authorization for all interactions.
+5.  **Efficiency Layer**: Implements optimizations such as request batching and data caching.
 
-## Usage
+## Operational Usage
 
-### 1. Setting up a Server
+### 1. Capability Registration
 
-```typescript
-import { MCPServer } from "./lib/mcp/server";
+The system allows for the registration of functional capabilities that agents can invoke. Each capability includes a description and a defined input structure.
 
-const server = new MCPServer("MyAgentServer", "1.0.0");
+### 2. Agent Initialization
 
-// Register a Tool
-server.registerTool({
-  name: "get_weather",
-  description: "Get current weather",
-  inputSchema: { ... }
-}, async (args) => {
-  return { content: [{ type: "text", text: "Sunny" }] };
-});
-```
-
-### 2. Using the Client
-
-```typescript
-import { MCPClient, LocalTransport } from "./lib/mcp/client";
-
-const client = new MCPClient(new LocalTransport(server));
-await client.initialize("MyAgent", "1.0.0");
-
-const result = await client.callTool("get_weather", { city: "San Francisco" });
-console.log(result.content[0].text);
-```
+Agents must initialize their connection to the environment, exchanging capabilities and establishing a secure session before executing any actions.
 
 ## Protocol Specifications
 
-- **JSON-RPC Version**: 2.0
-- **Base Methods**:
-    - `initialize`: Establish connection and exchange capabilities.
-    - `tools/list`: Retrieve available tools.
-    - `tools/call`: Execute a tool with arguments.
-    - `resources/list`: Retrieve available resources.
-    - `resources/read`: Read content from a URI.
+- **Message Format**: Follows standard structured request-response patterns.
+- **Core Methods**:
+    - Initialization: Establish connection and capability exchange.
+    - Capability Discovery: Retrieve available actions and tools.
+    - Action Execution: Invoke specific logic with provided parameters.
+    - Resource Access: Retrieve and process information from authorized sources.
 
-## Testing
+## Quality Assurance
 
-Run the compliance suite to verify your implementation:
-
-```bash
-npx tsx tests/mcp-compliance.test.ts
-```
+Integrated compliance suites are available to verify protocol adherence and system integrity across the environment.

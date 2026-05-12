@@ -1,4 +1,4 @@
-// lib/features.ts
+// Feature management and capability definitions
 import { 
   Zap, 
   Shield, 
@@ -28,19 +28,19 @@ export interface Feature {
   iconName: string;
   status: FeatureStatus;
   isNew?: boolean;
-  version: number;
   updatedAt: string;
-  deployedBy?: string;
-  deploymentNotes?: string;
+  version?: number;
 }
 
 export interface DeploymentEvent {
   id: string;
   featureId: string;
-  version: number;
+  type: 'deploy' | 'rollback' | 'patch';
+  status: 'success' | 'failure' | 'in-progress';
   timestamp: string;
+  version: number;
   author: string;
-  changes: string;
+  changes?: string;
 }
 
 export const FEATURE_CATEGORIES = [
@@ -64,8 +64,8 @@ export const APP_FEATURES: Feature[] = [
     category: "Core Platform",
     iconName: "Workflow",
     status: "active",
-    version: 1,
-    updatedAt: "2024-04-28T00:00:00Z"
+    updatedAt: "2024-04-28T00:00:00Z",
+    version: 1
   },
   {
     id: "pipeline-view",
@@ -74,8 +74,8 @@ export const APP_FEATURES: Feature[] = [
     category: "Core Platform",
     iconName: "Layers",
     status: "active",
-    version: 1,
-    updatedAt: "2024-04-28T00:00:00Z"
+    updatedAt: "2024-04-28T00:00:00Z",
+    version: 1
   },
   
   // AI & Automation
@@ -87,8 +87,8 @@ export const APP_FEATURES: Feature[] = [
     iconName: "Zap",
     status: "active",
     isNew: true,
-    version: 1,
-    updatedAt: "2024-04-28T00:00:00Z"
+    updatedAt: "2024-04-28T00:00:00Z",
+    version: 1
   },
   {
     id: "agent-brain",
@@ -97,18 +97,18 @@ export const APP_FEATURES: Feature[] = [
     category: "AI & Automation",
     iconName: "Bot",
     status: "active",
-    version: 1,
-    updatedAt: "2024-04-28T00:00:00Z"
+    updatedAt: "2024-04-28T00:00:00Z",
+    version: 1
   },
   {
     id: "veritas-trust",
-    name: "Veritas Trust Layer",
+    name: "Agent Validation Layer",
     description: "Security-first AI validation ensuring truthfulness, persona compliance, and length constraints.",
     category: "AI & Automation",
     iconName: "Shield",
     status: "active",
-    version: 1,
-    updatedAt: "2024-04-28T00:00:00Z"
+    updatedAt: "2024-04-28T00:00:00Z",
+    version: 1
   },
   
   // Outreach & Communication
@@ -119,7 +119,6 @@ export const APP_FEATURES: Feature[] = [
     category: "Outreach & Communication",
     iconName: "Phone",
     status: "active",
-    version: 1,
     updatedAt: "2024-04-28T00:00:00Z"
   },
   {
@@ -129,7 +128,6 @@ export const APP_FEATURES: Feature[] = [
     category: "Outreach & Communication",
     iconName: "Mail",
     status: "active",
-    version: 1,
     updatedAt: "2024-04-28T00:00:00Z"
   },
   {
@@ -139,7 +137,6 @@ export const APP_FEATURES: Feature[] = [
     category: "Outreach & Communication",
     iconName: "MessageSquare",
     status: "beta",
-    version: 1,
     updatedAt: "2024-04-28T00:00:00Z"
   },
   
@@ -151,7 +148,6 @@ export const APP_FEATURES: Feature[] = [
     category: "Analytics & Reporting",
     iconName: "TrendingUp",
     status: "active",
-    version: 1,
     updatedAt: "2024-04-28T00:00:00Z"
   },
   {
@@ -161,7 +157,6 @@ export const APP_FEATURES: Feature[] = [
     category: "Analytics & Reporting",
     iconName: "BarChart",
     status: "active",
-    version: 1,
     updatedAt: "2024-04-28T00:00:00Z"
   },
   
@@ -173,7 +168,6 @@ export const APP_FEATURES: Feature[] = [
     category: "Security & Compliance",
     iconName: "Lock",
     status: "active",
-    version: 1,
     updatedAt: "2024-04-28T00:00:00Z"
   },
   {
@@ -183,7 +177,6 @@ export const APP_FEATURES: Feature[] = [
     category: "Security & Compliance",
     iconName: "Shield",
     status: "active",
-    version: 1,
     updatedAt: "2024-04-28T00:00:00Z"
   },
   
@@ -195,7 +188,6 @@ export const APP_FEATURES: Feature[] = [
     category: "Integrations",
     iconName: "Workflow",
     status: "active",
-    version: 1,
     updatedAt: "2024-04-28T00:00:00Z"
   },
   {
@@ -205,8 +197,45 @@ export const APP_FEATURES: Feature[] = [
     category: "Integrations",
     iconName: "Calendar",
     status: "active",
-    version: 1,
     updatedAt: "2024-04-28T00:00:00Z"
+  },
+  {
+    id: "pinecone-search",
+    name: "Vector-Based Semantic Search",
+    description: "Leverage semantic indexing to find similar leads, behavior patterns, and relevant historical context instantly.",
+    category: "AI & Automation",
+    iconName: "Search",
+    status: "active",
+    isNew: true,
+    updatedAt: "2024-05-01T00:00:00Z"
+  },
+  {
+    id: "autonomous-scheduler",
+    name: "Autonomous Meeting Scheduler",
+    description: "AI agents that proactively book meetings on your calendar based on lead intent and availability.",
+    category: "Integrations",
+    iconName: "Calendar",
+    status: "active",
+    updatedAt: "2024-05-01T00:00:00Z"
+  },
+  {
+    id: "realtime-notifications",
+    name: "Real-time Event Streams",
+    description: "Get notified instantly when a lead engages, a call ends, or a new analysis is ready.",
+    category: "Core Platform",
+    iconName: "Bell",
+    status: "active",
+    updatedAt: "2024-05-01T00:00:00Z"
+  },
+  {
+    id: "memory-palace",
+    name: "AI Memory Palace",
+    description: "A functional mapping of platform capabilities and system intelligence, focusing on operational outcomes.",
+    category: "AI & Automation",
+    iconName: "Layers",
+    status: "active",
+    isNew: true,
+    updatedAt: "2024-05-03T00:00:00Z"
   }
 ];
 
