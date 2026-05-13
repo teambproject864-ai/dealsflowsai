@@ -1,7 +1,7 @@
 import { hfInfer, hfInferJSON } from './huggingface';
 import { nvInfer, nvInferJSON } from './nvidia';
 
-const AI_PROVIDER = process.env.AI_PROVIDER || 'huggingface';
+const AI_PROVIDER = process.env.AI_PROVIDER || 'nvidia';
 
 /**
  * Performs AI inference using the configured provider.
@@ -12,7 +12,12 @@ export async function performInference(
   options: any = {}
 ): Promise<string> {
   if (AI_PROVIDER === 'nvidia') {
-    return await nvInfer(prompt, systemPrompt, options);
+    try {
+      return await nvInfer(prompt, systemPrompt, options);
+    } catch (error) {
+      console.error("Nvidia inference failed, falling back to Hugging Face:", error);
+      return await hfInfer(prompt, systemPrompt, options);
+    }
   }
   return await hfInfer(prompt, systemPrompt, options);
 }
@@ -26,7 +31,12 @@ export async function performInferenceJSON(
   options: any = {}
 ): Promise<any> {
   if (AI_PROVIDER === 'nvidia') {
-    return await nvInferJSON(prompt, systemPrompt, options);
+    try {
+      return await nvInferJSON(prompt, systemPrompt, options);
+    } catch (error) {
+      console.error("Nvidia JSON inference failed, falling back to Hugging Face:", error);
+      return await hfInferJSON(prompt, systemPrompt);
+    }
   }
   return await hfInferJSON(prompt, systemPrompt);
 }

@@ -137,8 +137,18 @@ export function IntakeForm() {
       });
       const result = await res.json();
       if (result.leadId) {
-        saveLeadContext(full.data, null);
-        router.push(`/analysis?leadId=${result.leadId}`);
+        const analyzeRes = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            leadId: result.leadId, 
+            companyData: full.data 
+          }),
+        });
+        const analyzeResult = await analyzeRes.json();
+        
+        saveLeadContext(full.data, analyzeResult);
+        router.push(`/?leadId=${result.leadId}`);
       }
     } catch (error) {
       console.error("Error saving lead:", error);

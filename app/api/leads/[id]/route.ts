@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/firebase-admin";
+import { getInMemoryLeads } from "@/lib/memory-storage";
+
+const inMemoryLeads = getInMemoryLeads();
 
 export async function GET(
   req: Request,
@@ -7,9 +9,9 @@ export async function GET(
 ) {
   try {
     const leadId = params.id;
-    const leadDoc = await db.collection("leads").doc(leadId).get();
+    const lead = inMemoryLeads.get(leadId);
 
-    if (!leadDoc.exists) {
+    if (!lead) {
       return NextResponse.json(
         { success: false, error: "Lead not found" },
         { status: 404 }
@@ -18,8 +20,8 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      leadId: leadDoc.id,
-      ...leadDoc.data(),
+      leadId,
+      ...lead,
     });
   } catch (error) {
     console.error("Error fetching lead:", error);
@@ -29,3 +31,4 @@ export async function GET(
     );
   }
 }
+

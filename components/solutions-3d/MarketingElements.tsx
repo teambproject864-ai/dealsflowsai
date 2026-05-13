@@ -36,7 +36,7 @@ export function MarketingElements({ position }: { position: [number, number, num
       {/* Testimonial Panels */}
       <DataPanel position={[4, 1.5, 0]} title="CUSTOMER SUCCESS" width="300px">
         <div className="italic text-slate-300 mb-2">
-          "The autonomous logic layer completely transformed our scalability. We're processing 5x more information with near-zero latency."
+          The autonomous logic layer completely transformed our scalability. We are processing 5x more information with near-zero latency.
         </div>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-500 to-fuchsia-500" />

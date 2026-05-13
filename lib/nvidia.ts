@@ -11,11 +11,14 @@ function envStr(name: string) {
 
 function getClient() {
   const apiKey = envStr("NVIDIA_API_KEY");
-  if (!apiKey) throw new Error("NVIDIA_API_KEY is missing");
+  if (!apiKey) {
+    throw new Error("NVIDIA_API_KEY is missing. Please configure it in your environment variables.");
+  }
   
   return new OpenAI({
     baseURL: "https://integrate.api.nvidia.com/v1",
     apiKey: apiKey,
+    dangerouslyAllowBrowser: false,
   });
 }
 
@@ -24,24 +27,37 @@ export async function nvInfer(
   systemPrompt: string,
   options: any = {}
 ): Promise<string> {
+  if (!prompt?.trim()) {
+    throw new Error("Prompt is required for Nvidia inference");
+  }
+
   const client = getClient();
   
-  const completion = await client.chat.completions.create({
-    model: options.model || DEFAULT_MODEL,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: prompt },
-    ],
-    temperature: options.temperature ?? 1,
-    top_p: options.top_p ?? 0.95,
-    max_tokens: options.max_tokens ?? 16384,
-    extra_body: {
-      chat_template_kwargs: { thinking: false },
-      ...options.extra_body
-    },
-  } as any);
+  try {
+    const completion = await client.chat.completions.create({
+      model: options.model || DEFAULT_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt || "You are a helpful AI assistant." },
+        { role: "user", content: prompt },
+      ],
+      temperature: options.temperature ?? 1,
+      top_p: options.top_p ?? 0.95,
+      max_tokens: options.max_tokens ?? 16384,
+      extra_body: {
+        chat_template_kwargs: { thinking: false },
+        ...options.extra_body
+      },
+    } as any);
 
-  return completion.choices[0]?.message?.content || "";
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("Empty response from Nvidia API");
+    }
+    return content;
+  } catch (error: any) {
+    console.error("[nvidia.ts] nvInfer failed:", error);
+    throw new Error(`Nvidia API error: ${error.message || "Unknown error"}`);
+  }
 }
 
 export async function nvInferJSON(
@@ -52,7 +68,7 @@ export async function nvInferJSON(
   const jsonSystem = `${systemPrompt}\n\nIMPORTANT: Respond ONLY with valid JSON. No explanation, no markdown, no backticks. Raw JSON only. Ensure no trailing commas.`;
   const result = await nvInfer(prompt, jsonSystem, {
     ...options,
-    temperature: 0.2, // Lower temperature for JSON reliability
+    temperature: 0.2,
   });
 
   const stripFences = (t: string) => t.replace(/```json\s*|```/gi, "").trim();
@@ -61,8 +77,8 @@ export async function nvInferJSON(
   try {
     return JSON.parse(cleaned);
   } catch (err) {
-    console.error("Failed to parse Nvidia JSON response:", err);
-    console.log("Raw response:", result);
+    console.error("[nvidia.ts] Failed to parse JSON response:", err);
+    console.log("[nvidia.ts] Raw response:", result);
     throw new Error("Invalid JSON response from Nvidia API");
   }
 }
@@ -82,19 +98,24 @@ export async function nvChatCompletion(args: {
 }): Promise<string> {
   const client = getClient();
 
-  const completion = await client.chat.completions.create({
-    model: args.model || DEFAULT_MODEL,
-    messages: args.messages as any,
-    max_tokens: args.maxTokens ?? 1024,
-    temperature: args.temperature ?? 0.2,
-    top_p: args.topP ?? 0.95,
-    stream: false,
-    extra_body: {
-      chat_template_kwargs: { thinking: false }
-    }
-  } as any);
+  try {
+    const completion = await client.chat.completions.create({
+      model: args.model || DEFAULT_MODEL,
+      messages: args.messages as any,
+      max_tokens: args.maxTokens ?? 1024,
+      temperature: args.temperature ?? 0.2,
+      top_p: args.topP ?? 0.95,
+      stream: false,
+      extra_body: {
+        chat_template_kwargs: { thinking: false }
+      }
+    } as any);
 
-  return completion.choices[0]?.message?.content || "";
+    return completion.choices[0]?.message?.content || "";
+  } catch (error: any) {
+    console.error("[nvidia.ts] nvChatCompletion failed:", error);
+    throw new Error(`Nvidia chat completion error: ${error.message}`);
+  }
 }
 
 export async function* nvChatCompletionStream(args: {
@@ -108,22 +129,28 @@ export async function* nvChatCompletionStream(args: {
 }): AsyncGenerator<string> {
   const client = getClient();
 
-  const stream = await client.chat.completions.create({
-    model: args.model || DEFAULT_MODEL,
-    messages: args.messages as any,
-    max_tokens: args.maxTokens ?? 1024,
-    temperature: args.temperature ?? 0.2,
-    top_p: args.topP ?? 0.95,
-    stream: true,
-    extra_body: {
-      chat_template_kwargs: { thinking: false }
-    }
-  } as any);
+  try {
+    const stream = await client.chat.completions.create({
+      model: args.model || DEFAULT_MODEL,
+      messages: args.messages as any,
+      max_tokens: args.maxTokens ?? 1024,
+      temperature: args.temperature ?? 0.2,
+      top_p: args.topP ?? 0.95,
+      stream: true,
+      extra_body: {
+        chat_template_kwargs: { thinking: false }
+      }
+    } as any);
 
-  for await (const chunk of (stream as any)) {
-    const content = chunk.choices[0]?.delta?.content;
-    if (content) {
-      yield content;
+    for await (const chunk of (stream as any)) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        yield content;
+      }
     }
+  } catch (error: any) {
+    console.error("[nvidia.ts] nvChatCompletionStream failed:", error);
+    throw new Error(`Nvidia stream error: ${error.message}`);
   }
 }
+

@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { AIChatAssistant } from "@/components/AIChatAssistant";
+import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -41,6 +43,8 @@ export default function RootLayout({
         </div>
 
         <Footer />
+        <AIChatAssistant />
+        <ExitIntentPopup />
       </body>
     </html>
   );
