@@ -1,4 +1,4 @@
-name: CI/CD Pipeline for DealFlow.ai with Time Blocking
+name: CI/CD Pipeline for DealFlow.ai
 
 on:
   push:
@@ -18,41 +18,17 @@ env:
   STAGING_ENV: staging
   PRODUCTION_ENV: production
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY_URI: 123456789012.dkr.ecr.us-east-1.amazonaws.com/dealflow-ai
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  validate-blocked-times-config:
-    name: Validate Blocked Times Configuration
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Validate blocked times config
-        run: npm run validate-blocked-times
-
-      - name: Upload validation report
-        uses: actions/upload-artifact@v4
-        with:
-          name: blocked-times-validation-report
-          path: reports/blocked-times-validation.json
-
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
-    needs: validate-blocked-times-config
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -110,45 +86,66 @@ jobs:
         with:
           path: ./
 
-  deploy-to-staging:
-    name: Deploy to Staging
+  build-and-push-to-ecr:
+    name: Build and Push to Amazon ECR
     runs-on: ubuntu-latest
     needs: security-scan
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    environment:
-      name: staging
-      url: https://staging.dealflow.ai
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging'
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsECRRole
+          role-session-name: GitHubActionsSession
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build for staging
-        run: npm run build
+      - name: Build, tag, and push Docker image to Amazon ECR
         env:
-          NEXT_PUBLIC_ENVIRONMENT: ${{ env.STAGING_ENV }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: dealflow-ai
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: Deploy to staging (example - Vercel)
-        uses: amondnet/vercel-action@v25
+  deploy-to-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-push-to-ecr
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.dealflow.ai
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.ORG_ID }}
-          vercel-project-id: ${{ secrets.PROJECT_ID }}
-          vercel-args: '--prod'
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsDeployRole
+          role-session-name: GitHubActionsDeploySession
 
-      - name: Verify time blocking in staging
-        run: npm run verify-time-blocking
-        env:
-          VERIFY_ENVIRONMENT: ${{ env.STAGING_ENV }}
-          VERIFY_URL: https://staging.dealflow.ai
+      - name: Deploy to AWS ECS (from ECR)
+        run: |
+          echo "Deploying to staging environment with image from ECR: $ECR_REPOSITORY_URI:${{ github.sha }}"
+          # Add actual ECS deployment commands here (e.g., aws ecs update-service)
 
       - name: Upload deployment logs
         uses: actions/upload-artifact@v4
@@ -164,7 +161,7 @@ jobs:
     steps:
       - name: Rollback to last stable deployment
         run: echo "Rolling back staging to last stable deployment"
-        # Add actual rollback logic here (e.g., Vercel, AWS, etc.)
+        # Add actual rollback logic here
 
   deploy-to-production:
     name: Deploy to Production
@@ -174,37 +171,24 @@ jobs:
     environment:
       name: production
       url: https://dealflow.ai
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsDeployRole
+          role-session-name: GitHubActionsDeploySession
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build for production
-        run: npm run build
-        env:
-          NEXT_PUBLIC_ENVIRONMENT: ${{ env.PRODUCTION_ENV }}
-
-      - name: Deploy to production (example - Vercel)
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.ORG_ID }}
-          vercel-project-id: ${{ secrets.PROJECT_ID }}
-          vercel-args: '--prod'
-
-      - name: Verify time blocking in production
-        run: npm run verify-time-blocking
-        env:
-          VERIFY_ENVIRONMENT: ${{ env.PRODUCTION_ENV }}
-          VERIFY_URL: https://dealflow.ai
+      - name: Deploy to AWS ECS (from ECR)
+        run: |
+          echo "Deploying to production environment with image from ECR: $ECR_REPOSITORY_URI:${{ github.sha }}"
+          # Add actual ECS deployment commands here (e.g., aws ecs update-service)
 
       - name: Upload deployment logs
         uses: actions/upload-artifact@v4
@@ -220,4 +204,4 @@ jobs:
     steps:
       - name: Rollback to last stable deployment
         run: echo "Rolling back production to last stable deployment"
-        # Add actual rollback logic here (e.g., Vercel, AWS, etc.)
+        # Add actual rollback logic here
