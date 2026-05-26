@@ -14,9 +14,10 @@ on:
         default: false
 
 env:
-  NODE_VERSION: 20.x
+  NODE_VERSION: 24.x
   STAGING_ENV: staging
   PRODUCTION_ENV: production
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
   contents: read
