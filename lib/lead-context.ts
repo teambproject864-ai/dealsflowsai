@@ -10,9 +10,10 @@ export function saveLeadContext(form: IntakeFormData, analysis: AnalysisResult |
     form,
     analysis,
     updatedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
   };
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch {
     // ignore quota / private mode
   }
@@ -21,7 +22,7 @@ export function saveLeadContext(form: IntakeFormData, analysis: AnalysisResult |
 export function loadLeadContext(): StoredLeadContext | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as StoredLeadContext;
   } catch {
@@ -31,7 +32,7 @@ export function loadLeadContext(): StoredLeadContext | null {
 
 export function clearLeadContext() {
   try {
-    sessionStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
   } catch {
     // ignore
   }

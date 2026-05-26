@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, AlertCircle, Calendar } from "lucide-react";
 import { isValidMeetingUrl } from "@/lib/meeting-utils";
 import { v4 as uuidv4 } from "uuid";
-import { getInMemoryLeads } from "@/lib/memory-storage";
+import { getLead } from "@/lib/memory-storage";
 
 function SetupContent() {
   const searchParams = useSearchParams();
@@ -27,12 +27,14 @@ function SetupContent() {
   const [callId, setCallId] = useState<string>("");
 
   useEffect(() => {
-    if (!leadId) return;
+    if (!leadId) {
+      setLoading(false);
+      return;
+    }
 
     async function loadData() {
       try {
-        const inMemoryLeads = getInMemoryLeads();
-        const lead = inMemoryLeads.get(leadId);
+        const lead = getLead(leadId);
         if (lead) {
           setLeadData(lead);
         }

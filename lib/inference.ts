@@ -1,7 +1,7 @@
 import { hfInfer, hfInferJSON } from './huggingface';
 import { nvInfer, nvInferJSON } from './nvidia';
 
-const AI_PROVIDER = process.env.AI_PROVIDER || 'nvidia';
+const AI_PROVIDER = process.env.AI_PROVIDER || 'huggingface';
 
 /**
  * Performs AI inference using the configured provider.

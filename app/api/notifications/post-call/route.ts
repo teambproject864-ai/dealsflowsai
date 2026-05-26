@@ -5,7 +5,6 @@ import { hfInfer } from '@/lib/huggingface';
 import { sendEmailWithRetry, sendSMS } from '@/lib/notifications';
 import { detectNoShow, hashRecipient, interpolateTemplate, redactMeetingLink } from '@/lib/post-meeting';
 import { fetchGoogleCalendarEvent } from '@/lib/google-meet';
-import { syncCallToSheet, CallSheetRow, syncLeadToSheet, LeadSheetRow } from '@/lib/sheets';
 
 export async function POST(req: Request) {
   try {
@@ -289,57 +288,7 @@ export async function POST(req: Request) {
       sentAt: new Date().toISOString()
     });
 
-    const now = new Date().toISOString();
-    const durationMinutes = callData?.scheduledAt && callData?.endedAt 
-      ? Math.round((new Date(callData.endedAt).getTime() - new Date(callData.scheduledAt).getTime()) / (1000 * 60)) 
-      : undefined;
-
-    const callRow: CallSheetRow = {
-      isoTime: now,
-      callId,
-      leadId: callData?.leadId || "",
-      status: callData?.status || "",
-      meetingUrl: callData?.meetingUrl,
-      scheduledAt: callData?.scheduledAt,
-      startedAt: callData?.botJoinedAt,
-      endedAt: callData?.endedAt,
-      dealStatus: callData?.dealStatus,
-      dealProbability: callData?.dealProbability,
-      durationMinutes,
-      participants: attendees,
-      summary: summaryContent,
-      fullJson: JSON.stringify(callData),
-    };
-
-    const callSyncResult = await syncCallToSheet(callRow);
-    if (!callSyncResult.ok) {
-      console.error("Call sync to Google Sheets failed:", callSyncResult.error);
-    }
-
-    if (leadData && leadId) {
-      const leadRow: LeadSheetRow = {
-        isoTime: now,
-        firestoreDocId: leadId,
-        company: leadData.companyName || "",
-        contactName: leadData.contactName || "",
-        email: leadData.contactEmail || "",
-        phone: leadData.contactPhone || "",
-        finalDecision: callData?.dealStatus || "",
-        analysisSummary: "",
-        conversationText: fullTranscriptText,
-        fullJson: JSON.stringify(leadData),
-        meetingUrl: callData?.meetingUrl,
-        dealProbability: callData?.dealProbability,
-        lastUpdatedAt: now,
-      };
-
-      const leadSyncResult = await syncLeadToSheet(leadRow);
-      if (!leadSyncResult.ok) {
-        console.error("Lead sync to Google Sheets failed (post-call):", leadSyncResult.error);
-      }
-    }
-
-    return NextResponse.json({ success: true, callSyncResult });
+    return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Post-call notification error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

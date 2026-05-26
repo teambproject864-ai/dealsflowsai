@@ -48,9 +48,10 @@ const stepTitles = [
   "Contact details",
 ];
 
-export function IntakeForm() {
+export function IntakeForm({ initialStep = 0 }: { initialStep?: number }) {
   const router = useRouter();
-  const [step, setStep] = useState(0);
+  const safeInitialStep = Math.max(0, Math.min(5, Number.isNaN(initialStep) ? 0 : initialStep));
+  const [step, setStep] = useState(safeInitialStep);
   const [data, setData] = useState<IntakeFormData>(empty);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);

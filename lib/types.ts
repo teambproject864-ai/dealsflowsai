@@ -92,6 +92,7 @@ export type StoredLeadContext = {
   form: IntakeFormData;
   analysis: AnalysisResult | null;
   updatedAt: string;
+  createdAt: string;
 };
 
 // --- Agent Learning Memory (MemPalace) Architecture ---

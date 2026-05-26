@@ -3,6 +3,7 @@
 import { AnalysisDashboard } from "@/components/AnalysisDashboard";
 import { FlowProgress } from "@/components/FlowProgress";
 import { IntakeForm } from "@/components/IntakeForm";
+import { BookMeetingModal } from "@/components/BookMeetingModal";
 import { Loader2, Zap, Plus, BarChart3, Users, Settings, ArrowRight, TrendingUp, AlertTriangle, CheckCircle2, Target, Calendar, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ function LeadAnalysis({ leadId }: { leadId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [leadData, setLeadData] = useState<any>(null);
   const [analysis, setAnalysis] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -190,13 +192,13 @@ function LeadAnalysis({ leadId }: { leadId: string }) {
 
           {/* CTA Section */}
           <div className="text-center py-8">
-            <Button asChild size="lg" className="bg-violet-600 hover:bg-violet-700 px-12 h-14 rounded-2xl font-bold text-lg shadow-lg shadow-violet-600/20">
-              <Link href={`/meeting-agent/setup?leadId=${leadId}`}>
-                Book a Meeting with AI Agent
-                <Calendar className="ml-2 h-5 w-5" />
-              </Link>
+            <Button onClick={() => setIsModalOpen(true)} size="lg" className="bg-violet-600 hover:bg-violet-700 px-12 h-14 rounded-2xl font-bold text-lg shadow-lg shadow-violet-600/20">
+              Book a Meeting with AI Agent
+              <Calendar className="ml-2 h-5 w-5" />
             </Button>
           </div>
+
+          <BookMeetingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} leadId={leadId} />
         </>
       )}
 
@@ -213,6 +215,7 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const leadId = searchParams.get("leadId");
+  const initialIntakeStep = parseInt(searchParams.get("step") || "0", 10);
 
   return (
     <main className="min-h-screen bg-[#0A0F1E] text-white">
@@ -285,7 +288,7 @@ function HomeContent() {
                 </p>
               </div>
               <div className="relative">
-                <IntakeForm />
+                <IntakeForm initialStep={initialIntakeStep} />
                 
                 {/* Visual Accent */}
                 <div className="absolute -top-12 -left-12 w-64 h-64 bg-violet-600/10 blur-[100px] rounded-full pointer-events-none" />
@@ -295,7 +298,7 @@ function HomeContent() {
               <div className="mt-12 text-center">
                 <p className="text-sm text-gray-500">
                   Prefer a live walkthrough?{" "}
-                  <Link href="/book-demo" className="text-violet-400 hover:underline">
+                  <Link href="/?step=5#intake" className="text-violet-400 hover:underline">
                     Book a demo →
                   </Link>
                 </p>

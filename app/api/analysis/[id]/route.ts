@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/firebase-admin";
+import { getAnalysis } from "@/lib/memory-storage";
 
 export async function GET(
   req: Request,
@@ -7,9 +7,9 @@ export async function GET(
 ) {
   try {
     const analysisId = params.id;
-    const analysisDoc = await db.collection("analyses").doc(analysisId).get();
+    const analysis = getAnalysis(analysisId);
 
-    if (!analysisDoc.exists) {
+    if (!analysis) {
       return NextResponse.json(
         { success: false, error: "Analysis not found" },
         { status: 404 }
@@ -18,8 +18,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      analysisId: analysisDoc.id,
-      ...analysisDoc.data(),
+      ...analysis,
     });
   } catch (error) {
     console.error("Error fetching analysis:", error);
