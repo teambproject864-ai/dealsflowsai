@@ -34,7 +34,7 @@ function SetupContent() {
 
     async function loadData() {
       try {
-        const lead = getLead(leadId);
+        const lead = getLead(leadId!);
         if (lead) {
           setLeadData(lead);
         }
