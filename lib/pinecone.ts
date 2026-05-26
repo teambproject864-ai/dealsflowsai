@@ -5,23 +5,42 @@ const indexName = process.env.PINECONE_INDEX || 'quickstart';
 const dimension = parseInt(process.env.PINECONE_DIMENSION || '384'); // Matching HuggingFace all-MiniLM-L6-v2
 const metric = (process.env.PINECONE_METRIC as 'cosine' | 'euclidean' | 'dotproduct') || 'cosine';
 
-if (!apiKey) {
-  console.warn('PINECONE_API_KEY is missing or invalid. Vector operations will be limited.');
-}
+let pc: Pinecone | null = null;
 
-const pc = new Pinecone({ apiKey });
+function getPineconeClient(): Pinecone | null {
+  if (!apiKey) {
+    console.warn('PINECONE_API_KEY is missing or invalid. Vector operations will be limited.');
+    return null;
+  }
+  
+  if (!pc) {
+    try {
+      pc = new Pinecone({ apiKey });
+    } catch (error) {
+      console.error('Failed to initialize Pinecone client:', error);
+      return null;
+    }
+  }
+  
+  return pc;
+}
 
 /**
  * Ensures the Pinecone index exists with the correct configuration.
  */
 export async function initPineconeIndex() {
+  const client = getPineconeClient();
+  if (!client) {
+    throw new Error('Pinecone client not available - check PINECONE_API_KEY');
+  }
+  
   try {
-    const response = await pc.listIndexes();
+    const response = await client.listIndexes();
     const indexExists = response.indexes?.some(idx => idx.name === indexName);
 
     if (!indexExists) {
       console.log(`Creating Pinecone index: ${indexName} (dim: ${dimension}, metric: ${metric})...`);
-      await pc.createIndex({
+      await client.createIndex({
         name: indexName,
         dimension,
         metric,
@@ -37,7 +56,7 @@ export async function initPineconeIndex() {
       // Wait for index to be ready
       let ready = false;
       while (!ready) {
-        const description = await pc.describeIndex(indexName);
+        const description = await client.describeIndex(indexName);
         if (description.status?.ready) {
           ready = true;
         } else {
@@ -46,7 +65,7 @@ export async function initPineconeIndex() {
       }
     }
 
-    return pc.index(indexName);
+    return client.index(indexName);
   } catch (error) {
     console.error('Failed to initialize Pinecone index:', error);
     throw error;
@@ -57,12 +76,18 @@ export async function initPineconeIndex() {
  * Gets the Pinecone index instance with automatic initialization check.
  */
 export async function getPineconeIndex() {
+  const client = getPineconeClient();
+  if (!client) {
+    return null;
+  }
+  
   try {
-    return pc.index(indexName);
+    return client.index(indexName);
   } catch (error) {
     console.error('Error getting Pinecone index:', error);
     return null;
   }
 }
 
-export default pc;
+export { getPineconeClient };
+export default getPineconeClient();

@@ -51,7 +51,7 @@ export function BookingWidget({ name, email, companyName, leadId, analysisId, sk
     async function fetchAndFormatAnalysis() {
       try {
         // Try to get from in-memory storage first
-        const inMemoryAnalysis = getAnalysis(analysisId);
+        const inMemoryAnalysis = getAnalysis(analysisId!);
         
         if (inMemoryAnalysis) {
           const summary = formatAnalysisSummaryText(inMemoryAnalysis);

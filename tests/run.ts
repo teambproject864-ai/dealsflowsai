@@ -17,6 +17,13 @@ import {
 } from "@/tests/rag.test";
 import { run3DInitTests } from "@/tests/solutions-3d.test";
 import { runICPTests } from "@/tests/icp.test";
+import {
+  loadBlockedTimesConfig,
+  isTimeSlotBlocked,
+  filterBlockedTimeSlots,
+  validateBlockedTimesConfig,
+  getBlockedTimeSlotsForEnvironment,
+} from "@/lib/time-blocking";
 
 async function testIcsParsing() {
   const raw = [
@@ -211,6 +218,66 @@ async function testExtractAttendeeStatuses() {
   assert.deepEqual(out, [{ email: "user@example.com", responseStatus: "accepted", optional: undefined }]);
 }
 
+async function testTimeBlockingConfigLoading() {
+  const config = loadBlockedTimesConfig();
+  assert.ok(config.blockedSlots);
+  assert.ok(Array.isArray(config.blockedSlots));
+  assert.ok(config.blockedSlots.length > 0);
+}
+
+async function testTimeBlockingValidation() {
+  const result = validateBlockedTimesConfig();
+  assert.equal(result.valid, true);
+  assert.equal(result.errors.length, 0);
+}
+
+async function testTimeSlotBlockedCheck() {
+  const slotStart = new Date("2026-12-25T10:00:00Z");
+  const slotEnd = new Date("2026-12-25T11:00:00Z");
+  const isBlocked = isTimeSlotBlocked(slotStart, slotEnd, "production");
+  assert.equal(isBlocked, true);
+}
+
+async function testTimeSlotNotBlockedCheck() {
+  const slotStart = new Date("2026-05-27T10:00:00Z");
+  const slotEnd = new Date("2026-05-27T11:00:00Z");
+  const isBlocked = isTimeSlotBlocked(slotStart, slotEnd, "production");
+  assert.equal(isBlocked, false);
+}
+
+async function testEnvironmentSpecificBlocking() {
+  const slotStart = new Date("2026-06-01T03:00:00Z");
+  const slotEnd = new Date("2026-06-01T03:30:00Z");
+  const isProductionBlocked = isTimeSlotBlocked(slotStart, slotEnd, "production");
+  const isStagingBlocked = isTimeSlotBlocked(slotStart, slotEnd, "staging");
+  assert.equal(isProductionBlocked, true);
+  assert.equal(isStagingBlocked, false);
+}
+
+async function testFilterBlockedSlots() {
+  const testSlots = [
+    {
+      id: "slot-1",
+      start: "2026-12-25T10:00:00Z",
+      end: "2026-12-25T11:00:00Z",
+    },
+    {
+      id: "slot-2",
+      start: "2026-05-27T10:00:00Z",
+      end: "2026-05-27T11:00:00Z",
+    },
+  ];
+  const filtered = filterBlockedTimeSlots(testSlots, "production");
+  assert.equal(filtered.length, 1);
+  assert.equal(filtered[0].id, "slot-2");
+}
+
+async function testGetEnvironmentSpecificSlots() {
+  const productionSlots = getBlockedTimeSlotsForEnvironment("production");
+  const hasChristmasHoliday = productionSlots.some((slot) => slot.id === "company-holiday-2026-12-25");
+  assert.equal(hasChristmasHoliday, true);
+}
+
 async function main() {
   const tests = [
     testIcsParsing,
@@ -235,6 +302,13 @@ async function main() {
     testNvidiaChatCompletionStreamParsesTokens,
     run3DInitTests,
     runICPTests,
+    testTimeBlockingConfigLoading,
+    testTimeBlockingValidation,
+    testTimeSlotBlockedCheck,
+    testTimeSlotNotBlockedCheck,
+    testEnvironmentSpecificBlocking,
+    testFilterBlockedSlots,
+    testGetEnvironmentSpecificSlots,
   ];
 
   for (const t of tests) {

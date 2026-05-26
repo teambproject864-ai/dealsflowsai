@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "tsx tests/run.ts",
-    "bench:rag": "tsx tests/rag.bench.ts"
+    "bench:rag": "tsx tests/rag.bench.ts",
+    "validate-blocked-times": "tsx scripts/validate-blocked-times.ts",
+    "verify-time-blocking": "tsx scripts/verify-time-blocking.ts"
   },
   "dependencies": {
     "@huggingface/inference": "^4.13.15",

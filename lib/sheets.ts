@@ -414,7 +414,7 @@ export async function getSyncMetrics(
       .orderBy("timestamp", "desc")
       .limit(limit)
       .get();
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as SyncMetric));
+    return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as SyncMetric));
   } catch (e) {
     console.error("[sheets] Failed to get sync metrics:", e);
     return [];
