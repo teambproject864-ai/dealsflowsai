@@ -104,6 +104,7 @@ export async function sendMeetingActivationNotification(args: {
     zoom: "Zoom",
     google_meet: "Google Meet",
     microsoft_teams: "Microsoft Teams",
+    calendly: "Calendly",
     other: "External Meeting Link",
   }[platform];
 
