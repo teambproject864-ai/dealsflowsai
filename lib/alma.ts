@@ -5,6 +5,7 @@ import { MemoryEntry, MemoryCategory } from './types';
 import { hfEmbed } from './huggingface';
 import { syncMemoryToPinecone } from './vector-sync';
 import { vectorSearch } from './vector-search';
+import { getSemanticCache } from './semantic-cache';
 
 /**
  * Agent Learning and Memory Architecture
@@ -70,6 +71,37 @@ export async function retrieveMemories(args: {
   queryText?: string; // Text to search semantically
   limit?: number;
 }) {
+  const cache = getSemanticCache();
+  const cacheKey = JSON.stringify(args);
+
+  // Use semantic cache if queryText is provided
+  if (args.queryText) {
+    const { result, fromCache, latencyMs } = await cache.retrieveWithMetrics(
+      cacheKey,
+      async () => {
+        return await doRetrieveMemories(args);
+      },
+      { leadId: args.leadId, sessionId: args.sessionId }
+    );
+    console.log(`[ALMA] Retrieval: ${fromCache ? 'CACHE HIT' : 'CACHE MISS'} (${latencyMs}ms)`);
+    return result;
+  }
+
+  // No cache for non-semantic queries
+  return await doRetrieveMemories(args);
+}
+
+/**
+ * Internal function to actually retrieve memories without cache
+ */
+async function doRetrieveMemories(args: {
+  leadId?: string;
+  sessionId?: string;
+  layer?: MemoryLayer;
+  keywords?: string[];
+  queryText?: string;
+  limit?: number;
+}): Promise<ALMAMemory[]> {
   if (!db) return [];
 
   let query: admin.firestore.Query = db.collection(ALMA_COLLECTION);

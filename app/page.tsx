@@ -79,7 +79,7 @@ function FloatingOrb({ className, delay = 0 }: { className?: string; delay?: num
 
 // ─── Feature Card ─────────────────────────────────────────────────────────────
 function FeatureCard({ icon: Icon, title, description, gradient, delay = 0 }: {
-  icon: React.ElementType;
+  icon: any;
   title: string;
   description: string;
   gradient: string;
@@ -94,7 +94,7 @@ function FeatureCard({ icon: Icon, title, description, gradient, delay = 0 }: {
       initial={{ opacity: 0, y: 40 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, delay, ease: "easeOut" }}
-      className="group relative p-6 rounded-2xl border border-white/8 bg-white/3 hover:bg-white/5 hover:border-white/15 transition-all duration-500 overflow-hidden cursor-default"
+      className="group relative p-6 rounded-2xl border border-white/8 bg-gradient-to-b from-white/5 to-white/[0.01] hover:from-white/10 hover:to-white/5 hover:border-teal-500/30 transition-all duration-500 overflow-hidden cursor-default shadow-lg hover:shadow-teal-500/5 hover:-translate-y-1"
     >
       {/* Hover glow */}
       <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl ${gradient} blur-2xl scale-75`} />
@@ -123,10 +123,10 @@ function StatCard({ value, label, sublabel, color, delay = 0 }: {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={inView ? { opacity: 1, scale: 1 } : {}}
       transition={{ duration: 0.5, delay }}
-      className="relative p-6 rounded-2xl border border-white/8 bg-white/3 text-center overflow-hidden group"
+      className="relative p-6 rounded-2xl border border-white/8 bg-gradient-to-b from-white/5 to-white/[0.01] hover:border-white/15 transition-all duration-300 text-center overflow-hidden group shadow-lg"
     >
-      <div className={`absolute inset-x-0 top-0 h-px ${color}`} />
-      <div className={`text-4xl font-bold mb-1 bg-gradient-to-r ${color.replace('bg-gradient-to-r', '')} bg-clip-text text-transparent`} style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+      <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r ${color}`} />
+      <div className={`text-4xl font-bold mb-1 bg-gradient-to-r ${color} bg-clip-text text-transparent`} style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
         <AnimatedCounter value={value} suffix="+" />
       </div>
       <div className="text-white font-semibold text-sm">{label}</div>
@@ -148,7 +148,7 @@ function TestimonialCard({ quote, author, role, company, avatar, delay = 0 }: {
       initial={{ opacity: 0, y: 30 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, delay }}
-      className="p-6 rounded-2xl border border-white/8 bg-white/3 flex flex-col gap-4"
+      className="p-6 rounded-2xl border border-white/8 bg-gradient-to-b from-white/5 to-[#08081a] hover:border-white/15 transition-all duration-300 flex flex-col gap-4 shadow-lg hover:shadow-black/30"
     >
       <div className="flex gap-1">
         {[...Array(5)].map((_, i) => (
@@ -182,10 +182,10 @@ function PricingCard({ plan, price, description, features, highlighted = false, 
       initial={{ opacity: 0, y: 40 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, delay }}
-      className={`relative p-8 rounded-2xl border flex flex-col gap-6 ${
+      className={`relative p-8 rounded-3xl border flex flex-col gap-6 transition-all duration-300 hover:-translate-y-1 ${
         highlighted
-          ? "border-teal-500/50 bg-gradient-to-b from-teal-950/60 to-slate-950/80 shadow-[0_0_60px_rgba(20,184,166,0.15)]"
-          : "border-white/8 bg-white/3"
+          ? "border-teal-500/60 bg-gradient-to-b from-[#0b1c1e] to-[#070716] shadow-[0_0_50px_rgba(20,184,166,0.2)]"
+          : "border-white/8 bg-gradient-to-b from-white/5 to-[#08081a] hover:border-white/15"
       }`}
     >
       {highlighted && (
@@ -210,10 +210,10 @@ function PricingCard({ plan, price, description, features, highlighted = false, 
       </ul>
       <Link
         href="/book-demo"
-        className={`w-full py-3 rounded-xl font-semibold text-sm text-center transition-all duration-300 ${
+        className={`w-full h-12 flex items-center justify-center rounded-xl font-semibold text-sm text-center transition-all duration-300 ${
           highlighted
-            ? "bg-teal-500 hover:bg-teal-400 text-white shadow-lg shadow-teal-500/25"
-            : "border border-white/15 bg-white/5 hover:bg-white/10 text-white"
+            ? "bg-teal-500 hover:bg-teal-400 text-white shadow-lg shadow-teal-500/25 hover:shadow-teal-400/35 hover:-translate-y-0.5"
+            : "border border-white/15 bg-white/5 hover:bg-white/10 text-white hover:border-white/30"
         }`}
       >
         Get started

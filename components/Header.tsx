@@ -9,17 +9,13 @@ import { Calendar, User, Shield, Users, Menu, X, ChevronDown, ChevronRight } fro
 import { ExtrudedButton } from "@/components/immersive/ExtrudedButton";
 import {
   IconDealflowLogo,
-  IconGlobeMarkets,
   IconShieldCompliance,
   IconRevenueAcceleration,
 } from "@/components/gtm/GtmIcons";
 
 import { NotificationCenter } from "./header/NotificationCenter";
-import { FavoritesDropdown } from "./header/FavoritesDropdown";
-import { ThemeLanguageControls } from "./header/ThemeLanguageControls";
 import { AccountMenu } from "./header/AccountMenu";
 import { MobileCommandDrawer } from "./header/MobileCommandDrawer";
-import { HeaderSearch } from "./header/HeaderSearch";
 
 interface NavLink {
   name: string;
@@ -32,28 +28,49 @@ function NavDropdown({
   link, 
   isOpen, 
   onToggle, 
+  onOpen,
   pathname, 
   onClose 
 }: { 
   link: NavLink; 
   isOpen: boolean; 
   onToggle: () => void; 
+  onOpen: () => void; 
   pathname: string; 
   onClose: () => void; 
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    onOpen();
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      onClose();
+    }, 150);
+  };
+
+  const handleFocus = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    onOpen();
+  };
+
+  const handleBlur = (e: React.FocusEvent) => {
+    if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+      onClose();
+    }
+  };
+
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        onClose();
-      }
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
+  }, []);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
@@ -64,22 +81,29 @@ function NavDropdown({
 
   const isActive = pathname.startsWith(link.href);
 
-  const animationProps = shouldReduceMotion
-    ? { initial: false, animate: false, exit: false }
+  const contentAnimationProps = shouldReduceMotion
+    ? { initial: false as any, animate: false as any, exit: false as any }
     : {
-        initial: { opacity: 0, y: 8, scale: 0.98 },
+        initial: { opacity: 0, y: 12, scale: 0.96 },
         animate: { opacity: 1, y: 0, scale: 1 },
-        exit: { opacity: 0, y: 8, scale: 0.98 },
-        transition: { duration: 0.18, ease: "easeOut" },
+        exit: { opacity: 0, y: 8, scale: 0.96 },
+        transition: { duration: 0.18, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
       };
 
   return (
-    <div ref={containerRef} className="relative" onKeyDown={handleKeyDown}>
+    <div
+      ref={containerRef}
+      className="relative animate-fade-in"
+      onKeyDown={handleKeyDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    >
       <button
         ref={buttonRef}
         onClick={onToggle}
-        onMouseEnter={() => !isOpen && onToggle()}
-        className={`group relative inline-flex items-center gap-1 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+        className={`group relative inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
           isActive
             ? "text-teal-400 bg-teal-400/5"
             : "text-slate-400 hover:text-teal-300 hover:bg-white/5"
@@ -94,7 +118,7 @@ function NavDropdown({
           }`}
           aria-hidden="true"
         />
-        {isActive && !isOpen && (
+        {isActive && (
           <motion.div
             layoutId="nav-underline"
             className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-gradient-to-r from-teal-500 via-teal-400 to-amber-400"
@@ -105,44 +129,43 @@ function NavDropdown({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            {...animationProps}
-            className="absolute left-0 top-full mt-2 w-80 rounded-2xl border border-white/10 bg-[#060612]/98 backdrop-blur-3xl shadow-2xl shadow-black/30 overflow-hidden z-[100]"
+            {...contentAnimationProps}
+            className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[340px] rounded-2xl border border-white/10 bg-[#060612]/95 backdrop-blur-3xl shadow-2xl shadow-black/50 overflow-hidden z-[100] p-2"
             role="menu"
-            aria-orientation="vertical"
-            aria-labelledby={`nav-dropdown-${link.name}`}
+            aria-label={`${link.name} Submenu`}
           >
-            <div className="px-3 py-4 space-y-1">
-              <Link
-                href={link.href}
-                onClick={onClose}
-                className="flex items-center justify-between px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/50"
-                role="menuitem"
-              >
-                <span className="flex items-center gap-2">
-                  <span>Overview</span>
-                  <span className="text-[9px] text-slate-600 border border-slate-800 bg-slate-900 px-1.5 py-0.5 rounded-full">
-                    {link.name}
-                  </span>
+            {/* Header/Overview button */}
+            <Link
+              href={link.href}
+              onClick={onClose}
+              className="flex items-center justify-between px-3.5 py-3 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition-all text-xs font-bold group"
+            >
+              <span className="flex items-center gap-2">
+                <span>View All {link.name}</span>
+                <span className="text-[9px] font-semibold text-teal-400 border border-teal-500/30 bg-teal-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Overview
                 </span>
-                <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
-              </Link>
+              </span>
+              <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-teal-400 transition-colors group-hover:translate-x-0.5" />
+            </Link>
 
-              <div className="border-t border-white/10 mx-2 my-1" />
+            <div className="border-t border-white/10 my-1 mx-2" />
 
+            <div className="space-y-0.5">
               {link.subOptions?.map((option) => (
                 <Link
                   key={option.href}
                   href={option.href}
                   onClick={onClose}
-                  className="block px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/50"
+                  className="block px-3.5 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/50"
                   role="menuitem"
                 >
                   <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-slate-300 group-hover:text-white transition-colors">
+                    <span className="text-xs font-semibold text-slate-300 group-hover:text-teal-300 transition-colors">
                       {option.name}
                     </span>
                     {option.description && (
-                      <span className="text-[10px] text-slate-500 group-hover:text-slate-400 mt-1">
+                      <span className="text-[10px] text-slate-500 group-hover:text-slate-400 mt-1 leading-relaxed">
                         {option.description}
                       </span>
                     )}
@@ -183,16 +206,6 @@ export function Header() {
         { name: "AI Revenue Agents", href: "/ai-revenue-agents", description: "Autonomous sales agents" },
         { name: "RAG Analysis", href: "/rag", description: "Intelligent document analysis" },
         { name: "Meeting Intelligence", href: "/meeting-agent/live", description: "Real-time meeting insights" },
-      ],
-    },
-    {
-      name: "Resources",
-      href: "/pricing",
-      icon: IconGlobeMarkets,
-      subOptions: [
-        { name: "Pricing", href: "/pricing", description: "Simple, transparent pricing" },
-        { name: "Support", href: "/support", description: "Get help when you need it" },
-        { name: "Documentation", href: "/docs/gaps", description: "API and usage docs" },
       ],
     },
   ];
@@ -260,8 +273,8 @@ export function Header() {
   }, [pathname]);
 
   const headerClasses = isScrolled
-    ? "sticky top-0 z-50 w-full border-b border-white/10 bg-[#060612]/90 df-glass backdrop-blur-xl"
-    : "sticky top-0 z-50 w-full border-b border-white/5 bg-[#060612]/70 df-glass backdrop-blur-lg";
+    ? "sticky top-0 z-50 w-full border-b border-white/10 bg-[#060612]/90 df-glass backdrop-blur-xl !overflow-visible"
+    : "sticky top-0 z-50 w-full border-b border-white/5 bg-[#060612]/70 df-glass backdrop-blur-lg !overflow-visible";
 
   return (
     <header className={headerClasses}>
@@ -294,6 +307,7 @@ export function Header() {
                     link={link}
                     isOpen={openDropdown === link.name}
                     onToggle={() => setOpenDropdown(openDropdown === link.name ? null : link.name)}
+                    onOpen={() => setOpenDropdown(link.name)}
                     pathname={pathname}
                     onClose={() => setOpenDropdown(null)}
                   />
@@ -325,26 +339,11 @@ export function Header() {
           </nav>
         </div>
 
-        {/* Center: Persistent Search Bar with Autocomplete */}
-        <div className="hidden md:flex flex-1 max-w-md justify-center">
-          <HeaderSearch />
-        </div>
-
         {/* Right Side: Quick Access Icons, Actions, Profile */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-          {/* Favorites Star (Tablet & Desktop) */}
-          <div className="hidden sm:block">
-            <FavoritesDropdown />
-          </div>
-
           {/* Notifications Center (Tablet & Desktop) */}
           <div className="hidden sm:block">
             <NotificationCenter />
-          </div>
-
-          {/* Theme & Language (Desktop Only) */}
-          <div className="hidden lg:block">
-            <ThemeLanguageControls />
           </div>
 
           {/* Streamlined Account management menu (Tablet & Desktop) */}
