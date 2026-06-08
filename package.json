@@ -47,7 +47,7 @@
     "libsodium-wrappers": "^0.8.4",
     "lucide-react": "^0.487.0",
     "mammoth": "^1.9.1",
-    "next": "15.1.0",
+    "next": "15.1.11",
     "openai": "^6.35.0",
     "pdf-parse": "^1.1.1",
     "playwright": "^1.59.1",
