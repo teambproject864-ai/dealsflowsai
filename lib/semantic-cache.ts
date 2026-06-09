@@ -1,4 +1,3 @@
-"use server";
 
 import { hfEmbed } from './huggingface';
 import { MemoryEntry } from './hermes/types';

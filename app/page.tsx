@@ -26,6 +26,8 @@ import {
   GitBranch,
   Layers,
   MessageSquare,
+  ArrowUpRight,
+
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
@@ -135,39 +137,7 @@ function StatCard({ value, label, sublabel, color, delay = 0 }: {
   );
 }
 
-// ─── Testimonial Card ─────────────────────────────────────────────────────────
-function TestimonialCard({ quote, author, role, company, avatar, delay = 0 }: {
-  quote: string; author: string; role: string; company: string; avatar: string; delay?: number;
-}) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
 
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay }}
-      className="p-6 rounded-2xl border border-white/8 bg-gradient-to-b from-white/5 to-[#08081a] hover:border-white/15 transition-all duration-300 flex flex-col gap-4 shadow-lg hover:shadow-black/30"
-    >
-      <div className="flex gap-1">
-        {[...Array(5)].map((_, i) => (
-          <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-        ))}
-      </div>
-      <p className="text-slate-300 text-sm leading-relaxed italic">"{quote}"</p>
-      <div className="flex items-center gap-3 mt-auto">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-          {avatar}
-        </div>
-        <div>
-          <div className="text-white font-semibold text-sm">{author}</div>
-          <div className="text-slate-500 text-xs">{role} · {company}</div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
 
 // ─── Pricing Card ─────────────────────────────────────────────────────────────
 function PricingCard({ plan, price, description, features, highlighted = false, delay = 0 }: {
@@ -226,9 +196,13 @@ function PricingCard({ plan, price, description, features, highlighted = false, 
 export default function HomePage() {
   const router = useRouter();
   const heroRef = useRef<HTMLDivElement>(null);
+  const intakeSectionRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  // A/B test variant: Toggle with useSearchParams or localStorage for testing
+  const [abVariant, setAbVariant] = useState<"A" | "B">("A");
+  const [formCompleted, setFormCompleted] = useState(false);
 
   // Redirect if leadId param
   useEffect(() => {
@@ -236,8 +210,78 @@ export default function HomePage() {
       const params = new URLSearchParams(window.location.search);
       const leadId = params.get("leadId");
       if (leadId) router.replace(`/analysis?leadId=${leadId}`);
+
+      // Set A/B test variant (for future use)
+      const savedVariant = localStorage.getItem("df_ab_variant");
+      if (savedVariant === "A" || savedVariant === "B") {
+        setAbVariant(savedVariant);
+      } else {
+        const newVariant = Math.random() < 0.5 ? "A" : "B";
+        setAbVariant(newVariant);
+        localStorage.setItem("df_ab_variant", newVariant);
+      }
     }
   }, [router]);
+
+  // Scroll boundary logic
+  useEffect(() => {
+    if (typeof window === "undefined" || !formCompleted) return;
+
+    // Track the max scroll position we should allow (bottom of intake section)
+    let maxScrollY = 0;
+    const calculateMaxScroll = () => {
+      if (intakeSectionRef.current) {
+        const rect = intakeSectionRef.current.getBoundingClientRect();
+        maxScrollY = window.scrollY + rect.bottom - window.innerHeight;
+        maxScrollY = Math.max(maxScrollY, 0);
+      }
+    };
+    calculateMaxScroll();
+
+    const preventScrollBeyond = (e: WheelEvent | TouchEvent) => {
+      // Get current scroll position and direction
+      const currentScrollY = window.scrollY;
+      let scrollingDown = false;
+
+      if (e.type === "wheel") {
+        scrollingDown = (e as WheelEvent).deltaY > 0;
+      } else if (e.type === "touchmove") {
+        const touch = (e as TouchEvent).touches[0];
+        const prevTouch = (e as TouchEvent).changedTouches[0];
+        scrollingDown = touch.clientY < prevTouch.clientY;
+      }
+
+      if (scrollingDown && currentScrollY >= maxScrollY) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Snap to max scroll position
+        window.scrollTo(0, maxScrollY);
+      }
+    };
+
+    // Also handle keyboard down (arrow down, page down)
+    const preventKeyDownBeyond = (e: KeyboardEvent) => {
+      const currentScrollY = window.scrollY;
+      const isDownKey = ["ArrowDown", "PageDown", "Space"].includes(e.key);
+      if (isDownKey && currentScrollY >= maxScrollY) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    // Add listeners
+    window.addEventListener("wheel", preventScrollBeyond, { passive: false });
+    window.addEventListener("touchmove", preventScrollBeyond, { passive: false });
+    window.addEventListener("keydown", preventKeyDownBeyond, { passive: false });
+    window.addEventListener("resize", calculateMaxScroll);
+
+    return () => {
+      window.removeEventListener("wheel", preventScrollBeyond);
+      window.removeEventListener("touchmove", preventScrollBeyond);
+      window.removeEventListener("keydown", preventKeyDownBeyond);
+      window.removeEventListener("resize", calculateMaxScroll);
+    };
+  }, [formCompleted]);
 
   const features = [
     {
@@ -285,29 +329,7 @@ export default function HomePage() {
     { value: 99, label: "Uptime SLA", sublabel: "Enterprise reliability", color: "from-emerald-400 to-green-400" },
   ];
 
-  const testimonials = [
-    {
-      quote: "DealFlow AI didn't just improve our pipeline visibility — it fundamentally changed how our revenue team thinks. We now have context on every buyer that no CRM could ever provide.",
-      author: "Sarah Chen",
-      role: "VP of Revenue",
-      company: "TechScale Inc",
-      avatar: "SC",
-    },
-    {
-      quote: "Clawpatrol gave our security team the confidence to finally deploy AI agents in production. Full audit trail, zero unauthorized actions — exactly what enterprise needs.",
-      author: "Marcus Rivera",
-      role: "CISO",
-      company: "EnterpriseOps",
-      avatar: "MR",
-    },
-    {
-      quote: "The Memory OS is unlike anything I've seen. Our agents now remember every nuance from 6 months of buyer conversations and use that context in every new interaction.",
-      author: "Priya Nair",
-      role: "Head of Sales Ops",
-      company: "GrowthLab AI",
-      avatar: "PN",
-    },
-  ];
+
 
   const pricingPlans = [
     {
@@ -443,7 +465,7 @@ export default function HomePage() {
           >
             <Link
               href="/#intake"
-              onClick={() => trackEvent("cta_start_analysis", { surface: "hero_v2" })}
+              onClick={() => trackEvent("cta_start_analysis", { surface: "hero_v2", abVariant })}
               className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-teal-500 hover:bg-teal-400 text-white font-semibold text-base transition-all duration-300 shadow-lg shadow-teal-500/25 hover:shadow-teal-400/35 hover:-translate-y-0.5"
             >
               Start Pipeline Analysis
@@ -451,10 +473,11 @@ export default function HomePage() {
             </Link>
             <Link
               href="/book-demo"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl border border-white/12 bg-white/5 hover:bg-white/10 text-white font-semibold text-base transition-all duration-300 backdrop-blur-sm hover:-translate-y-0.5"
+              onClick={() => trackEvent("cta_book_demo", { surface: "hero_v2", abVariant })}
+              className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-base transition-all duration-300 hover:-translate-y-0.5"
             >
-              <Play className="w-4 h-4 fill-white" />
-              Watch Demo
+              Book a Demo
+              <ArrowUpRight className="w-4 h-4" />
             </Link>
           </motion.div>
         </motion.div>
@@ -717,40 +740,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ──────────────────────────────────────────────────── */}
-      <section className="relative py-28 border-t border-white/6">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_100%_50%,rgba(108,59,255,0.05),transparent)] pointer-events-none" />
-
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="text-center mb-14">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-semibold uppercase tracking-wider mb-6"
-            >
-              <Star className="w-3.5 h-3.5 fill-amber-400" />
-              Customer Stories
-            </motion.div>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-4xl sm:text-5xl font-bold text-white"
-            >
-              Loved by revenue teams
-            </motion.h2>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {testimonials.map((t, i) => (
-              <TestimonialCard key={i} {...t} delay={i * 0.1} />
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── PRICING ───────────────────────────────────────────────────────── */}
       <section className="relative py-28 border-t border-white/6" id="pricing">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_80%,rgba(20,184,166,0.05),transparent)] pointer-events-none" />
@@ -828,7 +817,7 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Link
                 href="/#intake"
-                onClick={() => trackEvent("cta_start_analysis", { surface: "bottom_cta" })}
+                onClick={() => trackEvent("cta_start_analysis", { surface: "bottom_cta", abVariant })}
                 className="group inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-teal-500 hover:bg-teal-400 text-white font-bold text-lg transition-all duration-300 shadow-xl shadow-teal-500/30 hover:shadow-teal-400/40 hover:-translate-y-0.5"
               >
                 Get Started Free
@@ -836,6 +825,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/book-demo"
+                onClick={() => trackEvent("cta_talk_sales", { surface: "bottom_cta", abVariant })}
                 className="inline-flex items-center gap-2 px-10 py-4 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-bold text-lg transition-all duration-300 hover:-translate-y-0.5"
               >
                 <MessageSquare className="w-5 h-5" />
@@ -850,7 +840,7 @@ export default function HomePage() {
       </section>
 
       {/* ── INTAKE FORM SECTION ───────────────────────────────────────────── */}
-      <section id="intake" className="relative py-20 border-t border-white/6 scroll-mt-16">
+      <section id="intake" ref={intakeSectionRef} className="relative py-20 border-t border-white/6 scroll-mt-16">
         <div className="mx-auto max-w-4xl px-6">
           <div className="text-center mb-10">
             <motion.h2
@@ -881,7 +871,7 @@ export default function HomePage() {
             <div className="pointer-events-none absolute -left-20 -top-20 h-80 w-80 rounded-full bg-teal-500/8 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-violet-500/6 blur-3xl" />
             {/* Lazy-load IntakeForm to keep hero fast */}
-            <IntakeFormWrapper />
+            <IntakeFormWrapper onComplete={() => setFormCompleted(true)} />
           </motion.div>
         </div>
       </section>
@@ -890,7 +880,7 @@ export default function HomePage() {
 }
 
 // ─── Lazy IntakeForm wrapper ──────────────────────────────────────────────────
-function IntakeFormWrapper() {
+function IntakeFormWrapper({ onComplete }: { onComplete?: () => void }) {
   const [mounted, setMounted] = useState(false);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-200px" });
@@ -902,7 +892,7 @@ function IntakeFormWrapper() {
   return (
     <div ref={ref} className="relative z-10">
       {mounted ? (
-        <IntakeFormDynamic />
+        <IntakeFormDynamic onComplete={onComplete} />
       ) : (
         <div className="h-64 flex items-center justify-center">
           <div className="text-slate-500 text-sm animate-pulse">Loading intake form...</div>
@@ -912,7 +902,7 @@ function IntakeFormWrapper() {
   );
 }
 
-function IntakeFormDynamic() {
+function IntakeFormDynamic({ onComplete }: { onComplete?: () => void }) {
   const { IntakeForm } = require("@/components/IntakeForm");
-  return <IntakeForm />;
+  return <IntakeForm onComplete={onComplete} />;
 }

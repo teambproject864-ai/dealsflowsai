@@ -6,7 +6,18 @@ import Link from "next/link";
 import { BookingWidget } from "@/components/BookingWidget";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Calendar, ArrowRight, ShieldCheck, CheckCircle2, Zap, Clock, Users, ArrowLeft } from "lucide-react";
+import {
+  Loader2,
+  Calendar,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  Zap,
+  Clock,
+  Users,
+  ArrowLeft,
+  XCircle,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -19,6 +30,8 @@ import {
 } from "@/components/ui/select";
 import type { AnalysisResult } from "@/lib/types";
 import { GlassPanel } from "@/components/immersive";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
 
 type ImmediateAvailability = {
   available: boolean;
@@ -35,6 +48,22 @@ const BENEFITS = [
   { title: "ROI Projection", desc: "Get a tailored savings estimation for your specific sales team." },
   { title: "Security Verification", desc: "Review Clawpatrol compliance vaults and PII redaction rules." }
 ];
+
+function Section({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{ duration: 0.6, delay, ease: "easeOut" }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 function BookDemoContent() {
   const router = useRouter();
@@ -170,92 +199,108 @@ function BookDemoContent() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-        <Loader2 className="h-12 w-12 animate-spin text-teal-500" />
-        <p className="mt-4 text-slate-400 animate-pulse font-medium">Setting up your demo booking session...</p>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Loader2 className="h-16 w-16 animate-spin text-teal-500" />
+          <p className="mt-6 text-slate-400 animate-pulse font-medium text-lg">Setting up your demo booking session...</p>
+        </motion.div>
       </div>
     );
   }
 
   if (skipMode) {
     return (
-      <div className="space-y-10">
-        {/* Header Hero card */}
-        <header className="space-y-4 rounded-3xl border border-white/8 bg-white/3 p-6 md:p-10 backdrop-blur-md shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1.5 text-xs font-semibold text-teal-300 uppercase tracking-wider">
-            <Calendar className="h-3.5 w-3.5" />
-            <span>Direct Scheduling</span>
-          </div>
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white font-sans">
-            Schedule Your DealFlow AI Demo
-          </h1>
-          <p className="text-base md:text-lg text-slate-400 max-w-3xl leading-relaxed">
-            Pick a time that works best for your team. You can provide technical and GTM stack details later — a confirmation calendar invite will be sent instantly.
-          </p>
-        </header>
+      <div className="space-y-12">
+        <Section>
+          <header className="space-y-6 rounded-3xl border border-white/8 bg-white/3 p-8 md:p-12 backdrop-blur-md shadow-2xl relative overflow-hidden group">
+            {/* Background elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-teal-500/8 transition-all duration-700" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-violet-500/4 rounded-full blur-3xl pointer-events-none" />
+            
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-4 py-2 text-xs font-semibold text-teal-300 uppercase tracking-wider shadow-sm">
+              <Calendar className="h-4 w-4" />
+              <span>Direct Scheduling</span>
+            </div>
+            
+            {/* Heading */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight">
+              Schedule Your DealFlow AI Demo
+            </h1>
+            
+            {/* Description */}
+            <p className="text-base md:text-lg text-slate-400 max-w-3xl leading-relaxed">
+              Pick a time that works best for your team. You can provide technical and GTM stack details later — a confirmation calendar invite will be sent instantly.
+            </p>
+          </header>
+        </Section>
 
-        {/* Prefill Lead Details Container */}
-        <GlassPanel material="glass" depth="mid" className="p-6 border-white/8 shadow-xl">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 text-teal-300">Attendee Context (Optional)</h2>
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="directCompany" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Company</Label>
-              <Input
-                id="directCompany"
-                value={directCompanyName}
-                onChange={(e) => setDirectCompanyName(e.target.value)}
-                placeholder="Acme Inc."
-                className="bg-slate-950/60 border-white/8 text-white placeholder:text-slate-600 focus-visible:ring-teal-500/30 h-11 rounded-lg"
-              />
+        <Section delay={0.1}>
+          <GlassPanel material="glass" depth="mid" className="p-8 border-white/8 shadow-xl">
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest mb-6 text-teal-300 flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Attendee Context (Optional)
+            </h2>
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="space-y-3">
+                <Label htmlFor="directCompany" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Company Name</Label>
+                <Input
+                  id="directCompany"
+                  value={directCompanyName}
+                  onChange={(e) => setDirectCompanyName(e.target.value)}
+                  placeholder="Acme Inc."
+                  className="bg-slate-950/70 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-teal-500/40 h-12 rounded-xl px-4 transition-all focus:border-teal-500/40"
+                />
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="directName" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name</Label>
+                <Input
+                  id="directName"
+                  value={directName}
+                  onChange={(e) => setDirectName(e.target.value)}
+                  placeholder="John Doe"
+                  className="bg-slate-950/70 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-teal-500/40 h-12 rounded-xl px-4 transition-all focus:border-teal-500/40"
+                />
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="directEmail" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Work Email</Label>
+                <Input
+                  id="directEmail"
+                  type="email"
+                  value={directEmail}
+                  onChange={(e) => setDirectEmail(e.target.value)}
+                  placeholder="john@acme.com"
+                  className="bg-slate-950/70 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-teal-500/40 h-12 rounded-xl px-4 transition-all focus:border-teal-500/40"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="directName" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Name</Label>
-              <Input
-                id="directName"
-                value={directName}
-                onChange={(e) => setDirectName(e.target.value)}
-                placeholder="John Doe"
-                className="bg-slate-950/60 border-white/8 text-white placeholder:text-slate-600 focus-visible:ring-teal-500/30 h-11 rounded-lg"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="directEmail" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email</Label>
-              <Input
-                id="directEmail"
-                type="email"
-                value={directEmail}
-                onChange={(e) => setDirectEmail(e.target.value)}
-                placeholder="john@acme.com"
-                className="bg-slate-950/60 border-white/8 text-white placeholder:text-slate-600 focus-visible:ring-teal-500/30 h-11 rounded-lg"
-              />
-            </div>
-          </div>
-        </GlassPanel>
+          </GlassPanel>
+        </Section>
 
-        {/* Main interactive split columns */}
-        <div className="grid gap-8 lg:grid-cols-[1fr,360px]">
-          
-          {/* Left Main interactive column */}
-          <div className="space-y-6">
-            <GlassPanel material="glass" depth="mid" className="p-6 border-white/8 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Preferred Scheduling Tool</h3>
-                <p className="text-xs text-slate-400">
+        <div className="grid gap-10 lg:grid-cols-[1fr,380px]">
+          <div className="space-y-4">
+            <GlassPanel material="glass" depth="mid" className="p-8 border-white/8 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="space-y-2">
+                <h3 className="text-sm font-bold text-white uppercase tracking-widest">Preferred Scheduling Tool</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
                   Select Cal.com or Calendly to view instant calendar slots.
                 </p>
               </div>
               <Select value={meetingType} onValueChange={(v: any) => setMeetingType(v)}>
-                <SelectTrigger className="w-full md:w-[220px] bg-slate-950 border-white/8 text-white h-11 px-4 rounded-lg">
+                <SelectTrigger className="w-full md:w-[260px] bg-slate-950 border-white/10 text-white h-12 px-5 rounded-xl transition-all focus:border-teal-500/40">
                   <SelectValue placeholder="Select tool" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0f0f24] border-white/8 text-white rounded-lg">
-                  <SelectItem value="cal" className="cursor-pointer hover:bg-white/5">
+                <SelectContent className="bg-[#0a0a1f] border-white/10 text-white rounded-xl shadow-2xl backdrop-blur-xl">
+                  <SelectItem value="cal" className="cursor-pointer hover:bg-white/5 text-sm py-3">
                     Cal.com (Default)
                   </SelectItem>
-                  <SelectItem value="calendly" className="cursor-pointer hover:bg-white/5">
+                  <SelectItem value="calendly" className="cursor-pointer hover:bg-white/5 text-sm py-3">
                     Calendly
                   </SelectItem>
-                  <SelectItem value="other" className="cursor-pointer hover:bg-white/5">
+                  <SelectItem value="other" className="cursor-pointer hover:bg-white/5 text-sm py-3">
                     Other / Manual Link
                   </SelectItem>
                 </SelectContent>
@@ -263,31 +308,42 @@ function BookDemoContent() {
             </GlassPanel>
 
             {meetingType === "other" ? (
-              <GlassPanel material="glass" depth="mid" className="p-8 border-white/8 shadow-xl flex flex-col items-center justify-center space-y-6 min-h-[380px]">
-                <div className="text-center space-y-2 max-w-md">
-                  <h3 className="text-lg font-bold text-white">Paste your custom meeting link</h3>
+              <GlassPanel material="glass" depth="mid" className="p-10 border-white/8 shadow-xl flex flex-col items-center justify-center space-y-8 min-h-[420px]">
+                <div className="text-center space-y-3 max-w-lg">
+                  <h3 className="text-xl font-bold text-white">Paste your custom meeting link</h3>
                   <p className="text-sm text-slate-400 leading-relaxed">
                     Paste a Zoom, Google Meet, Microsoft Teams, Cal, or Calendly slot link below to trigger automated agent workflows.
                   </p>
                 </div>
-                <div className="w-full max-w-lg space-y-4">
-                  <Input
-                    value={customMeetingUrl}
-                    onChange={(e) => setCustomMeetingUrl(e.target.value)}
-                    placeholder="https://meet.google.com/abc-def-ghi"
-                    className="bg-slate-950/60 border-white/8 text-white h-12 rounded-lg"
-                  />
+                <div className="w-full max-w-xl space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="customUrl" className="text-xs font-bold text-slate-400 uppercase tracking-widest">Meeting URL</Label>
+                    <Input
+                      id="customUrl"
+                      value={customMeetingUrl}
+                      onChange={(e) => setCustomMeetingUrl(e.target.value)}
+                      placeholder="https://meet.google.com/abc-def-ghi"
+                      className="bg-slate-950/70 border-white/10 text-white h-13 rounded-xl px-4 text-sm transition-all focus:border-teal-500/40"
+                    />
+                  </div>
                   <Button
                     onClick={handleCustomMeetingSubmit}
                     disabled={isSubmittingCustom}
-                    className="w-full h-12 rounded-lg bg-teal-500 hover:bg-teal-400 text-white font-semibold transition-all shadow-lg shadow-teal-500/20"
+                    className="w-full h-13 rounded-xl bg-teal-500 hover:bg-teal-400 text-white font-semibold text-sm uppercase tracking-wider transition-all shadow-xl shadow-teal-500/25 hover:shadow-teal-400/35 hover:-translate-y-0.5"
                   >
-                    {isSubmittingCustom ? "Scheduling..." : "Confirm custom booking"}
+                    {isSubmittingCustom ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      "Confirm Custom Booking"
+                    )}
                   </Button>
                 </div>
               </GlassPanel>
             ) : (
-              <div className="bg-white/3 border border-white/8 rounded-2xl overflow-hidden shadow-2xl p-2 min-h-[600px]">
+              <div className="bg-white/3 border border-white/8 rounded-2xl overflow-hidden shadow-2xl p-3 min-h-[620px]">
                 <BookingWidget
                   name={directName}
                   email={directEmail}
@@ -299,61 +355,63 @@ function BookDemoContent() {
             )}
           </div>
 
-          {/* Right sidebar details/preferences */}
-          <aside className="space-y-6">
-            <GlassPanel material="glass" depth="mid" className="p-6 border-white/8 shadow-xl space-y-6">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider text-teal-300 flex items-center gap-2">
-                <Clock className="h-4.5 w-4.5 shrink-0" />
-                Session Settings
-              </h3>
-              
-              <div className="space-y-4 border-t border-white/5 pt-4">
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    id="skipAiAgent"
-                    checked={skipAiAgent}
-                    onCheckedChange={(v) => setSkipAiAgent(!!v)}
-                    className="border-teal-500/50 data-[state=checked]:bg-teal-600 mt-1"
-                  />
-                  <div className="space-y-1">
-                    <Label htmlFor="skipAiAgent" className="text-sm text-white font-semibold cursor-pointer">
-                      Skip pre-call AI agent consult
-                    </Label>
-                    <p className="text-xs text-slate-500 leading-normal">
-                      If enabled, you will bypass the interactive meeting agent simulator and return to the main dashboard after booking.
-                    </p>
+          <aside className="space-y-8">
+            <Section delay={0.3}>
+              <GlassPanel material="glass" depth="mid" className="p-8 border-white/8 shadow-xl space-y-7">
+                <h3 className="text-sm font-bold text-white uppercase tracking-widest text-teal-300 flex items-center gap-2">
+                  <Clock className="h-5 w-5 shrink-0" />
+                  Session Settings
+                </h3>
+                
+                <div className="space-y-5 border-t border-white/5 pt-5">
+                  <div className="flex items-start gap-4">
+                    <Checkbox
+                      id="skipAiAgent"
+                      checked={skipAiAgent}
+                      onCheckedChange={(v) => setSkipAiAgent(!!v)}
+                      className="border-teal-500/50 data-[state=checked]:bg-teal-600 mt-1 h-5 w-5"
+                    />
+                    <div className="space-y-1.5">
+                      <Label htmlFor="skipAiAgent" className="text-sm text-white font-semibold cursor-pointer">
+                        Skip pre-call AI agent consult
+                      </Label>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        If enabled, you will bypass the interactive meeting agent simulator and return to the main dashboard after booking.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="pt-4 border-t border-white/5">
-                <Link href="/">
-                  <Button variant="outline" className="w-full border-white/8 bg-white/3 hover:bg-white/5 text-white h-11 rounded-lg text-xs uppercase font-bold tracking-wider flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Intake
-                  </Button>
-                </Link>
-              </div>
-            </GlassPanel>
+                <div className="pt-5 border-t border-white/5">
+                  <Link href="/">
+                    <Button variant="outline" className="w-full border-white/10 bg-white/3 hover:bg-white/5 text-white h-12 rounded-xl text-xs uppercase font-bold tracking-wider flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
+                      <ArrowLeft className="h-4.5 w-4.5" />
+                      Back to Intake
+                    </Button>
+                  </Link>
+                </div>
+              </GlassPanel>
+            </Section>
 
-            {/* Why Book A Demo Sidebar Card */}
-            <GlassPanel material="glass" depth="mid" className="p-6 border-white/8 shadow-xl space-y-5">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider text-indigo-300 flex items-center gap-2">
-                <ShieldCheck className="h-4.5 w-4.5 shrink-0" />
-                What to expect
-              </h3>
-              <ul className="space-y-4 text-xs text-slate-400">
-                {BENEFITS.map((benefit, i) => (
-                  <li key={i} className="flex gap-3">
-                    <CheckCircle2 className="h-4.5 w-4.5 shrink-0 mt-0.5 text-teal-400" />
-                    <div className="space-y-0.5">
-                      <strong className="text-white block">{benefit.title}</strong>
-                      <span className="leading-relaxed">{benefit.desc}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </GlassPanel>
+            <Section delay={0.4}>
+              <GlassPanel material="glass" depth="mid" className="p-8 border-white/8 shadow-xl space-y-6">
+                <h3 className="text-sm font-bold text-white uppercase tracking-widest text-indigo-300 flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 shrink-0" />
+                  What to Expect
+                </h3>
+                <ul className="space-y-5">
+                  {BENEFITS.map((benefit, i) => (
+                    <li key={i} className="flex gap-4">
+                      <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5 text-teal-400" />
+                      <div className="space-y-1">
+                        <strong className="text-white block text-sm">{benefit.title}</strong>
+                        <span className="text-xs text-slate-400 leading-relaxed">{benefit.desc}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </GlassPanel>
+            </Section>
           </aside>
         </div>
       </div>
@@ -362,13 +420,15 @@ function BookDemoContent() {
 
   if (error || !analysis || !lead) {
     return (
-      <div className="mx-auto max-w-lg py-20 text-center space-y-6">
-        <XCircle className="h-16 w-16 text-rose-500 mx-auto" />
-        <h2 className="text-2xl font-bold text-white">Something went wrong</h2>
-        <p className="text-slate-400 text-sm">{error || "The requested analysis details could not be found."}</p>
+      <div className="mx-auto max-w-2xl py-24 text-center space-y-8">
+        <XCircle className="h-20 w-20 text-rose-500 mx-auto" />
+        <div className="space-y-3">
+          <h2 className="text-3xl font-bold text-white">Something went wrong</h2>
+          <p className="text-slate-400 text-lg">{error || "The requested analysis details could not be found."}</p>
+        </div>
         <Link href="/">
-          <Button variant="outline" className="border-white/10 hover:bg-white/5 text-white">
-            Back to intake
+          <Button variant="outline" className="border-white/10 hover:bg-white/5 text-white px-10 h-12 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5">
+            Back to Intake
           </Button>
         </Link>
       </div>
@@ -376,46 +436,44 @@ function BookDemoContent() {
   }
 
   return (
-    <div className="space-y-10">
-      {/* Header section with GTM summary */}
-      <header className="space-y-4 rounded-3xl border border-white/8 bg-gradient-to-r from-teal-500/10 via-[#060612] to-[#060612] p-6 md:p-10 backdrop-blur-md shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1.5 text-xs font-semibold text-teal-300 uppercase tracking-wider">
-          <Zap className="h-3.5 w-3.5 text-teal-400 animate-pulse" />
-          <span>Frictionless Booking Active</span>
-        </div>
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white font-sans">
-          Book Your Custom Demo
-        </h1>
-        <p className="text-base md:text-lg text-slate-400 max-w-3xl leading-relaxed">
-          Configure a tailored demo walkthrough for <strong className="text-white">{lead.companyName}</strong>. Our system has automatically mapped your GTM vulnerabilities.
-        </p>
-      </header>
+    <div className="space-y-12">
+      <Section>
+        <header className="space-y-6 rounded-3xl border border-white/8 bg-gradient-to-r from-teal-500/10 via-[#060612] to-[#060612] p-8 md:p-12 backdrop-blur-md shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-teal-500/8 transition-all duration-700" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-4 py-2 text-xs font-semibold text-teal-300 uppercase tracking-wider">
+            <Zap className="h-4 w-4 text-teal-400 animate-pulse" />
+            <span>Frictionless Booking Active</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight">
+            Book Your Custom Demo
+          </h1>
+          <p className="text-base md:text-lg text-slate-400 max-w-3xl leading-relaxed">
+            Configure a tailored demo walkthrough for <strong className="text-white">{lead.companyName}</strong>. Our system has automatically mapped your GTM vulnerabilities.
+          </p>
+        </header>
+      </Section>
 
-      {/* Main split grid */}
-      <div className="grid gap-8 lg:grid-cols-[1fr,360px]">
-        
-        {/* Booking flow main block */}
-        <div className="space-y-6">
-          <GlassPanel material="glass" depth="mid" className="p-6 border-white/8 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="space-y-1">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Preferred Scheduling Tool</h3>
-              <p className="text-xs text-slate-400">
+      <div className="grid gap-10 lg:grid-cols-[1fr,380px]">
+        <div className="space-y-4">
+          <GlassPanel material="glass" depth="mid" className="p-8 border-white/8 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="space-y-2">
+              <h3 className="text-sm font-bold text-white uppercase tracking-widest">Preferred Scheduling Tool</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
                 Select Cal.com or Calendly to view instant calendar slots.
               </p>
             </div>
             <Select value={meetingType} onValueChange={(v: any) => setMeetingType(v)}>
-              <SelectTrigger className="w-full md:w-[220px] bg-slate-950 border-white/8 text-white h-11 px-4 rounded-lg">
+              <SelectTrigger className="w-full md:w-[260px] bg-slate-950 border-white/10 text-white h-12 px-5 rounded-xl transition-all focus:border-teal-500/40">
                 <SelectValue placeholder="Select tool" />
               </SelectTrigger>
-              <SelectContent className="bg-[#0f0f24] border-white/8 text-white rounded-lg">
-                <SelectItem value="cal" className="cursor-pointer hover:bg-white/5">
+              <SelectContent className="bg-[#0a0a1f] border-white/10 text-white rounded-xl shadow-2xl backdrop-blur-xl">
+                <SelectItem value="cal" className="cursor-pointer hover:bg-white/5 text-sm py-3">
                   Cal.com (Default)
                 </SelectItem>
-                <SelectItem value="calendly" className="cursor-pointer hover:bg-white/5">
+                <SelectItem value="calendly" className="cursor-pointer hover:bg-white/5 text-sm py-3">
                   Calendly
                 </SelectItem>
-                <SelectItem value="other" className="cursor-pointer hover:bg-white/5">
+                <SelectItem value="other" className="cursor-pointer hover:bg-white/5 text-sm py-3">
                   Other / Manual Link
                 </SelectItem>
               </SelectContent>
@@ -423,16 +481,16 @@ function BookDemoContent() {
           </GlassPanel>
 
           {meetingType === "other" ? (
-            <GlassPanel material="glass" depth="mid" className="p-8 border-white/8 shadow-xl flex flex-col items-center justify-center space-y-6 min-h-[400px]">
-              <div className="text-center space-y-2 max-w-md">
-                <h3 className="text-lg font-bold text-white">Using another calendar platform?</h3>
+            <GlassPanel material="glass" depth="mid" className="p-10 border-white/8 shadow-xl flex flex-col items-center justify-center space-y-8 min-h-[440px]">
+              <div className="text-center space-y-3 max-w-lg">
+                <h3 className="text-xl font-bold text-white">Using another calendar platform?</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">
                   Book a time directly using your tool, then paste the meeting link below to synchronize our conversational AI agents.
                 </p>
               </div>
-              <div className="w-full max-w-md space-y-4">
+              <div className="w-full max-w-xl space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="manualUrl" className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <Label htmlFor="manualUrl" className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                     Meeting URL (Zoom, Meet, Teams, etc.)
                   </Label>
                   <Input
@@ -440,12 +498,12 @@ function BookDemoContent() {
                     placeholder="https://meet.google.com/abc-def-ghi"
                     value={customMeetingUrl}
                     onChange={(e) => setCustomMeetingUrl(e.target.value)}
-                    className="bg-slate-950/60 border-white/8 text-white h-12 rounded-lg"
+                    className="bg-slate-950/70 border-white/10 text-white h-13 rounded-xl px-4 text-sm transition-all focus:border-teal-500/40"
                   />
                 </div>
                 <Button
                   onClick={handleCustomMeetingSubmit}
-                  className="w-full bg-teal-500 hover:bg-teal-400 h-12 text-sm font-semibold uppercase tracking-wider rounded-lg shadow-lg shadow-teal-500/20"
+                  className="w-full bg-teal-500 hover:bg-teal-400 h-13 text-sm font-semibold uppercase tracking-wider rounded-xl shadow-xl shadow-teal-500/25 hover:shadow-teal-400/35 transition-all hover:-translate-y-0.5"
                   disabled={isSubmittingCustom}
                 >
                   {isSubmittingCustom ? (
@@ -460,7 +518,7 @@ function BookDemoContent() {
               </div>
             </GlassPanel>
           ) : (
-            <div className="bg-white/3 border border-white/8 rounded-2xl overflow-hidden shadow-2xl p-2 min-h-[600px]">
+            <div className="bg-white/3 border border-white/8 rounded-2xl overflow-hidden shadow-2xl p-3 min-h-[620px]">
               <BookingWidget
                 name={lead.contactName}
                 email={lead.contactEmail}
@@ -473,65 +531,66 @@ function BookDemoContent() {
           )}
         </div>
 
-        {/* Sidebar widgets */}
-        <aside className="space-y-6">
-          {/* Call agenda items */}
-          <GlassPanel material="glass" depth="mid" className="p-6 border-white/8 shadow-xl space-y-5">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider text-teal-300 flex items-center gap-2">
-              <Users className="h-4.5 w-4.5 shrink-0" />
-              Call Agenda Details
-            </h3>
-            
-            <div className="space-y-3 border-t border-white/5 pt-4">
-              {(analysis.marketDifferentiationTriggers || []).slice(0, 3).map((trigger, i) => (
-                <div key={i} className="flex gap-2.5 text-xs text-slate-400">
-                  <div className="h-1.5 w-1.5 rounded-full bg-teal-500 shrink-0 mt-1.5" />
-                  <p className="leading-relaxed">{trigger}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-4 border-t border-white/5 space-y-4">
-              <div className="flex items-start space-x-2.5">
-                <Checkbox
-                  id="skipAi"
-                  checked={skipAiAgent}
-                  onCheckedChange={(checked) => setSkipAiAgent(checked === true)}
-                  className="border-teal-500/50 data-[state=checked]:bg-teal-600 mt-0.5"
-                />
-                <Label htmlFor="skipAi" className="text-xs font-semibold text-slate-300 cursor-pointer">
-                  Skip pre-call AI consultation
-                </Label>
+        <aside className="space-y-8">
+          <Section delay={0.2}>
+            <GlassPanel material="glass" depth="mid" className="p-8 border-white/8 shadow-xl space-y-7">
+              <h3 className="text-sm font-bold text-white uppercase tracking-widest text-teal-300 flex items-center gap-2">
+                <Users className="h-5 w-5 shrink-0" />
+                Call Agenda Details
+              </h3>
+              
+              <div className="space-y-3 border-t border-white/5 pt-5">
+                {(analysis.marketDifferentiationTriggers || []).slice(0, 3).map((trigger, i) => (
+                  <div key={i} className="flex gap-3 text-xs text-slate-400">
+                    <div className="h-2 w-2 rounded-full bg-teal-500 shrink-0 mt-1.5" />
+                    <p className="leading-relaxed">{trigger}</p>
+                  </div>
+                ))}
               </div>
-              {!skipAiAgent && (
-                <p className="text-[11px] text-slate-500 italic leading-normal">
-                  After scheduling, you will immediately be redirected to our interactive conversational simulator for briefing.
-                </p>
-              )}
-            </div>
-          </GlassPanel>
 
-          {/* GTM Diagnostics Card */}
-          <GlassPanel material="glass" depth="mid" className="p-6 border-white/8 shadow-xl space-y-4">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider text-indigo-300 flex items-center gap-2">
-              <ShieldCheck className="h-4.5 w-4.5 shrink-0" />
-              GTM Diagnostics
-            </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Your demo workspace is initialized with website scan telemetry.
-            </p>
-            <div className="bg-white/3 border border-white/5 rounded-xl p-3 flex justify-between items-center text-xs">
-              <span className="text-slate-500 font-bold uppercase tracking-wider">Health Index</span>
-              <span className="text-emerald-400 font-extrabold text-sm">{analysis.healthScore} / 100</span>
-            </div>
-            
-            <div className="text-[11px] text-slate-500 space-y-1">
-              <div>Active connections in queue: {availability?.activeImmediateCount ?? 0} / {availability?.maxImmediateCalls ?? 0}</div>
-              {availability && !availability.available && (
-                <div className="text-amber-400 font-medium">Estimated wait limit: ~{availability.estimatedWaitMinutes} minutes.</div>
-              )}
-            </div>
-          </GlassPanel>
+              <div className="pt-5 border-t border-white/5 space-y-4">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="skipAi"
+                    checked={skipAiAgent}
+                    onCheckedChange={(checked) => setSkipAiAgent(checked === true)}
+                    className="border-teal-500/50 data-[state=checked]:bg-teal-600 mt-0.5 h-5 w-5"
+                  />
+                  <Label htmlFor="skipAi" className="text-xs font-semibold text-slate-300 cursor-pointer">
+                    Skip pre-call AI consultation
+                  </Label>
+                </div>
+                {!skipAiAgent && (
+                  <p className="text-[11px] text-slate-500 italic leading-relaxed">
+                    After scheduling, you will immediately be redirected to our interactive conversational simulator for briefing.
+                  </p>
+                )}
+              </div>
+            </GlassPanel>
+          </Section>
+
+          <Section delay={0.3}>
+            <GlassPanel material="glass" depth="mid" className="p-8 border-white/8 shadow-xl space-y-6">
+              <h3 className="text-sm font-bold text-white uppercase tracking-widest text-indigo-300 flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 shrink-0" />
+                GTM Diagnostics
+              </h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Your demo workspace is initialized with website scan telemetry.
+              </p>
+              <div className="bg-white/3 border border-white/5 rounded-xl p-4 flex justify-between items-center text-xs">
+                <span className="text-slate-500 font-bold uppercase tracking-widest">Health Index</span>
+                <span className="text-emerald-400 font-extrabold text-lg">{analysis.healthScore} / 100</span>
+              </div>
+              
+              <div className="text-[11px] text-slate-500 space-y-1.5">
+                <div>Active connections in queue: {availability?.activeImmediateCount ?? 0} / {availability?.maxImmediateCalls ?? 0}</div>
+                {availability && !availability.available && (
+                  <div className="text-amber-400 font-medium">Estimated wait limit: ~{availability.estimatedWaitMinutes} minutes.</div>
+                )}
+              </div>
+            </GlassPanel>
+          </Section>
         </aside>
       </div>
     </div>
@@ -544,7 +603,13 @@ export default function BookDemoPage() {
       <div className="mx-auto max-w-7xl px-6 pt-24 md:pt-32">
         <Suspense fallback={
           <div className="flex min-h-[60vh] items-center justify-center">
-            <Loader2 className="h-10 w-10 animate-spin text-teal-500" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Loader2 className="h-14 w-14 animate-spin text-teal-500" />
+            </motion.div>
           </div>
         }>
           <BookDemoContent />

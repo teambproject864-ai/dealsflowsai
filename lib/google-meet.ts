@@ -28,7 +28,10 @@ function getCalendarClient() {
 function getCalendarId() {
   const id = process.env.GOOGLE_CALENDAR_ID?.trim();
   if (!id) {
-    console.warn("GOOGLE_CALENDAR_ID is missing, falling back to 'primary'");
+    console.warn(
+      "GOOGLE_CALENDAR_ID is missing, falling back to 'primary'.\n" +
+      "Tip: Set GOOGLE_CALENDAR_ID in your .env file with a calendar ID (e.g., your.email@gmail.com or calendar ID from Google Calendar Settings → Integrate calendar)"
+    );
     return "primary";
   }
   return id;
@@ -77,7 +80,8 @@ export async function createGoogleMeetLink(args: CreateMeetArgs): Promise<{
       error.message?.includes("Conference creation not allowed")
     ) {
       console.warn(
-        "Google Meet conference creation is not supported on this calendar. Falling back to creating a standard calendar event with a simulated Meet link."
+        "Google Meet conference creation is not supported on this calendar. Falling back to creating a standard calendar event with a simulated Meet link.\n" +
+        "Tip: To enable Google Meet creation, make sure the service account has edit access to the calendar and the calendar supports Meet."
       );
 
       // Generate a valid mock Meet link using only lowercase letters: meet.google.com/abc-defg-hij format

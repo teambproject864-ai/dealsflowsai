@@ -335,16 +335,35 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
             <Card className="border-white/10 bg-white/[0.03] backdrop-blur-md shadow-xl">
               <CardContent className="p-6">
                 <div className="space-y-6 max-h-[600px] overflow-y-auto">
-                  {Object.entries(generateICPDocument(context.form)).map(([section, content]) => (
-                    <div key={section} className="border-l-4 border-teal-500/30 pl-4">
-                      <h4 className="text-sm font-bold text-white uppercase tracking-widest text-teal-400 mb-2">
-                        {section}
-                      </h4>
-                      <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
-                        {content}
-                      </p>
-                    </div>
-                  ))}
+                  {Object.entries(generateICPDocument(context.form)).map(([section, content]) => {
+                    // Handle nested objects recursively!
+                    const renderContent = (value: any): React.ReactNode => {
+                      if (typeof value === "string") {
+                        return <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{value}</p>;
+                      }
+                      if (typeof value === "object" && value !== null) {
+                        return (
+                          <div className="pl-4 mt-2 space-y-3">
+                            {Object.entries(value).map(([subKey, subValue]) => (
+                              <div key={subKey} className="border-l-2 border-teal-500/20 pl-3">
+                                <h5 className="text-xs font-semibold text-teal-300 uppercase tracking-wide mb-1">{subKey}</h5>
+                                {renderContent(subValue)}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      }
+                      return null;
+                    };
+                    return (
+                      <div key={section} className="border-l-4 border-teal-500/30 pl-4">
+                        <h4 className="text-sm font-bold text-white uppercase tracking-widest text-teal-400 mb-2">
+                          {section}
+                        </h4>
+                        {renderContent(content)}
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
