@@ -88,6 +88,14 @@ export const DEMO_CUSTOMERS: DemoCustomer[] = [
     name: "Praneeth Burada",
     role: "customer",
   },
+  {
+    id: "customer-anil",
+    email: "anil@cralgo.com",
+    // Hashed password for "Anil@DealFlow2026!"
+    hashedPassword: "$2b$12$fAXWcrwf7Bxr6D0h9jPv0uXZ5iBYMiPgWzQXYWQT8cOtzcZibP6re",
+    name: "Anil Kumar",
+    role: "customer",
+  },
 ];
 
 // --- In-memory new customers (from registration) ---

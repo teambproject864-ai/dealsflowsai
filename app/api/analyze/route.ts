@@ -4,13 +4,42 @@ import { v4 as uuidv4 } from "uuid";
 import { getInMemoryLeads, getInMemoryAnalyses } from "@/lib/memory-storage";
 import { checkRateLimit } from "@/lib/rate-limiter";
 
-export const maxDuration = 60;
+export const maxDuration = 120; // Extended from 60 to allow more time
 export const dynamic = "force-dynamic";
 
 const inMemoryLeads = getInMemoryLeads();
 const inMemoryAnalyses = getInMemoryAnalyses();
 
+// Performance monitoring store
+interface AnalysisPerformanceEntry {
+  analysisId: string;
+  startTime: number;
+  durationMs: number;
+  success: boolean;
+  modelUsed?: string;
+}
+const performanceEntries: AnalysisPerformanceEntry[] = [];
+
+// Endpoint to get performance metrics
+export async function GET() {
+  return NextResponse.json({
+    success: true,
+    metrics: performanceEntries.slice(-50), // Last 50 entries
+    stats: {
+      total: performanceEntries.length,
+      successCount: performanceEntries.filter(e => e.success).length,
+      avgDurationMs: performanceEntries.length > 0 
+        ? Math.round(performanceEntries.reduce((sum, e) => sum + e.durationMs, 0) / performanceEntries.length) 
+        : 0
+    }
+  });
+}
+
 export async function POST(req: Request) {
+  const startTime = Date.now();
+  let success = false;
+  let analysisId: string | undefined;
+
   // Check rate limit first
   const rateLimitCheck = await checkRateLimit(req);
   if (!rateLimitCheck.allowed) {
@@ -25,6 +54,7 @@ export async function POST(req: Request) {
   }
 
   try {
+    console.log("[analyze/route] Starting analysis request...");
     const { leadId, companyData: providedData } = await req.json();
 
     let companyData = providedData;
@@ -42,6 +72,7 @@ export async function POST(req: Request) {
       );
     }
 
+    console.log("[analyze/route] Invoking analysis graph...");
     const graphState = await analysisGraph.invoke({ companyData });
 
     if (graphState.error) {
@@ -49,7 +80,8 @@ export async function POST(req: Request) {
     }
 
     const analysis = graphState.analysisResult;
-    const analysisId = uuidv4();
+    analysisId = uuidv4();
+    success = true;
 
     inMemoryAnalyses.set(analysisId, {
       id: analysisId,
@@ -66,6 +98,7 @@ export async function POST(req: Request) {
       });
     }
 
+    console.log("[analyze/route] Analysis complete, returning response");
     return NextResponse.json({
       success: true,
       analysisId,
@@ -74,8 +107,25 @@ export async function POST(req: Request) {
       ...analysis,
     });
   } catch (error) {
-    console.error("Error analyzing company:", error);
+    console.error("[analyze/route] Error analyzing company:", error);
     const message = error instanceof Error ? error.message : "Failed to analyze company";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
+  } finally {
+    // Record performance metrics
+    const durationMs = Date.now() - startTime;
+    console.log(`[analyze/route] Request complete. Duration: ${durationMs}ms, Success: ${success}`);
+    
+    if (analysisId) {
+      performanceEntries.push({
+        analysisId,
+        startTime,
+        durationMs,
+        success
+      });
+      // Keep only last 100 entries
+      if (performanceEntries.length > 100) {
+        performanceEntries.shift();
+      }
+    }
   }
 }

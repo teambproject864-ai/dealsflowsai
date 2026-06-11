@@ -163,18 +163,111 @@ export type GtmInsightSection = {
   content: string;
 };
 
+// New types for complete GTM analysis
+export type Table1FirmographicEntry = {
+  priorityTier: string;
+  industryVertical: string;
+  companySize: string;
+  arrRange: string;
+  location: string;
+  keyDecisionMakerDemographics: string;
+  notes: string;
+};
+
+export type Table2PainPointEntry = {
+  painPoint: string;
+  severity: string;
+  businessImpact: string;
+  rootCause: string;
+  dealFlowAISolution: string;
+};
+
+export type Table3DecisionMakerEntry = {
+  role: string;
+  influenceScore: string;
+  coreDecisionRole: string;
+  top3Priorities: string;
+  dealFlowAIMessagingFocus: string;
+};
+
+export type Table4LeadScoringEntry = {
+  category: string;
+  criterion: string;
+  points: string;
+};
+
+export type Table5ChannelEntry = {
+  channel: string;
+  icpSegmentsBestFor: string;
+  monthlyLeadVolume: string;
+  conversionRate: string;
+  costPerAcquisition: string;
+  ltvToCacRatio: string;
+  budgetAllocation: string;
+  optimizationRecommendations: string;
+};
+
+export type PurchasingJourneyStage = {
+  stage: string;
+  duration: string;
+  customerActions: string;
+  customerNeedsQuestions: string;
+  channelPreferences: string;
+  dealFlowAIAssetsEngagement: string;
+};
+
+export type CrossTeamAlignmentGuidelines = {
+  raciFramework: any[];
+  communicationCadenceSlas: any[];
+  sharedSLAs: string[];
+};
+
+export type ICPValidationChecklist = {
+  preQualificationChecklist: string[];
+  quarterlyValidationReview: string[];
+  dataSourcesForValidation: string[];
+  icpUpdateTriggers: string[];
+};
+
 export type AnalysisResult = {
+  // Legacy fields (for compatibility)
   analysisId?: string;
   leadId?: string;
   companyName?: string;
-  healthScore: number;
-  gtmPlan: string;
-  idealCustomerProfiles: GtmInsightSection[];
-  comprehensiveBrandOverview: string;
-  strategicOutreachApproach: string;
-  marketDifferentiationTriggers: string[];
-  goToMarketCoreFramework: string;
-  customerJourneyPipeline: GtmInsightSection[];
+  healthScore?: number;
+  gtmPlan?: string;
+  idealCustomerProfiles?: GtmInsightSection[];
+  comprehensiveBrandOverview?: string;
+  strategicOutreachApproach?: string;
+  marketDifferentiationTriggers?: string[];
+  goToMarketCoreFramework?: string;
+  customerJourneyPipeline?: GtmInsightSection[];
+
+  // New complete GTM analysis fields
+  executiveSummary?: string;
+  icpDefinition?: {
+    inclusionCriteria: string[];
+    exclusionCriteria: string[];
+  };
+  table1FirmographicDemographic?: Table1FirmographicEntry[];
+  behavioralPsychographicTraits?: {
+    observableBehavioralPatterns: string[];
+    corePsychographicAttributes: string[];
+  };
+  table2PainPointAnalysis?: Table2PainPointEntry[];
+  table3DecisionMakerInfluence?: Table3DecisionMakerEntry[];
+  purchasingJourneyMapping?: PurchasingJourneyStage[];
+  table4LeadScoringFramework?: {
+    criteria: Table4LeadScoringEntry[];
+    qualificationThresholds: {
+      mql: string;
+      sql: string;
+      sal: string;
+    };
+  };
+  table5ChannelEffectiveness?: Table5ChannelEntry[];
+  crossTeamAlignmentGuidelines?: CrossTeamAlignmentGuidelines;
+  icpValidationChecklist?: ICPValidationChecklist;
 };
 
 export const STORAGE_KEY = "dealflow_lead_context_v1";

@@ -114,6 +114,13 @@ export function selectAIProvider(
   attributes: ProviderRequestAttributes = {},
   requestId?: string
 ): SupportedAIProvider {
+  // First check if AI_PROVIDER is set in environment variables
+  const envProvider = process.env.AI_PROVIDER;
+  if (envProvider && isSupportedProvider(envProvider)) {
+    logProviderSelection(attributes, envProvider);
+    return envProvider;
+  }
+
   // Find matching rules sorted by priority (highest first)
   const matchingRules = PROVIDER_MAPPING_RULES.filter((rule) =>
     rule.condition(attributes)

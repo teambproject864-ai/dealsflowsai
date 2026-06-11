@@ -1,7 +1,7 @@
 import { HfInference } from '@huggingface/inference';
 
-const PRIMARY_MODEL = 'meta-llama/Meta-Llama-3-8B-Instruct'; 
-const FALLBACK_MODEL = 'mistralai/Mistral-7B-Instruct-v0.3';
+const PRIMARY_MODEL = 'HuggingFaceH4/zephyr-7b-beta';
+const FALLBACK_MODEL = 'mistralai/Mistral-7B-Instruct-v0.2';
 const EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2';
 
 export async function hfInfer( 
@@ -9,7 +9,7 @@ export async function hfInfer(
   systemPrompt: string, 
   options = {} 
 ): Promise<string> { 
-  const hfToken = (process.env.HUGGINGFACE_API_KEY || "").trim();
+  const hfToken = (process.env.HUGGINGFACE_API_TOKEN || process.env.HUGGINGFACE_API_KEY || "").trim();
   if (!hfToken) {
     console.warn("HUGGINGFACE_API_KEY is missing or empty.");
     return "AI Analysis is currently unavailable due to missing API configuration.";
@@ -47,10 +47,10 @@ export async function hfInfer(
 export async function hfInferJSON( 
   prompt: string, 
   systemPrompt: string,
-  infer: typeof hfInfer = hfInfer
+  options: any = {}
 ): Promise<any> { 
   const jsonSystem = `${systemPrompt}\n\nIMPORTANT: Respond ONLY with valid JSON. No explanation, no markdown, no backticks. Raw JSON only. Ensure no trailing commas.`; 
-  const jsonOpts: any = { temperature: 0.2, max_tokens: 1600 };
+  const jsonOpts: any = { ...options, temperature: 0.2, max_tokens: 1600 };
   const jsonFixerSystem = `You fix invalid JSON. Return ONLY valid JSON. No markdown, no backticks, no explanation. Do not add commentary.`;
 
   const stripFences = (t: string) => t.replace(/```json\s*|```/gi, "").trim();
@@ -150,7 +150,7 @@ export async function hfInferJSON(
 
   let raw1 = "";
   try {
-    raw1 = await infer(prompt, jsonSystem, jsonOpts);
+    raw1 = await hfInfer(prompt, jsonSystem, jsonOpts);
     return parseLenient(raw1);
   } catch (e1) {
     const candidate = repairJson(extractJsonCandidate(stripFences(String(raw1 || ""))));
@@ -159,17 +159,17 @@ export async function hfInferJSON(
       const repairPrompt = clipped
         ? `Fix this invalid JSON and return corrected JSON only:\n${clipped}`
         : `Return the JSON again, ensuring it is strictly valid JSON (no trailing commas).`;
-      const raw2 = await infer(repairPrompt, jsonFixerSystem, { temperature: 0, max_tokens: 1600 });
+      const raw2 = await hfInfer(repairPrompt, jsonFixerSystem, { ...jsonOpts, temperature: 0, max_tokens: 1600 });
       return parseLenient(raw2);
     } catch (e2) {
-      const raw3 = await infer(prompt, jsonSystem, { temperature: 0, max_tokens: 1800 });
+      const raw3 = await hfInfer(prompt, jsonSystem, { ...jsonOpts, temperature: 0, max_tokens: 1800 });
       return parseLenient(raw3);
     }
   }
 } 
 
 export async function hfEmbed(text: string): Promise<number[]> {
-  const hfToken = (process.env.HUGGINGFACE_API_KEY || "").trim();
+  const hfToken = (process.env.HUGGINGFACE_API_TOKEN || process.env.HUGGINGFACE_API_KEY || "").trim();
   if (!hfToken) {
     console.warn("HUGGINGFACE_API_KEY is missing, returning empty embedding.");
     return new Array(384).fill(0);
