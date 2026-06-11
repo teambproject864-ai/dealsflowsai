@@ -1,7 +1,12 @@
 import { HfInference } from '@huggingface/inference';
 
-const PRIMARY_MODEL = 'HuggingFaceH4/zephyr-7b-beta';
-const FALLBACK_MODEL = 'mistralai/Mistral-7B-Instruct-v0.2';
+const PRIMARY_MODEL = 'mistralai/Mistral-7B-Instruct-v0.3';
+const FALLBACK_MODELS = [
+  'mistralai/Mistral-7B-Instruct-v0.2',
+  'HuggingFaceH4/zephyr-7b-beta',
+  'meta-llama/Llama-3-8B-Instruct',
+  'Qwen/Qwen2.5-7B-Instruct'
+];
 const EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2';
 
 export async function hfInfer( 
@@ -17,6 +22,7 @@ export async function hfInfer(
   const hf = new HfInference(hfToken);
 
   const tryModel = async (model: string) => { 
+    console.log(`[huggingface.ts] Trying model: ${model}`);
     const res = await hf.chatCompletion({
       model: model,
       messages: [
@@ -28,20 +34,29 @@ export async function hfInfer(
       top_p: 0.9,
       ...options
     });
-    return res.choices[0]?.message?.content || '';
+    const content = res.choices[0]?.message?.content || '';
+    if (!content) {
+      throw new Error(`Model ${model} returned empty content`);
+    }
+    console.log(`[huggingface.ts] Success with model: ${model}`);
+    return content;
   };
 
-  try {
-    return await tryModel(PRIMARY_MODEL);
-  } catch (err) {
-    console.warn(`Hugging Face Primary Model failed. Trying fallback...`, err);
+  // Try primary model first, then all fallbacks
+  const modelsToTry = [PRIMARY_MODEL, ...FALLBACK_MODELS];
+  let lastError: any;
+  
+  for (const model of modelsToTry) {
     try {
-      return await tryModel(FALLBACK_MODEL);
-    } catch (fallbackErr) {
-      console.error(`Hugging Face API Fallback Error:`, fallbackErr);
-      throw new Error(`AI Analysis Service Error: Both models failed`);
+      return await tryModel(model);
+    } catch (err) {
+      lastError = err;
+      console.warn(`Hugging Face model ${model} failed, trying next...`, err);
     }
   }
+  
+  console.error(`Hugging Face API Error: All models failed`, lastError);
+  throw new Error(`AI Analysis Service Error: All models failed`);
 }
 
 export async function hfInferJSON( 

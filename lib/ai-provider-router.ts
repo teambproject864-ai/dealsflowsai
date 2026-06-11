@@ -163,20 +163,41 @@ export async function performDynamicInference(
   attributes: ProviderRequestAttributes = {},
   options: any = {}
 ): Promise<string> {
-  const provider = selectAIProvider(attributes);
-  const { infer } = getProviderInferenceFunctions(provider);
+  const initialProvider = selectAIProvider(attributes);
   
-  try {
-    return await infer(prompt, systemPrompt, options);
-  } catch (error) {
-    console.error(
-      `[AI Provider Router] Inference with ${provider} failed, falling back to ${DEFAULT_PROVIDER}`,
-      error
-    );
-    logProviderSelection(attributes, DEFAULT_PROVIDER, provider);
-    const { infer: fallbackInfer } = getProviderInferenceFunctions(DEFAULT_PROVIDER);
-    return await fallbackInfer(prompt, systemPrompt, options);
+  // Create a list of providers to try, starting with initial provider, then all others
+  const providersToTry: SupportedAIProvider[] = [initialProvider];
+  for (const provider of SUPPORTED_PROVIDERS) {
+    if (!providersToTry.includes(provider)) {
+      providersToTry.push(provider);
+    }
   }
+  
+  let lastError: any;
+  let lastProvider: SupportedAIProvider | null = null;
+  
+  for (const provider of providersToTry) {
+    try {
+      console.log(`[AI Provider Router] Trying provider: ${provider}`);
+      const { infer } = getProviderInferenceFunctions(provider);
+      if (lastProvider) {
+        logProviderSelection(attributes, provider, lastProvider);
+      }
+      const result = await infer(prompt, systemPrompt, options);
+      console.log(`[AI Provider Router] Success with provider: ${provider}`);
+      return result;
+    } catch (error) {
+      lastError = error;
+      lastProvider = provider;
+      console.error(
+        `[AI Provider Router] Inference with ${provider} failed, trying next...`,
+        error
+      );
+    }
+  }
+  
+  // If all providers failed, throw the last error
+  throw new Error(`All AI providers failed. Last error: ${lastError?.message || "Unknown error"}`);
 }
 
 /**
@@ -188,20 +209,41 @@ export async function performDynamicInferenceJSON(
   attributes: ProviderRequestAttributes = {},
   options: any = {}
 ): Promise<any> {
-  const provider = selectAIProvider(attributes);
-  const { inferJSON } = getProviderInferenceFunctions(provider);
+  const initialProvider = selectAIProvider(attributes);
   
-  try {
-    return await inferJSON(prompt, systemPrompt, options);
-  } catch (error) {
-    console.error(
-      `[AI Provider Router] JSON inference with ${provider} failed, falling back to ${DEFAULT_PROVIDER}`,
-      error
-    );
-    logProviderSelection(attributes, DEFAULT_PROVIDER, provider);
-    const { inferJSON: fallbackInferJSON } = getProviderInferenceFunctions(DEFAULT_PROVIDER);
-    return await fallbackInferJSON(prompt, systemPrompt, options);
+  // Create a list of providers to try, starting with initial provider, then all others
+  const providersToTry: SupportedAIProvider[] = [initialProvider];
+  for (const provider of SUPPORTED_PROVIDERS) {
+    if (!providersToTry.includes(provider)) {
+      providersToTry.push(provider);
+    }
   }
+  
+  let lastError: any;
+  let lastProvider: SupportedAIProvider | null = null;
+  
+  for (const provider of providersToTry) {
+    try {
+      console.log(`[AI Provider Router] Trying provider: ${provider} (JSON)`);
+      const { inferJSON } = getProviderInferenceFunctions(provider);
+      if (lastProvider) {
+        logProviderSelection(attributes, provider, lastProvider);
+      }
+      const result = await inferJSON(prompt, systemPrompt, options);
+      console.log(`[AI Provider Router] Success with provider: ${provider} (JSON)`);
+      return result;
+    } catch (error) {
+      lastError = error;
+      lastProvider = provider;
+      console.error(
+        `[AI Provider Router] JSON inference with ${provider} failed, trying next...`,
+        error
+      );
+    }
+  }
+  
+  // If all providers failed, throw the last error
+  throw new Error(`All AI providers failed for JSON inference. Last error: ${lastError?.message || "Unknown error"}`);
 }
 
 /**
