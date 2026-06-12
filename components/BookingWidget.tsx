@@ -27,7 +27,8 @@ import {
   Share2,
   Zap,
   ShieldAlert,
-  BarChart3
+  BarChart3,
+  Lock
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,7 @@ import type { RevenueAgentProfile } from "@/lib/revenue-agents";
 import { formatAnalysisSummaryText } from "@/lib/report-formatter";
 import dynamic from "next/dynamic";
 import { useCalendlyEventListener } from "react-calendly";
+import Link from "next/link";
 
 const DynamicInlineWidget = dynamic(
   () => import("react-calendly").then((mod) => mod.InlineWidget),
@@ -256,6 +258,8 @@ export function BookingWidget({
   const [loadingAgents, setLoadingAgents] = useState(false);
   const [voiceConfirmationQueued, setVoiceConfirmationQueued] = useState(false);
   const [calendlyLoading, setCalendlyLoading] = useState(true);
+  const [password, setPassword] = useState("");
+  const [assignedAgent, setAssignedAgent] = useState<any | null>(null);
 
   // Setup Calendly event listener to validate and register successful bookings
   useCalendlyEventListener({
@@ -497,6 +501,119 @@ export function BookingWidget({
     } catch (err: any) {
       console.error("AI booking failure:", err);
       setErrorMsg(err.message || "An error occurred starting the AI session.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartAiAgentOnboarding = async () => {
+    // 1. Validate Form Inputs
+    const errors: Record<string, string> = {};
+    if (!formData.name.trim()) errors.name = "Name is required";
+    if (!formData.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = "Invalid email address";
+    }
+    if (!formData.company.trim()) errors.company = "Company name is required";
+    if (!formData.phone.trim()) {
+      errors.phone = "Phone number is required";
+    } else if (!/^\+?[1-9]\d{1,14}$/.test(formData.phone.replace(/[\s()+-]/g, ""))) {
+      errors.phone = "Invalid phone number format";
+    }
+    if (!password || password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+    }
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      let resolvedLeadId = initialLeadId;
+      
+      // A. Create/Save Lead in database if not present
+      if (!resolvedLeadId) {
+        const resLead = await fetch("/api/leads/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            companyName: formData.company,
+            contactName: formData.name,
+            contactEmail: formData.email,
+            contactPhone: formData.phone,
+            source: "booking_widget_ai_onboard",
+          }),
+        });
+        const leadJson = await resLead.json();
+        if (resLead.ok && leadJson.leadId) {
+          resolvedLeadId = String(leadJson.leadId);
+        } else {
+          throw new Error(leadJson.error || "Failed to create lead profile.");
+        }
+      }
+
+      // B. Resolve Agent Key
+      const agentKey = autoAssignAgent ? (agents[0]?.key || "praneeth") : (selectedAgentKeys[0] || "praneeth");
+
+      // C. Save Agent Assignment
+      const resAssign = await fetch("/api/agent-assignments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId: resolvedLeadId,
+          agentKey: agentKey,
+        })
+      });
+      const assignData = await resAssign.json();
+      if (!resAssign.ok || !assignData.success) {
+        throw new Error(assignData.error || "Failed to assign AI agent.");
+      }
+      setAssignedAgent(assignData.assignment);
+
+      // D. Register Portal Credentials
+      const resCreds = await fetch("/api/customer-credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId: resolvedLeadId,
+          email: formData.email,
+          password: password,
+        })
+      });
+      const credsData = await resCreds.json();
+      if (!resCreds.ok || !credsData.success) {
+        throw new Error(credsData.error || "Failed to create customer credentials.");
+      }
+
+      // E. Create Immediate Call in background (pre-boots session)
+      try {
+        const resCall = await fetch("/api/calls/immediate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leadId: resolvedLeadId,
+            analysisId: analysisId || "",
+            personaKey: "praneeth_assist",
+            preferredAgentKeys: [agentKey],
+            autoAssign: false,
+          })
+        });
+        const callData = await resCall.json();
+        if (resCall.ok && callData.success && callData.callId) {
+          setCreatedCallId(callData.callId);
+        }
+      } catch (err) {
+        console.warn("Failed to pre-create immediate call session in background:", err);
+      }
+
+      // Transition to Success Step
+      setStep(4);
+    } catch (err: any) {
+      console.error("AI Onboarding error:", err);
+      setErrorMsg(err.message || "Failed to complete onboarding. Try again.");
     } finally {
       setLoading(false);
     }
@@ -897,7 +1014,7 @@ export function BookingWidget({
                         setShowAgentPicker(true);
                         void loadAgents();
                       } else {
-                        void handleStartAiAgent();
+                        setStep(2);
                       }
                     } else {
                       setStep(2);
@@ -926,7 +1043,6 @@ export function BookingWidget({
             </motion.div>
           )}
 
-          {/* STEP 2: Custom Calendar Grid Picker or Calendly Embed */}
           {step === 2 && (
             <motion.div
               key="step2"
@@ -936,26 +1052,189 @@ export function BookingWidget({
               transition={{ duration: 0.3 }}
               className="space-y-6"
             >
-              <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-white font-display">
-                    {forcedMeetingType === "calendly" ? "Schedule GTM Strategy Session" : "Select Date & Time"}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {forcedMeetingType === "calendly" 
-                      ? "Book your strategy call slot directly on our live interactive calendar"
-                      : "Available strategy workshops for upcoming business days"}
-                  </p>
-                </div>
-                <button 
-                  onClick={() => setStep(1)} 
-                  className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors focus:outline-none"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" /> Back
-                </button>
-              </div>
+              {bookingMode === "ai" ? (
+                <>
+                  <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
+                    <div>
+                      <h3 className="text-xl font-semibold text-white font-display">
+                        Create Your Customer Account & Onboard
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Configure your credentials to access the Customer Portal and launch your AI Agent.
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => setStep(1)} 
+                      className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors focus:outline-none"
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5" /> Back
+                    </button>
+                  </div>
 
-              {forcedMeetingType === "calendly" ? (
+                  <form 
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      void handleStartAiAgentOnboarding();
+                    }} 
+                    className="space-y-5"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {/* Name field */}
+                      <div className="space-y-2">
+                        <Label htmlFor="ai-name" className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                          <User className="h-3.5 w-3.5 text-teal-400" />
+                          Contact Name <span className="text-red-400">*</span>
+                        </Label>
+                        <input
+                          id="ai-name"
+                          type="text"
+                          placeholder="Praneeth Burada"
+                          value={formData.name}
+                          onChange={(e) => {
+                            setFormData({ ...formData, name: e.target.value });
+                            if (formErrors.name) setFormErrors({ ...formErrors, name: "" });
+                          }}
+                          className={`w-full bg-black/40 border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 transition-all ${
+                            formErrors.name ? "border-red-500/50" : "border-white/10 focus:border-teal-500"
+                          }`}
+                        />
+                        {formErrors.name && (
+                          <span className="text-[11px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="h-3 w-3" /> {formErrors.name}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Company field */}
+                      <div className="space-y-2">
+                        <Label htmlFor="ai-company" className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                          <Building className="h-3.5 w-3.5 text-teal-400" />
+                          Company Name <span className="text-red-400">*</span>
+                        </Label>
+                        <input
+                          id="ai-company"
+                          type="text"
+                          placeholder="Growstack AI"
+                          value={formData.company}
+                          onChange={(e) => {
+                            setFormData({ ...formData, company: e.target.value });
+                            if (formErrors.company) setFormErrors({ ...formErrors, company: "" });
+                          }}
+                          className={`w-full bg-black/40 border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 transition-all ${
+                            formErrors.company ? "border-red-500/50" : "border-white/10 focus:border-teal-500"
+                          }`}
+                        />
+                        {formErrors.company && (
+                          <span className="text-[11px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="h-3 w-3" /> {formErrors.company}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Phone field */}
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="ai-phone" className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                          <Phone className="h-3.5 w-3.5 text-teal-400" />
+                          Contact Phone <span className="text-red-400">*</span>
+                        </Label>
+                        <input
+                          id="ai-phone"
+                          type="tel"
+                          placeholder="+1 (555) 123-4567"
+                          value={formData.phone}
+                          onChange={(e) => {
+                            setFormData({ ...formData, phone: e.target.value });
+                            if (formErrors.phone) setFormErrors({ ...formErrors, phone: "" });
+                          }}
+                          className={`w-full bg-black/40 border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 transition-all ${
+                            formErrors.phone ? "border-red-500/50" : "border-white/10 focus:border-teal-500"
+                          }`}
+                        />
+                        {formErrors.phone && (
+                          <span className="text-[11px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="h-3 w-3" /> {formErrors.phone}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Portal Email field */}
+                      <div className="space-y-2">
+                        <Label htmlFor="ai-email" className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                          <Mail className="h-3.5 w-3.5 text-teal-400" />
+                          Portal Login Email <span className="text-red-400">*</span>
+                        </Label>
+                        <input
+                          id="ai-email"
+                          type="email"
+                          placeholder="you@company.com"
+                          value={formData.email}
+                          onChange={(e) => {
+                            setFormData({ ...formData, email: e.target.value });
+                            if (formErrors.email) setFormErrors({ ...formErrors, email: "" });
+                          }}
+                          className={`w-full bg-black/40 border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 transition-all ${
+                            formErrors.email ? "border-red-500/50" : "border-white/10 focus:border-teal-500"
+                          }`}
+                        />
+                        {formErrors.email && (
+                          <span className="text-[11px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="h-3 w-3" /> {formErrors.email}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Portal Password field */}
+                      <div className="space-y-2">
+                        <Label htmlFor="ai-password" className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                          <Lock className="h-3.5 w-3.5 text-teal-400" />
+                          Portal Password <span className="text-red-400">*</span>
+                        </Label>
+                        <input
+                          id="ai-password"
+                          type="password"
+                          placeholder="Create secure password"
+                          value={password}
+                          onChange={(e) => {
+                            setPassword(e.target.value);
+                            if (formErrors.password) setFormErrors({ ...formErrors, password: "" });
+                          }}
+                          className={`w-full bg-black/40 border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 transition-all ${
+                            formErrors.password ? "border-red-500/50" : "border-white/10 focus:border-teal-500"
+                          }`}
+                        />
+                        {formErrors.password && (
+                          <span className="text-[11px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="h-3 w-3" /> {formErrors.password}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-6 border-t border-white/5 mt-6">
+                      <span className="text-xs text-slate-400">
+                        {autoAssignAgent ? "Auto-assigning best fit AI Agent" : `Selected ${selectedAgentKeys.length} Agent(s)`}
+                      </span>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-6 py-3.5 text-sm font-semibold text-black transition-all hover:bg-teal-400 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-[0_0_20px_rgba(20,184,166,0.3)] duration-300"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin text-black" />
+                            Provisioning Portal...
+                          </>
+                        ) : (
+                          <>
+                            Complete Setup & Launch
+                            <ArrowRight className="h-4 w-4" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              ) : forcedMeetingType === "calendly" ? (
                 <div className="rounded-2xl border border-white/10 bg-[#0A0F1E]/50 overflow-hidden min-h-[660px] relative shadow-inner">
                   {/* Accessibility support announcement */}
                   <span className="sr-only">Calendly Scheduling Widget. Use keyboard tab to navigate scheduling calendar below.</span>
@@ -1387,106 +1666,171 @@ export function BookingWidget({
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="space-y-8"
             >
-              {/* Success Badge */}
-              <div className="text-center space-y-4">
-                <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-                  <CheckCircle className="h-8 w-8 animate-pulse" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-2xl font-semibold text-white tracking-tight sm:text-3xl font-display">
-                    Strategy Session Confirmed!
-                  </h3>
-                  <p className="text-sm text-slate-400">
-                    We&apos;ve registered your GTM analysis mapping and generated your workspace invite.
-                    {voiceConfirmationQueued && formData.phone && (
-                      <span className="block mt-2 text-teal-400/90">
-                        An automated confirmation call to {formData.phone} is being placed with your meeting details.
-                      </span>
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              {/* Event details card */}
-              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Scheduled Time</div>
-                  <div className="flex items-start gap-2.5">
-                    <CalendarIcon className="h-4 w-4 text-teal-400 shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold text-white">{friendlyScheduledDate}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Workspace Video URL</div>
-                  <div className="flex items-start gap-2.5">
-                    <Video className="h-4 w-4 text-indigo-400 shrink-0 mt-0.5" />
-                    <a 
-                      href={createdMeetUrl || "https://meet.google.com/gtm-ops-dfai"} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 underline break-all"
-                    >
-                      {createdMeetUrl ? createdMeetUrl : "https://meet.google.com/gtm-ops-dfai"}
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* PREMIUM FEATURE: Automated Confirmation Email Presentation */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-                  <Inbox className="h-4 w-4 text-teal-400" />
-                  <span>Automated Confirmation Email Dispatched</span>
-                </div>
-
-                <div className="relative rounded-2xl border border-white/10 bg-[#0A0F1E]/80 overflow-hidden shadow-2xl p-6">
-                  {/* Glassmorphic Email Layout */}
-                  <div className="flex items-center gap-3 border-b border-white/5 pb-4 mb-4 text-xs">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    <div className="text-slate-400 font-medium">
-                      To: <span className="text-slate-200">{formData.email}</span>
+              {bookingMode === "ai" ? (
+                <div className="space-y-8">
+                  {/* Success Badge */}
+                  <div className="text-center space-y-4">
+                    <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                      <CheckCircle className="h-8 w-8 animate-pulse" />
                     </div>
-                    <div className="ml-auto text-slate-500">Just Now</div>
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-semibold text-white tracking-tight sm:text-3xl font-display">
+                        AI Agent Onboarded & Assigned!
+                      </h3>
+                      <p className="text-sm text-slate-400">
+                        Your customer portal is configured and your AI revenue agent is ready to execute your GTM playbook.
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="space-y-4 text-sm text-slate-300">
-                    <div className="font-bold text-white text-base">
-                      Subject: GTM Strategy Booking Confirmation — {formData.company}
+                  {/* Agent Card Details */}
+                  {assignedAgent && (
+                    <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex items-center gap-4 text-left max-w-lg mx-auto">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-[0_0_15px_rgba(20,184,166,0.2)]">
+                        {assignedAgent.agentName.charAt(0)}
+                      </div>
+                      <div className="flex-1">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 text-xs font-semibold uppercase tracking-wider border border-teal-500/20">
+                          Active Agent
+                        </span>
+                        <h4 className="text-xl font-bold text-white mt-1">{assignedAgent.agentName}</h4>
+                        <p className="text-xs text-slate-400 mt-0.5">Status: Assigned & Synchronized</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Portal Instructions & Actions */}
+                  <div className="space-y-4 max-w-md mx-auto pt-4">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Link 
+                        href="/portal/customer"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-500 px-6 py-3.5 text-sm font-semibold text-black transition-all hover:bg-teal-400 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(20,184,166,0.3)] duration-300 w-full sm:w-auto"
+                      >
+                        Access Customer Portal
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+
+                      {createdCallId && (
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/meeting-agent/live?callId=${createdCallId}`)}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-800 border border-slate-700 px-6 py-3.5 text-sm font-semibold text-white transition-all hover:bg-slate-700 hover:scale-105 active:scale-95 duration-300 w-full sm:w-auto"
+                        >
+                          <Video className="h-4 w-4 text-teal-400" />
+                          Launch Live Call Session
+                        </button>
+                      )}
                     </div>
                     
-                    <p>Hi {formData.name.split(" ")[0]},</p>
-                    <p>
-                      Your dedicated 30-minute GTM Strategy Call with DealFlow.AI has been booked! We are looking forward to helping you optimize your revenue engine.
-                    </p>
-
-                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 space-y-2 text-xs text-slate-400">
-                      <div><strong className="text-slate-200">Date/Time:</strong> {friendlyScheduledDate}</div>
-                      <div><strong className="text-slate-200">Video Link:</strong> <a href={createdMeetUrl || "https://meet.google.com/gtm-ops-dfai"} className="text-indigo-400 underline">{createdMeetUrl || "https://meet.google.com/gtm-ops-dfai"}</a></div>
-                      <div><strong className="text-slate-200">Invited Operation Architects:</strong> {defaultGuests.slice(0, 2).join(", ")}</div>
-                    </div>
-
-                    <p className="text-xs text-slate-500 italic">
-                      Note: An agenda has been pre-seeded containing your GTM Health score and primary RevOps bottlenecks.
+                    <p className="text-[11px] text-slate-500 text-center italic">
+                      Note: You can log into your Customer Portal at any time using your registered email: {formData.email}.
                     </p>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* Success Badge */}
+                  <div className="text-center space-y-4">
+                    <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                      <CheckCircle className="h-8 w-8 animate-pulse" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-semibold text-white tracking-tight sm:text-3xl font-display">
+                        Strategy Session Confirmed!
+                      </h3>
+                      <p className="text-sm text-slate-400">
+                        We&apos;ve registered your GTM analysis mapping and generated your workspace invite.
+                        {voiceConfirmationQueued && formData.phone && (
+                          <span className="block mt-2 text-teal-400/90">
+                            An automated confirmation call to {formData.phone} is being placed with your meeting details.
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
 
-              {/* Confirmation Action Button */}
-              <div className="flex justify-center pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Pushes back to Home cockpit or lead status
-                    router.push("/");
-                  }}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 px-8 py-3.5 text-sm font-semibold text-black transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(20,184,166,0.3)] duration-300"
-                >
-                  Access Revenue Cockpit
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
+                  {/* Event details card */}
+                  <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Scheduled Time</div>
+                      <div className="flex items-start gap-2.5">
+                        <CalendarIcon className="h-4 w-4 text-teal-400 shrink-0 mt-0.5" />
+                        <span className="text-sm font-semibold text-white">{friendlyScheduledDate}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">Workspace Video URL</div>
+                      <div className="flex items-start gap-2.5">
+                        <Video className="h-4 w-4 text-indigo-400 shrink-0 mt-0.5" />
+                        <a 
+                          href={createdMeetUrl || "https://meet.google.com/gtm-ops-dfai"} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 underline break-all"
+                        >
+                          {createdMeetUrl ? createdMeetUrl : "https://meet.google.com/gtm-ops-dfai"}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PREMIUM FEATURE: Automated Confirmation Email Presentation */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                      <Inbox className="h-4 w-4 text-teal-400" />
+                      <span>Automated Confirmation Email Dispatched</span>
+                    </div>
+
+                    <div className="relative rounded-2xl border border-white/10 bg-[#0A0F1E]/80 overflow-hidden shadow-2xl p-6">
+                      {/* Glassmorphic Email Layout */}
+                      <div className="flex items-center gap-3 border-b border-white/5 pb-4 mb-4 text-xs">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                        <div className="text-slate-400 font-medium">
+                          To: <span className="text-slate-200">{formData.email}</span>
+                        </div>
+                        <div className="ml-auto text-slate-500">Just Now</div>
+                      </div>
+
+                      <div className="space-y-4 text-sm text-slate-300">
+                        <div className="font-bold text-white text-base">
+                          Subject: GTM Strategy Booking Confirmation — {formData.company}
+                        </div>
+                        
+                        <p>Hi {formData.name.split(" ")[0]},</p>
+                        <p>
+                          Your dedicated 30-minute GTM Strategy Call with DealFlow.AI has been booked! We are looking forward to helping you optimize your revenue engine.
+                        </p>
+
+                        <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 space-y-2 text-xs text-slate-400">
+                          <div><strong className="text-slate-200">Date/Time:</strong> {friendlyScheduledDate}</div>
+                          <div><strong className="text-slate-200">Video Link:</strong> <a href={createdMeetUrl || "https://meet.google.com/gtm-ops-dfai"} className="text-indigo-400 underline">{createdMeetUrl || "https://meet.google.com/gtm-ops-dfai"}</a></div>
+                          <div><strong className="text-slate-200">Invited Operation Architects:</strong> {defaultGuests.slice(0, 2).join(", ")}</div>
+                        </div>
+
+                        <p className="text-xs text-slate-500 italic">
+                          Note: An agenda has been pre-seeded containing your GTM Health score and primary RevOps bottlenecks.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Confirmation Action Button */}
+                  <div className="flex justify-center pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Pushes back to Home cockpit or lead status
+                        router.push("/");
+                      }}
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 px-8 py-3.5 text-sm font-semibold text-black transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(20,184,166,0.3)] duration-300"
+                    >
+                      Access Revenue Cockpit
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </>
+              )}
 
             </motion.div>
           )}

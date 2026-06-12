@@ -108,37 +108,10 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
   const [zoom, setZoom] = useState(100);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Agent Assignment & Onboarding States
-  const [assignedAgent, setAssignedAgent] = useState<any | null>(null);
-  const [selectedAgentKey, setSelectedAgentKey] = useState<string | null>(null);
-  const [credentials, setCredentials] = useState({ email: "", password: "" });
-  const [postSubmissionStep, setPostSubmissionStep] = useState<number | null>(null);
-  const [isSubmittingAgent, setIsSubmittingAgent] = useState(false);
-  const [isSubmittingCreds, setIsSubmittingCreds] = useState(false);
-
   // Regenerate state
   const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
-    async function fetchAssignment() {
-      if (leadId) {
-        try {
-          const res = await fetch(`/api/agent-assignments?leadId=${leadId}`);
-          const data = await res.json();
-          if (data.success && data.assignments?.length > 0) {
-            setAssignedAgent(data.assignments[0]);
-            setPostSubmissionStep(null);
-          } else {
-            setPostSubmissionStep(0);
-          }
-        } catch (e) {
-          console.error(e);
-          setPostSubmissionStep(0);
-        }
-      } else {
-        setPostSubmissionStep(0);
-      }
-    }
 
     async function runAnalysis(forceRegenerate = false) {
       if (forceRegenerate) {
@@ -159,9 +132,6 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
           if (cachedLead?.readout) {
             setAnalysis(cachedLead.readout);
             setIsOfflineData(!cachedLead.synced);
-            const emailVal = companyData?.emailPersonal || companyData?.contactEmail || "";
-            setCredentials(c => ({ ...c, email: emailVal }));
-            await fetchAssignment();
             setLoading(false);
             return;
           }
@@ -187,10 +157,6 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
         
         setAnalysis(data);
         if (leadId) await saveLeadOffline(leadId, companyData as any, data, true);
-
-        const emailVal = companyData?.emailPersonal || companyData?.contactEmail || "";
-        setCredentials(c => ({ ...c, email: emailVal }));
-        await fetchAssignment();
       } catch (err) {
         console.warn("Using mock offline data", err);
         let fallbackData = loadLeadContext()?.form;
@@ -204,9 +170,6 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
           setAnalysis(mockData);
           setIsOfflineData(true);
           if (leadId) await saveLeadOffline(leadId, fallbackData as any, mockData, false);
-          const emailVal = fallbackData?.emailPersonal || fallbackData?.contactEmail || "";
-          setCredentials(c => ({ ...c, email: emailVal }));
-          await fetchAssignment();
         } else {
           setError(err instanceof Error ? err.message : "Unknown error");
         }
@@ -493,105 +456,6 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
           <LegacyGTMDisplay analysis={analysis} />
         )}
 
-        {/* Agent Section */}
-        <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay: 0.3 }} className="mt-16 pt-16 border-t border-white/10">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-semibold text-white mb-4" id="agent-section-title">Autonomous AI Revenue Agents</h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto" aria-describedby="agent-section-title">Assign an AI agent to execute your GTM plan.</p>
-          </div>
-          <div className="mx-auto max-w-4xl">
-            {postSubmissionStep ===0 && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-teal-300/90">Step 1/2</span>
-                    <h3 className="text-lg font-bold text-white">Select your agent</h3>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {getRevenueAgentCatalog().map(agent => (
-                    <GlassPanel key={agent.key} tilt={false} onClick={() => setSelectedAgentKey(agent.key)}
-                      className={`border-slate-700/50 cursor-pointer transition-all ${selectedAgentKey===agent.key ? "border-teal-500/70 bg-teal-500/10 shadow-lg shadow-teal-500/20" : "hover:border-teal-500/30 hover:bg-white/[0.02]" }`}
-                    >
-                      <div className="flex items-center gap-4 p-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-600 to-purple-600 flex items-center justify-center shrink-0">
-                          <span className="text-white font-bold text-lg">{agent.name.charAt(0)}</span>
-                        </div>
-                        <div className="flex-1 text-left">
-                          <h4 className="text-lg font-semibold text-white">{agent.name}</h4>
-                          <p className="text-xs text-slate-400 mt-1">{agent.expertise.join(", ")}</p>
-                        </div>
-                        {selectedAgentKey===agent.key && <CheckCircle2 className="w-6 h-6 text-teal-400" aria-hidden="true" />}
-                      </div>
-                    </GlassPanel>
-                  ))}
-                </div>
-                <div className="flex justify-end">
-                  <Button disabled={!selectedAgentKey || isSubmittingAgent} onClick={async () => {
-                    if (!leadId) return;
-                    setIsSubmittingAgent(true);
-                    try {
-                      const res = await fetch("/api/agent-assignments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId, agentKey: selectedAgentKey }) });
-                      const data = await res.json();
-                      if (data.success) { setAssignedAgent(data.assignment); setPostSubmissionStep(1); }
-                    } catch (e) { console.error(e); } finally { setIsSubmittingAgent(false); }
-                  }} className="bg-gradient-to-r from-teal-600 to-teal-500">
-                    {isSubmittingAgent ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" /> Assigning...</> : <>Continue <IconArrowRight className="w-4 h-4 ml-2" aria-hidden="true" /></>}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {postSubmissionStep ===1 && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div><span className="text-xs font-semibold uppercase tracking-wider text-teal-300/90">Step 2/2</span><h3 className="text-lg font-bold text-white">Create your account</h3></div>
-                </div>
-                <GlassPanel tilt={false} className="border-slate-700/50 p-6 text-left">
-                  <div className="space-y-4">
-                    <div className="space-y-2"><Label htmlFor="creds-email">Email Address</Label><Input id="creds-email" type="email" value={credentials.email} onChange={e => setCredentials({ ...credentials, email: e.target.value })} className="bg-black/20 border-white/10 text-white" placeholder="you@company.com" /></div>
-                    <div className="space-y-2"><Label htmlFor="creds-password">Password</Label><Input id="creds-password" type="password" value={credentials.password} onChange={e => setCredentials({ ...credentials, password: e.target.value })} className="bg-black/20 border-white/10 text-white" placeholder="Create a password" /></div>
-                  </div>
-                </GlassPanel>
-                <div className="flex justify-between gap-4">
-                  <Button variant="outline" onClick={() => setPostSubmissionStep(0)} className="border-white/10 bg-white/5"><IconArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" /> Back</Button>
-                  <Button disabled={!credentials.email || !credentials.password || isSubmittingCreds} onClick={async () => {
-                    if (!leadId) return;
-                    setIsSubmittingCreds(true);
-                    try { await fetch("/api/customer-credentials", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ leadId, email: credentials.email, password: credentials.password }) }); setPostSubmissionStep(null); } catch (e) { console.error(e); } finally { setIsSubmittingCreds(false); }
-                  }} className="bg-gradient-to-r from-teal-600 to-teal-500">
-                    {isSubmittingCreds ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" /> Creating...</> : <>Complete Setup & Launch <IconArrowRight className="w-4 h-4 ml-2" aria-hidden="true" /></>}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {postSubmissionStep === null && assignedAgent && (
-              <GlassPanel tilt={false} className="border-slate-700/50 p-6 text-left">
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4 border-b border-white/5 pb-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-500 to-purple-600 flex items-center justify-center">
-                      <span className="text-white font-bold text-2xl">{assignedAgent.agentName.charAt(0)}</span>
-                    </div>
-                    <div>
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 text-xs font-semibold uppercase tracking-wider border border-teal-500/20">Active Agent</span>
-                      <h3 className="text-xl font-bold text-white">{assignedAgent.agentName}</h3>
-                    </div>
-                  </div>
-                  <div className="bg-teal-500/5 border border-teal-500/10 rounded-xl p-4">
-                    <p className="font-semibold text-teal-400 mb-1">Status: Active</p>
-                    <p className="text-sm text-slate-300">Your AI agent is assigned and ready to execute your GTM plan.</p>
-                  </div>
-                  <div className="flex justify-end pt-2">
-                    <Link href="/portal/customer" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-white font-semibold transition-all duration-300 shadow-md shadow-teal-500/20 hover:shadow-teal-400/30 hover:-translate-y-0.5">
-                      Go to Customer Portal <IconArrowRight className="w-4 h-4" aria-hidden="true" />
-                    </Link>
-                  </div>
-                </div>
-              </GlassPanel>
-            )}
-          </div>
-        </motion.div>
 
         {/* Booking Widget Section */}
         <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.4 }} className="mt-16 pt-16 border-t border-white/10">
@@ -600,12 +464,12 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
             <p className="text-lg text-slate-400 max-w-2xl mx-auto" aria-describedby="booking-title">Book a strategy call to review this AI GTM analysis.</p>
           </div>
           <BookingWidget
-            name={context?.form?.contactName || ""}
-            email={context?.form?.contactEmail || ""}
+            name={context?.form?.name || ""}
+            email={context?.form?.emailPersonal || ""}
             companyName={analysis.companyName || ""}
             leadId={leadId}
             analysisId={analysis.analysisId}
-            contactPhone={context?.form?.contactPhone || ""}
+            contactPhone=""
             challengeTags={context?.form?.challenges || []}
           />
         </motion.div>
