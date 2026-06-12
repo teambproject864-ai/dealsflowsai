@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, Check, Trash2, Shield, Info, AlertTriangle, Cpu } from "lucide-react";
+import { Bell, Check, Trash2, Shield, Info, AlertTriangle, Cpu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface NotificationItem {
@@ -125,18 +125,22 @@ export function NotificationCenter() {
       {/* Bell Trigger Icon */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 rounded-xl border transition-all ${
+        className={`relative p-2.5 rounded-2xl border transition-all duration-300 ${
           isOpen
-            ? "border-teal-500/30 bg-teal-500/10 text-teal-300 shadow-[0_0_15px_rgba(20,184,166,0.2)]"
+            ? "border-teal-500/30 bg-gradient-to-r from-teal-500/15 to-cyan-500/10 text-teal-300 shadow-[0_0_20px_rgba(20,184,166,0.2)]"
             : "border-white/10 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 hover:border-white/20"
         }`}
         aria-label="View notifications"
       >
         <Bell className="h-4.5 w-4.5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-teal-500 text-[9px] font-bold text-slate-950 ring-2 ring-[#060612]">
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-teal-500 to-cyan-400 text-[10px] font-bold text-slate-950 ring-2 ring-[#060612]"
+          >
             {unreadCount}
-          </span>
+          </motion.span>
         )}
       </button>
 
@@ -144,86 +148,110 @@ export function NotificationCenter() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 12, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-white/10 bg-[#090918]/95 backdrop-blur-2xl shadow-2xl overflow-hidden"
+            exit={{ opacity: 0, y: 12, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: [0.2, 1, 0.3, 1] }}
+            className="absolute right-0 mt-3 w-80 sm:w-96 rounded-3xl border border-white/15 bg-gradient-to-b from-[#070718]/98 to-[#040410]/98 backdrop-blur-3xl shadow-2xl shadow-black/60 overflow-hidden"
           >
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 bg-white/[0.02]">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm text-white">Notifications</span>
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 bg-white/[0.02]">
+              <div className="flex items-center gap-2.5">
+                <Bell className="h-5 w-5 text-teal-400" />
+                <span className="font-bold text-sm text-white">Notifications</span>
                 {unreadCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-bold">
+                  <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-teal-500/20 to-cyan-500/15 text-teal-300 text-[10px] font-bold">
                     {unreadCount} New
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllRead}
-                    className="text-xs text-teal-400 hover:text-teal-300 flex items-center gap-1 font-medium transition-colors"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs text-teal-400 hover:text-teal-300 hover:bg-teal-500/10 font-medium transition-all duration-300"
                   >
-                    <Check className="h-3.5 w-3.5" /> Mark all read
+                    <Check className="h-3.5 w-3.5" />
+                    Mark all read
                   </button>
                 )}
                 {notifications.length > 0 && (
                   <button
                     onClick={clearAll}
-                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 font-medium transition-colors"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 font-medium transition-all duration-300"
                   >
-                    <Trash2 className="h-3.5 w-3.5" /> Clear all
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Clear all
                   </button>
                 )}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all duration-300"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             </div>
 
-            <div className="max-h-[300px] overflow-y-auto divide-y divide-white/5">
+            {/* Notifications List */}
+            <div className="max-h-[320px] overflow-y-auto divide-y divide-white/5">
               {notifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-8 text-center text-slate-500">
-                  <Bell className="h-8 w-8 text-slate-600 mb-2 opacity-50" />
-                  <p className="text-sm">All caught up!</p>
-                  <p className="text-xs text-slate-600 mt-1">No new system alerts.</p>
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
+                    <Bell className="h-6 w-6 text-slate-600 opacity-50" />
+                  </div>
+                  <p className="text-sm text-slate-400 font-medium">All caught up!</p>
+                  <p className="text-xs text-slate-500 mt-1.5">No new system alerts.</p>
                 </div>
               ) : (
                 notifications.map((notif) => (
-                  <div
+                  <motion.div
                     key={notif.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.2 }}
                     onClick={() => toggleRead(notif.id)}
-                    className={`relative p-4 flex gap-3 transition-colors cursor-pointer group hover:bg-white/[0.03] ${
-                      notif.unread ? "bg-white/[0.01]" : ""
+                    className={`relative px-5 py-4 flex gap-3.5 transition-all duration-300 cursor-pointer group ${
+                      notif.unread ? "bg-gradient-to-r from-teal-500/5 to-transparent" : "hover:bg-white/[0.03]"
                     }`}
                   >
                     {/* Unread indicator bar */}
                     {notif.unread && (
-                      <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-teal-400" />
+                      <motion.div
+                        layoutId="unread-indicator"
+                        className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-teal-500 to-cyan-400"
+                      />
                     )}
 
-                    <div className={`p-2 rounded-xl h-fit border border-white/5 bg-white/5`}>
+                    {/* Icon */}
+                    <div className={`p-2.5 rounded-2xl h-fit border border-white/5 bg-white/5 ${notif.unread ? "border-teal-500/20 bg-teal-500/10" : ""}`}>
                       {getIcon(notif.type)}
                     </div>
 
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className={`text-xs font-semibold ${notif.unread ? "text-white" : "text-slate-400"}`}>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className={`text-xs font-semibold ${notif.unread ? "text-white" : "text-slate-300"} line-clamp-1`}>
                           {notif.title}
                         </span>
-                        <span className="text-[9px] text-slate-500">{notif.time}</span>
+                        <span className="text-[10px] text-slate-500 flex-shrink-0 mt-0.5">
+                          {notif.time}
+                        </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 leading-normal line-clamp-2">
+                      <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2 mt-1.5">
                         {notif.description}
                       </p>
                     </div>
 
+                    {/* Delete button */}
                     <button
                       onClick={(e) => deleteNotif(notif.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-white/15 text-slate-400 hover:text-red-400 transition-all self-center"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-xl hover:bg-white/10 text-slate-400 hover:text-red-400 transition-all duration-300 self-start"
                       aria-label="Delete notification"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
-                  </div>
+                  </motion.div>
                 ))
               )}
             </div>

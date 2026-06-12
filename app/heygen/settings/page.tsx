@@ -96,7 +96,7 @@ export default function HeyGenSettings() {
                 Important Note
               </h3>
               <p className="text-yellow-200/80 text-sm mt-1">
-                Your API key is stored locally in your browser's localStorage.
+                Your API key is stored locally in your browser&apos;s localStorage.
                 For production, we recommend implementing server-side storage
                 with proper security measures.
               </p>

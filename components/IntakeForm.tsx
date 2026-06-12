@@ -547,7 +547,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="trustFactors">Why should prospects trust your company even if they've never heard of your brand?</Label>
+                <Label htmlFor="trustFactors">Why should prospects trust your company even if they&apos;ve never heard of your brand?</Label>
                 <Textarea
                   id="trustFactors"
                   value={data.trustFactors}

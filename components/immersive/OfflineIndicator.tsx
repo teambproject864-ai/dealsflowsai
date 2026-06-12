@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { WifiOff, Wifi, RefreshCw } from "lucide-react";
 import { getAllUnsyncedLeads, markLeadSynced, db } from "@/lib/offlineStore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,6 +10,49 @@ export function OfflineIndicator() {
   const [unsyncedCount, setUnsyncedCount] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
+
+  const checkUnsynced = useCallback(async () => {
+    try {
+      const unsynced = await getAllUnsyncedLeads();
+      setUnsyncedCount(unsynced.length);
+    } catch (err) {
+      console.error("Failed to check unsynced counts:", err);
+    }
+  }, []);
+
+  const triggerSync = useCallback(async () => {
+    const unsynced = await getAllUnsyncedLeads();
+    if (unsynced.length === 0 || syncing) return;
+
+    setSyncing(true);
+    let successCount = 0;
+
+    for (const lead of unsynced) {
+      try {
+        const res = await fetch("/api/leads/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(lead.data),
+        });
+        const result = await res.json();
+        if (result.success) {
+          await markLeadSynced(lead.leadId);
+          successCount++;
+        }
+      } catch (err) {
+        console.error("Failed to sync lead offline:", lead.leadId, err);
+      }
+    }
+
+    await checkUnsynced();
+    setSyncing(false);
+
+    if (successCount > 0) {
+      // show success feedback
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 4000);
+    }
+  }, [checkUnsynced, syncing]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -43,50 +86,7 @@ export function OfflineIndicator() {
       window.removeEventListener("offline", handleOffline);
       clearInterval(interval);
     };
-  }, []);
-
-  const checkUnsynced = async () => {
-    try {
-      const unsynced = await getAllUnsyncedLeads();
-      setUnsyncedCount(unsynced.length);
-    } catch (err) {
-      console.error("Failed to check unsynced counts:", err);
-    }
-  };
-
-  const triggerSync = async () => {
-    const unsynced = await getAllUnsyncedLeads();
-    if (unsynced.length === 0 || syncing) return;
-
-    setSyncing(true);
-    let successCount = 0;
-
-    for (const lead of unsynced) {
-      try {
-        const res = await fetch("/api/leads/save", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(lead.data),
-        });
-        const result = await res.json();
-        if (result.success) {
-          await markLeadSynced(lead.leadId);
-          successCount++;
-        }
-      } catch (err) {
-        console.error("Failed to sync lead offline:", lead.leadId, err);
-      }
-    }
-
-    await checkUnsynced();
-    setSyncing(false);
-
-    if (successCount > 0) {
-      // show success feedback
-      setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 4000);
-    }
-  };
+  }, [checkUnsynced, triggerSync]);
 
   return (
     <>

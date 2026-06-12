@@ -116,6 +116,9 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
   const [isSubmittingAgent, setIsSubmittingAgent] = useState(false);
   const [isSubmittingCreds, setIsSubmittingCreds] = useState(false);
 
+  // Regenerate state
+  const [regenerating, setRegenerating] = useState(false);
+
   useEffect(() => {
     async function fetchAssignment() {
       if (leadId) {
@@ -137,7 +140,13 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
       }
     }
 
-    async function runAnalysis() {
+    async function runAnalysis(forceRegenerate = false) {
+      if (forceRegenerate) {
+        setRegenerating(true);
+        setLoading(true);
+        setError(null);
+      }
+      
       try {
         const stored = loadLeadContext();
         setContext(stored);
@@ -145,7 +154,7 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
         let companyData = stored?.form;
         let cachedLead = null;
 
-        if (leadId) {
+        if (leadId && !forceRegenerate) {
           cachedLead = await getLeadOffline(leadId);
           if (cachedLead?.readout) {
             setAnalysis(cachedLead.readout);
@@ -170,7 +179,7 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
         const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ leadId, companyData })
+          body: JSON.stringify({ leadId, companyData, regenerate: forceRegenerate })
         });
 
         const data = await res.json();
@@ -203,10 +212,14 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
         }
       } finally {
         setLoading(false);
+        setRegenerating(false);
       }
     }
 
     runAnalysis();
+
+    // Attach regenerate to window for easy access
+    (window as any).regenerateAnalysis = () => runAnalysis(true);
   }, [leadId]);
 
   // Enhanced download with multiple options
@@ -361,6 +374,28 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={() => {
+                  // Call the regenerate function we attached to window
+                  const win = window as any;
+                  if (win.regenerateAnalysis) win.regenerateAnalysis();
+                }}
+                disabled={loading || regenerating}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+                aria-label="Regenerate analysis"
+              >
+                {regenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                    Regenerating...
+                  </>
+                ) : (
+                  <>
+                    <IconRefreshPipeline className="w-4 h-4 mr-2" aria-hidden="true" />
+                    Regenerate Analysis
+                  </>
+                )}
+              </Button>
               <Button
                 onClick={() => setShowViewer(true)}
                 className="bg-purple-600 hover:bg-purple-700 text-white"

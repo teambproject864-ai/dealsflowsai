@@ -493,7 +493,7 @@ export default function HomePage() {
                 className="flex flex-wrap items-center justify-center lg:justify-start gap-4"
               >
                 <Link
-                  href="/#intake"
+                  href="/analysis/new"
                   onClick={() => trackEvent("cta_start_analysis", { surface: "hero_v3", abVariant })}
                   className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-teal-500 hover:bg-teal-400 text-white font-semibold text-base transition-all duration-300 shadow-lg shadow-teal-500/25 hover:shadow-teal-400/35 hover:-translate-y-0.5"
                 >
@@ -543,6 +543,34 @@ export default function HomePage() {
               <StatCard key={i} {...stat} delay={i * 0.1} />
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── INTAKE FORM SECTION (NEW POSITION) ───────────────────────────────────────── */}
+      <section id="intake" ref={intakeSectionRef} className="relative py-20 border-b border-white/6 scroll-mt-16">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="text-center mb-10">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl font-bold text-white mb-3"
+            >
+              Run your first GTM analysis
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-slate-400"
+            >
+              Two minutes to align on ICP, funnel volume, and revenue goals — we return a structured GTM readout.
+            </motion.p>
+          </div>
+          <ErrorBoundary>
+            <IntakeForm />
+          </ErrorBoundary>
         </div>
       </section>
 
@@ -692,7 +720,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Link
-                href="/#intake"
+                href="/analysis/new"
                 onClick={() => trackEvent("cta_start_analysis", { surface: "bottom_cta_v3", abVariant })}
                 className="group inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-teal-500 hover:bg-teal-400 text-white font-bold text-lg transition-all duration-300 shadow-xl shadow-teal-500/30 hover:shadow-teal-400/40 hover:-translate-y-0.5"
               >
@@ -712,34 +740,6 @@ export default function HomePage() {
               14-day free trial · No credit card · Cancel anytime
             </p>
           </motion.div>
-        </div>
-      </section>
-
-      {/* ── INTAKE FORM SECTION (ORIGINAL) ───────────────────────────────────────── */}
-      <section id="intake" ref={intakeSectionRef} className="relative py-20 border-t border-white/6 scroll-mt-16">
-        <div className="mx-auto max-w-4xl px-6">
-          <div className="text-center mb-10">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-3xl font-bold text-white mb-3"
-            >
-              Run your first GTM analysis
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-slate-400"
-            >
-              Two minutes to align on ICP, funnel volume, and revenue goals — we return a structured GTM readout.
-            </motion.p>
-          </div>
-          <ErrorBoundary>
-            <IntakeForm />
-          </ErrorBoundary>
         </div>
       </section>
     </main>

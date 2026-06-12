@@ -13,7 +13,7 @@ export default function HeyGenLanding() {
             HeyGen Video Generator
           </h1>
           <p className="text-xl text-[#C8B8FF] font-medium">
-            Create professional AI videos with HeyGen's powerful API
+            Create professional AI videos with HeyGen&apos;s powerful API
           </p>
         </div>
 

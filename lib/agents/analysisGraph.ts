@@ -153,64 +153,205 @@ async function scrapeWebsiteNode(state: typeof AnalysisState.State) {
   }
 }
 
+// Define individual section tasks
+interface SectionTask {
+  id: string;
+  schema: z.ZodType<any>;
+  systemPrompt: string;
+  userPrompt: (ctx: { companyName: string; websiteUrl: string; additionalLeadDetails: string; websiteContent: string }) => string;
+}
+
+const SECTION_TASKS: SectionTask[] = [
+  {
+    id: "executiveSummary",
+    schema: z.string(),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate a concise, high-quality executive summary tailored to the provided company.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate a concise, DealFlow AI-specific executive summary (~150 words), formatted strictly as valid JSON string.`
+  },
+  {
+    id: "icpDefinition",
+    schema: z.object({ inclusionCriteria: z.array(z.string()), exclusionCriteria: z.array(z.string()) }),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate ICP (Ideal Customer Profile) criteria for the provided company.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate ICP definition with inclusion and exclusion criteria, formatted strictly as valid JSON.`
+  },
+  {
+    id: "table1FirmographicDemographic",
+    schema: z.array(Table1FirmographicEntry),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate firmographic and demographic segmentation data.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate firmographic/demographic table (array of objects matching Table1FirmographicEntry), formatted strictly as valid JSON.`
+  },
+  {
+    id: "behavioralPsychographicTraits",
+    schema: z.object({
+      observableBehavioralPatterns: z.array(z.string()),
+      corePsychographicAttributes: z.array(z.string())
+    }),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate behavioral and psychographic traits.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate behavioral and psychographic traits, formatted strictly as valid JSON.`
+  },
+  {
+    id: "table2PainPointAnalysis",
+    schema: z.array(Table2PainPointEntry),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate pain point analysis.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate pain point analysis table (array of objects matching Table2PainPointEntry), formatted strictly as valid JSON.`
+  },
+  {
+    id: "table3DecisionMakerInfluence",
+    schema: z.array(Table3DecisionMakerEntry),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate decision-maker influence data.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate decision-maker influence table (array of objects matching Table3DecisionMakerEntry), formatted strictly as valid JSON.`
+  },
+  {
+    id: "purchasingJourneyMapping",
+    schema: z.array(z.object({
+      stage: z.string(),
+      duration: z.string(),
+      customerActions: z.string(),
+      customerNeedsQuestions: z.string(),
+      channelPreferences: z.string(),
+      dealFlowAIAssetsEngagement: z.string()
+    })),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate purchasing journey mapping.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate purchasing journey mapping (array of objects), formatted strictly as valid JSON.`
+  },
+  {
+    id: "table4LeadScoringFramework",
+    schema: z.object({
+      criteria: z.array(Table4LeadScoringEntry),
+      qualificationThresholds: z.object({
+        mql: z.string(),
+        sql: z.string(),
+        sal: z.string()
+      })
+    }),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate lead scoring framework.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate lead scoring framework, formatted strictly as valid JSON.`
+  },
+  {
+    id: "table5ChannelEffectiveness",
+    schema: z.array(Table5ChannelEntry),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate channel effectiveness analysis.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate channel effectiveness table (array of objects matching Table5ChannelEntry), formatted strictly as valid JSON.`
+  },
+  {
+    id: "crossTeamAlignmentGuidelines",
+    schema: z.object({
+      raciFramework: z.array(z.any()),
+      communicationCadenceSlas: z.array(z.any()),
+      sharedSLAs: z.array(z.string())
+    }),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate cross-team alignment guidelines.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate cross-team alignment guidelines, formatted strictly as valid JSON.`
+  },
+  {
+    id: "icpValidationChecklist",
+    schema: z.object({
+      preQualificationChecklist: z.array(z.string()),
+      quarterlyValidationReview: z.array(z.string()),
+      dataSourcesForValidation: z.array(z.string()),
+      icpUpdateTriggers: z.array(z.string())
+    }),
+    systemPrompt: "You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. Generate ICP validation checklist.",
+    userPrompt: (ctx) => `
+Company Name: ${ctx.companyName}
+Website URL: ${ctx.websiteUrl}
+Additional Lead Details: ${ctx.additionalLeadDetails}
+Website Content (scraped): ${ctx.websiteContent}
+
+Generate ICP validation checklist, formatted strictly as valid JSON.`
+  }
+];
+
 async function analyzeCompany(state: typeof AnalysisState.State) {
   const analyzeStartTime = Date.now();
   try {
-    console.log("[analysisGraph] Starting AI GTM analysis...");
+    console.log("[analysisGraph] Starting AI GTM analysis (parallel processing)...");
     const companyName = state.companyData?.companyName || "Unknown Company";
     const websiteUrl = state.companyData?.websiteUrl || "";
     const additionalLeadDetails = state.companyData?.additionalDetails || "";
     const websiteContent = state.websiteContent;
 
-    const systemPrompt = `You are DealFlow AI's senior GTM strategist, an expert in B2B SaaS GTM analysis. You MUST return ONLY valid JSON, NO EXPLANATIONS, NO MARKDOWN, NO TEXT OUTSIDE OF JSON.
+    const ctx = { companyName, websiteUrl, additionalLeadDetails, websiteContent };
 
-You will generate all 11 sections for a complete GTM analysis tailored EXCLUSIVELY to the provided company (${companyName}), using data from their website and any additional customer-provided lead details.`;
+    // Process all sections in parallel using Promise.all
+    const sectionPromises = SECTION_TASKS.map(async (task) => {
+      try {
+        const jsonSystemPrompt = `${task.systemPrompt}\n\nIMPORTANT: Respond ONLY with valid JSON, NO EXPLANATIONS, NO MARKDOWN, NO TEXT OUTSIDE OF JSON. Ensure no trailing commas.`;
+        const rawResult = await performDynamicInferenceJSON(task.userPrompt(ctx), jsonSystemPrompt, { requestType: "gtm-analysis" });
+        const validated = task.schema.parse(rawResult);
+        console.log(`[analysisGraph] Successfully processed section: ${task.id}`);
+        return { [task.id]: validated };
+      } catch (error) {
+        console.error(`[analysisGraph] Failed to process section ${task.id}:`, error);
+        throw error;
+      }
+    });
 
-    const userPrompt = `
-Given this information:
-Company Name: ${companyName}
-Website URL: ${websiteUrl}
-Additional Lead Details: ${additionalLeadDetails}
-Website Content (scraped): ${websiteContent}
+    const sectionResults = await Promise.all(sectionPromises);
+    const combinedResults: any = Object.assign({}, ...sectionResults);
 
-Generate a complete DealFlow AI GTM analysis with ALL of these fields, formatted strictly as valid JSON:
-1. executiveSummary: string (Concise, DealFlow AI-specific, ~150 words)
-2. icpDefinition: { 
-  inclusionCriteria: string[], 
-  exclusionCriteria: string[] 
-}
-3. table1FirmographicDemographic: array of objects matching Table1FirmographicEntry
-4. behavioralPsychographicTraits: { 
-  observableBehavioralPatterns: string[], 
-  corePsychographicAttributes: string[] 
-}
-5. table2PainPointAnalysis: array of objects matching Table2PainPointEntry
-6. table3DecisionMakerInfluence: array of objects matching Table3DecisionMakerEntry
-7. purchasingJourneyMapping: array of { stage: string, duration: string, customerActions: string, customerNeedsQuestions: string, channelPreferences: string, dealFlowAIAssetsEngagement: string }
-8. table4LeadScoringFramework: { 
-  criteria: array of Table4LeadScoringEntry, 
-  qualificationThresholds: { mql: string, sql: string, sal: string } 
-}
-9. table5ChannelEffectiveness: array of Table5ChannelEntry
-10. crossTeamAlignmentGuidelines: { 
-  raciFramework: any[], 
-  communicationCadenceSlas: any[], 
-  sharedSLAs: string[] 
-}
-11. icpValidationChecklist: { 
-  preQualificationChecklist: string[], 
-  quarterlyValidationReview: string[], 
-  dataSourcesForValidation: string[], 
-  icpUpdateTriggers: string[] 
-}
-
-Make sure all tables are fully populated with realistic DealFlow AI-specific data tailored to ${companyName}.`;
-
-    const rawResult = await performDynamicInferenceJSON(userPrompt, systemPrompt, { requestType: "gtm-analysis" });
-    
-    console.log("[analysisGraph] Received AI GTM analysis, validating...");
-    
-    const validatedResult = z.object({
+    // Validate the final combined result
+    const finalSchema = z.object({
       executiveSummary: z.string(),
       icpDefinition: z.object({
         inclusionCriteria: z.array(z.string()),
@@ -251,9 +392,11 @@ Make sure all tables are fully populated with realistic DealFlow AI-specific dat
         dataSourcesForValidation: z.array(z.string()),
         icpUpdateTriggers: z.array(z.string()),
       }),
-    }).parse(rawResult);
+    });
 
-    console.log(`[analysisGraph] Complete GTM analysis done in ${Date.now() - analyzeStartTime}ms`);
+    const validatedResult = finalSchema.parse(combinedResults);
+
+    console.log(`[analysisGraph] Complete GTM analysis (parallel) done in ${Date.now() - analyzeStartTime}ms`);
     return { analysisResult: validatedResult };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Failed to generate GTM analysis";

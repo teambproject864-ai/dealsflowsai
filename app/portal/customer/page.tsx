@@ -201,7 +201,7 @@ function CustomerPortalContent() {
                   <CardTitle className="text-xl text-slate-100 font-bold">Choose Consultation Vector</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-slate-300">Select the type of consultation you'd like:</p>
+                  <p className="text-slate-300">Select the type of consultation you&apos;d like:</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[
                       { id: "gtm", name: "GTM Strategy", desc: "Review your go-to-market strategy" },

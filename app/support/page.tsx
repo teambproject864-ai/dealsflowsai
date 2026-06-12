@@ -87,7 +87,7 @@ export default function SupportPage() {
         <div className="mb-12 text-center">
           <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-teal-300 via-violet-300 to-teal-100 bg-clip-text text-transparent mb-4">Support Center</h1>
           <p className="text-lg text-slate-300">
-            Need help? We're here to assist you.
+            Need help? We&apos;re here to assist you.
           </p>
         </div>
 

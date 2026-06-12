@@ -144,8 +144,10 @@ export function getInfraConfigSummary() {
   };
 }
 
-export default {
+const InfrastructureConfig = {
   INFRA_CONFIG,
   validateExecutionEnvironment,
   getInfraConfigSummary,
 };
+
+export default InfrastructureConfig;

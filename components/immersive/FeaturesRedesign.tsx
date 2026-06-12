@@ -276,7 +276,7 @@ export function FeaturesRedesign() {
                           key={idx}
                           role="button"
                           tabIndex={0}
-                          aria-selected={isSelected}
+                          aria-pressed={isSelected}
                           onClick={() => handleHighlightSelect(feature.id, idx)}
                           onKeyDown={(e) => handleKeyDown(e, feature.id, idx)}
                           className={`p-3 rounded-2xl border transition-all text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-teal-400/60 ${

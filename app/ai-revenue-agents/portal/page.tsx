@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase-client';
@@ -18,12 +18,12 @@ export default function AIRevenueAgentPortal() {
   const [newMessage, setNewMessage] = useState('');
 
   // Authorized agents emails
-  const authorizedAgentEmails = [
+  const authorizedAgentEmails = useMemo(() => [
     'praneeth@growstack.ai',
     'praneethburada@gmail.com',
     'teambproject864@gmail.com'
     // Add more agent emails here as needed
-  ];
+  ], []);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (authUser) => {
@@ -42,7 +42,7 @@ export default function AIRevenueAgentPortal() {
     });
 
     return () => unsubscribeAuth();
-  }, [router]);
+  }, [router, authorizedAgentEmails]);
 
   // Listen to agent sessions
   useEffect(() => {

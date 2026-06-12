@@ -5,7 +5,8 @@ const FALLBACK_MODELS = [
   'mistralai/Mistral-7B-Instruct-v0.2',
   'HuggingFaceH4/zephyr-7b-beta',
   'meta-llama/Llama-3-8B-Instruct',
-  'Qwen/Qwen2.5-7B-Instruct'
+  'Qwen/Qwen2.5-7B-Instruct',
+  'google/diffusiongemma-26B-A4B-it'
 ];
 const EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2';
 

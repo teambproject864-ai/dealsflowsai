@@ -37,7 +37,7 @@ class ErrorBoundary extends Component<Props, State> {
             Something went wrong
           </h3>
           <p className="text-slate-300 mb-4">
-            We're sorry, but there was an error loading this section. Please try
+            We&apos;re sorry, but there was an error loading this section. Please try
             refreshing the page.
           </p>
           <button
