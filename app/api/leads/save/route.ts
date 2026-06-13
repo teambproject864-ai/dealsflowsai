@@ -4,6 +4,7 @@ import { getInMemoryLeads } from "@/lib/memory-storage";
 import { intakeSchema } from "@/lib/types";
 import { checkRateLimit } from "@/lib/rate-limiter";
 import { sanitizeObject } from "@/lib/sanitize";
+import { db } from "@/lib/firebase-admin";
 
 const inMemoryLeads = getInMemoryLeads();
 
@@ -40,13 +41,20 @@ export async function POST(req: Request) {
     }
 
     const leadId = uuidv4();
-
-    inMemoryLeads.set(leadId, {
+    const leadRecord = {
       ...validationResult.data,
       id: leadId,
       createdAt: new Date().toISOString(),
       analysisId: "",
-    });
+    };
+
+    // Save to Firestore
+    if (db) {
+      await db.collection("leads").doc(leadId).set(leadRecord);
+    }
+
+    // Keep memory storage cache updated
+    inMemoryLeads.set(leadId, leadRecord);
 
     return NextResponse.json({
       success: true,

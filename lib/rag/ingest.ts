@@ -4,7 +4,7 @@ import { logVectorMetric } from "@/lib/vector-monitor";
 import { v4 as uuidv4 } from "uuid";
 import { chunkText } from "./chunking";
 import { parseDocument } from "./parsers";
-import { ragUpsertChunks } from "./vector";
+import { ragUpsertChunks, ragDeleteChunks } from "./vector";
 import type { RagChunk, RagChunkMetadata, RagDocument } from "./types";
 
 const DOCS_COLLECTION = "rag_documents";
@@ -178,6 +178,31 @@ export async function ingestDocument(args: {
     const msg = e?.message || "ingest_failed";
     await docRef.update({ status: "failed", error: msg });
     await audit("rag_ingest_failed", { docId, error: msg });
+    
+    // Rollback: Clean up any written Firestore chunks and Pinecone vectors
+    try {
+      console.log(`[ingest.ts] Ingestion failed. Starting rollback for document ${docId}...`);
+      
+      const chunksSnapshot = await db.collection(CHUNKS_COLLECTION).where("docId", "==", docId).get();
+      if (!chunksSnapshot.empty) {
+        const batch = db.batch();
+        const ids: string[] = [];
+        chunksSnapshot.docs.forEach((doc) => {
+          batch.delete(doc.ref);
+          ids.push(doc.id);
+        });
+        await batch.commit();
+        console.log(`[ingest.ts] Deleted ${ids.length} chunks from Firestore.`);
+        
+        if (ids.length > 0) {
+          await ragDeleteChunks({ ids });
+          console.log(`[ingest.ts] Deleted ${ids.length} vectors from Pinecone.`);
+        }
+      }
+    } catch (cleanupErr: any) {
+      console.error("[ingest.ts] Failed to clean up half-ingested RAG resources:", cleanupErr);
+    }
+
     throw new Error(msg);
   }
 }

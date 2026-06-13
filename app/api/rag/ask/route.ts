@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { searchRag, answerWithRag, answerWithRagStream } from "@/lib/rag";
 import { TTLCache } from "@/lib/rag/cache";
+import { requireAuth } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +20,8 @@ const bodySchema = z.object({
 const answerCache = new TTLCache<any>(Number(process.env.RAG_CACHE_TTL_MS || 15000), 200);
 
 export async function POST(req: Request) {
+  const { errorResponse } = await requireAuth(req);
+  if (errorResponse) return errorResponse;
   try {
     const raw = await req.json();
     const body = bodySchema.parse(raw);

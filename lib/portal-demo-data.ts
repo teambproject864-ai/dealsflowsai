@@ -84,6 +84,7 @@ export const demoTasks: Task[] = [
     status: "in-progress",
     assignedAgentId: "agent-praneeth",
     customerId: "customer-demo",
+    customerName: "Demo Customer",
     priority: "high",
     progressNotes: ["Initial contact made", "Schedule meeting for next week"],
     milestones: [
@@ -101,6 +102,7 @@ export const demoTasks: Task[] = [
     status: "todo",
     assignedAgentId: "agent-ashok",
     customerId: "customer-demo",
+    customerName: "Demo Customer",
     priority: "medium",
     progressNotes: [],
     milestones: [
@@ -117,6 +119,7 @@ export const demoTasks: Task[] = [
     status: "completed",
     assignedAgentId: "agent-kiran",
     customerId: "customer-demo",
+    customerName: "Demo Customer",
     priority: "low",
     progressNotes: ["Feedback collected", "Analysis complete"],
     milestones: [
@@ -137,6 +140,7 @@ export const demoChatMessages: ChatMessage[] = [
     senderName: "Demo Customer",
     senderRole: "customer",
     content: "Hi, I'd like to discuss my GTM strategy.",
+    createdAt: "2024-05-20T10:00:00Z",
     timestamp: "2024-05-20T10:00:00Z",
     read: true,
   },
@@ -147,6 +151,7 @@ export const demoChatMessages: ChatMessage[] = [
     senderName: "Praneeth",
     senderRole: "agent",
     content: "Great! Let's schedule a call this week. Here's the GTM analysis report for reference.",
+    createdAt: "2024-05-20T10:15:00Z",
     timestamp: "2024-05-20T10:15:00Z",
     read: true,
     attachments: [

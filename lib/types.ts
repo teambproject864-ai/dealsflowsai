@@ -461,25 +461,25 @@ export interface User {
   agentKey?: keyof typeof AGENT_FULL_NAMES; // For agents only
 }
 
-export type TaskStatus = "pending" | "in-progress" | "completed" | "cancelled";
+export type TaskStatus = "todo" | "pending" | "in-progress" | "completed" | "blocked" | "cancelled";
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
 
 export interface Task {
   id: string;
   title: string;
   description: string;
-  status: TaskStatus | "todo" | "in-progress" | "completed" | "blocked"; // Backward compatibility
+  status: TaskStatus;
   priority: TaskPriority;
   assignedAgentId?: string;
   assignedAgentKey?: keyof typeof AGENT_FULL_NAMES;
   customerId: string;
-  customerName: string;
+  customerName?: string;
   leadId?: string;
   createdAt: string;
   updatedAt: string;
   dueDate?: string;
-  progressNotes?: string[];
-  milestones?: Array<{
+  progressNotes: string[];
+  milestones: Array<{
     id: string;
     title: string;
     completed: boolean;

@@ -13,7 +13,7 @@ export function AccountMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const firstFocusableRef = useRef<HTMLAnchorElement | HTMLButtonElement>(null);
+  const firstFocusableRef = useRef<HTMLAnchorElement>(null);
 
   // Handle clicks outside to close
   useEffect(() => {

@@ -8,12 +8,14 @@ import { textToSpeech } from '@/lib/elevenlabs';
 import { injectAudio } from '@/lib/recall';
 import { navigateTo, deleteSession } from '@/lib/screen-controller';
 import { PERSONAS } from '@/prompts/personas';
+import { createToken } from '@/lib/auth';
 
 export async function POST(req: Request) {
   const signature = req.headers.get('x-recall-signature');
   const secret = process.env.RECALL_WEBHOOK_SECRET;
 
   const bodyText = await req.text();
+  const systemToken = createToken({ id: 'system', email: 'system@dealflow.ai', role: 'admin', name: 'System' });
   
   if (!secret || !signature) {
     return NextResponse.json({ error: 'Missing webhook secret or signature' }, { status: 401 });
@@ -164,7 +166,10 @@ export async function POST(req: Request) {
       // Trigger post-call notification
       fetch(`${process.env.APP_URL}/api/notifications/post-call`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${systemToken}`
+        },
         body: JSON.stringify({ callId })
       }).catch(console.error);
     }
@@ -219,7 +224,10 @@ export async function POST(req: Request) {
       // Trigger post-call notification
       fetch(`${process.env.APP_URL}/api/notifications/post-call`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${systemToken}`
+        },
         body: JSON.stringify({ callId })
       }).catch(console.error);
     }

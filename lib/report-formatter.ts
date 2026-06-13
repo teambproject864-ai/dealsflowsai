@@ -2,14 +2,14 @@ import { AnalysisResult } from "./types";
 
 export function formatAnalysisReportHtml(analysis: AnalysisResult): string {
   const {
-    healthScore,
-    gtmPlan,
-    idealCustomerProfiles,
-    comprehensiveBrandOverview,
-    strategicOutreachApproach,
-    marketDifferentiationTriggers,
-    goToMarketCoreFramework,
-    customerJourneyPipeline,
+    healthScore = 0,
+    gtmPlan = "",
+    idealCustomerProfiles = [],
+    comprehensiveBrandOverview = "",
+    strategicOutreachApproach = "",
+    marketDifferentiationTriggers = [],
+    goToMarketCoreFramework = "",
+    customerJourneyPipeline = [],
   } = analysis;
 
   const scoreColor = healthScore > 70 ? "#10b981" : healthScore > 40 ? "#f59e0b" : "#ef4444";
@@ -94,13 +94,13 @@ export function formatAnalysisReportHtml(analysis: AnalysisResult): string {
 
 export function formatAnalysisSummaryText(analysis: AnalysisResult): string {
   const {
-    healthScore,
-    gtmPlan,
+    healthScore = 0,
+    gtmPlan = "",
     idealCustomerProfiles = [],
-    comprehensiveBrandOverview,
-    strategicOutreachApproach,
+    comprehensiveBrandOverview = "",
+    strategicOutreachApproach = "",
     marketDifferentiationTriggers = [],
-    goToMarketCoreFramework,
+    goToMarketCoreFramework = "",
     customerJourneyPipeline = [],
   } = analysis;
 

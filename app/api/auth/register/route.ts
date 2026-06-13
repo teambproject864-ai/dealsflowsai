@@ -6,16 +6,8 @@ import {
   setAuthCookie,
   addAuditLog,
 } from "@/lib/auth";
+import { db } from "@/lib/firebase-admin";
 import { z } from "zod";
-
-// In-memory store for new customers (replace with DB in production)
-export const NEW_CUSTOMERS: Array<{
-  id: string;
-  email: string;
-  hashedPassword: string;
-  name: string;
-  role: "customer";
-}> = [];
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -46,12 +38,24 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, password, name, role } = validation.data;
-    const ip = (req as any).ip || req.headers.get("x-forwarded-for") || "unknown";
+    const ip = (req as any).ip || req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
 
-    // Check if email already exists
-    const existingCustomer = [...DEMO_CUSTOMERS, ...NEW_CUSTOMERS].find((c) => c.email === email);
-    if (existingCustomer) {
+    // ── Check if email already exists in Firestore users collection ──
+    let emailExists = false;
+    if (db) {
+      const snapshot = await db.collection("users").where("email", "==", email).get();
+      if (!snapshot.empty) {
+        emailExists = true;
+      }
+    }
+
+    // Also check demo customers fallback
+    if (!emailExists) {
+      emailExists = DEMO_CUSTOMERS.some((c) => c.email === email);
+    }
+
+    if (emailExists) {
       addAuditLog(email, "customer", false, "Email already registered", ip, userAgent);
       return NextResponse.json(
         { success: false, error: "Email is already registered" },
@@ -61,16 +65,21 @@ export async function POST(req: NextRequest) {
 
     // Hash password and create new customer
     const hashedPassword = await hashPassword(password);
+    const customerId = `customer-${Date.now()}`;
     const newCustomer = {
-      id: `customer-${Date.now()}`,
+      id: customerId,
       email,
       hashedPassword,
       name,
       role: "customer" as const,
+      createdAt: new Date().toISOString(),
     };
 
-    NEW_CUSTOMERS.push(newCustomer);
-    console.log("[Register] New customer added:", newCustomer);
+    // Save to Firestore
+    if (db) {
+      await db.collection("users").doc(customerId).set(newCustomer);
+    }
+    console.log("[Register] New customer registered and stored in Firestore:", customerId);
 
     // Auto log them in
     const user = { id: newCustomer.id, email: newCustomer.email, name: newCustomer.name, role: newCustomer.role };

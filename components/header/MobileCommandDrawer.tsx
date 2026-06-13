@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 interface NavLink {
   name: string;
   href: string;
-  icon?: React.ElementType;
+  icon?: any;
   subOptions?: { name: string; href: string; description?: string }[];
 }
 
@@ -58,12 +58,12 @@ export function MobileCommandDrawer({
   }, [theme]);
 
   const animationProps = shouldReduceMotion
-    ? { initial: false, animate: false, exit: false }
+    ? { initial: {}, animate: {}, exit: {}, transition: { duration: 0 } }
     : {
         initial: { x: "100%" },
         animate: { x: 0 },
         exit: { x: "100%" },
-        transition: { type: "spring", damping: 25, stiffness: 200, mass: 0.8 },
+        transition: { type: "spring" as const, damping: 25, stiffness: 200, mass: 0.8 },
       };
 
   return (
@@ -142,6 +142,7 @@ export function MobileCommandDrawer({
                   {navLinks.map((link) => {
                     const isActive = pathname.startsWith(link.href);
                     const isExpanded = expandedNav === link.name;
+                    const Icon = link.icon;
 
                     if (link.subOptions) {
                       return (
@@ -157,7 +158,7 @@ export function MobileCommandDrawer({
                             aria-controls={`mobile-subnav-${link.name}`}
                           >
                             <div className="flex items-center gap-3">
-                              {link.icon && <link.icon className={`h-5 w-5 ${isActive ? "text-teal-400" : "text-slate-500"}`} />}
+                              {Icon && <Icon className={`h-5 w-5 ${isActive ? "text-teal-400" : "text-slate-500"}`} />}
                               <span className="font-semibold text-sm">{link.name}</span>
                             </div>
                             <ChevronDown
@@ -220,7 +221,7 @@ export function MobileCommandDrawer({
                             : "border-transparent text-slate-300 hover:text-white hover:bg-white/8 hover:border-white/10"
                         }`}
                       >
-                        {link.icon && <link.icon className={`h-5 w-5 ${isActive ? "text-teal-400" : "text-slate-500"}`} />}
+                        {Icon && <Icon className={`h-5 w-5 ${isActive ? "text-teal-400" : "text-slate-500"}`} />}
                         <span className="font-semibold text-sm">{link.name}</span>
                       </Link>
                     );

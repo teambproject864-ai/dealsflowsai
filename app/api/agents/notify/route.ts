@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     }
     
     // Get agent name from our agent list
-    const agentName = AGENT_FULL_NAMES[agentKey] || "Agent";
+    const agentName = AGENT_FULL_NAMES[agentKey as keyof typeof AGENT_FULL_NAMES] || "Agent";
     
     // Generate email HTML
     const emailHtml = `

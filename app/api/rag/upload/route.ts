@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ingestDocument } from "@/lib/rag";
+import { requireAuth } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +13,8 @@ function envNum(name: string, fallback: number) {
 }
 
 export async function POST(req: Request) {
+  const { errorResponse } = await requireAuth(req);
+  if (errorResponse) return errorResponse;
   try {
     const form = await req.formData();
     const file = form.get("file");

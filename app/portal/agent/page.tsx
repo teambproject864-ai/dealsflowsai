@@ -160,6 +160,7 @@ function AgentPortalContent() {
         content: newMessage,
         attachments: attachments.length > 0 ? attachments : undefined,
         timestamp: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         read: false,
       };
       setChatMessages([...chatMessages, newMsg]);
@@ -608,7 +609,7 @@ function AgentPortalContent() {
                           </div>
                         )}
                         <p className="text-xs mt-2 opacity-70 text-right">
-                          {new Date(msg.timestamp).toLocaleTimeString(undefined, {
+                          {new Date(msg.createdAt || msg.timestamp || "").toLocaleTimeString(undefined, {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}

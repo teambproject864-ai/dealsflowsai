@@ -632,7 +632,7 @@ function AdminPortalContent() {
                       </p>
                       <p className="text-sm text-slate-300 mt-1">{msg.content}</p>
                       <p className="text-xs text-slate-500 mt-2">
-                        {new Date(msg.timestamp).toLocaleString()}
+                        {new Date(msg.createdAt || msg.timestamp || "").toLocaleString()}
                       </p>
                     </div>
                   ))}

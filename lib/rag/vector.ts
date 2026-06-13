@@ -47,3 +47,14 @@ export async function ragQuery(args: {
   return res;
 }
 
+export async function ragDeleteChunks(args: {
+  namespace?: string;
+  ids: string[];
+}) {
+  const index = await getPineconeIndex();
+  if (!index) throw new Error("pinecone_unavailable");
+  const ns = args.namespace || DEFAULT_NAMESPACE;
+  // @ts-ignore
+  await index.namespace(ns).deleteMany(args.ids);
+}
+

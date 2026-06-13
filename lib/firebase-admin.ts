@@ -1,11 +1,18 @@
 import * as admin from "firebase-admin";
 import { loadServiceAccount } from "./service-account";
+import { validateEnv } from "./env-validator";
 
 const ADMIN_APP_NAME = "dealflow-admin";
 
 let firestoreInstance: admin.firestore.Firestore | null = null;
 
 function ensureFirebaseApp(): admin.app.App {
+  // Validate env variables on bootstrap
+  const validation = validateEnv();
+  if (!validation.valid) {
+    throw new Error(`Environment validation failed: ${validation.errors.join("; ")}`);
+  }
+
   const sa = loadServiceAccount();
   if (!sa) {
     throw new Error(

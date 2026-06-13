@@ -98,6 +98,9 @@ function logProviderSelection(
     isFallback: !!fallbackFrom,
   };
   providerSwitchLogs.push(logEntry);
+  if (providerSwitchLogs.length > 100) {
+    providerSwitchLogs.shift();
+  }
   
   // Also log to console for debugging
   console.log(

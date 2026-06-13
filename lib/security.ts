@@ -129,11 +129,22 @@ export function detectAnomaly(request: any): SecurityAnomaly | null {
  * Safe to call on any string field before persisting to Firestore.
  */
 export function sanitizeInput(str: string): string {
-  return str
-    .replace(/<[^>]*>/g, '')          // strip HTML tags
-    .replace(/javascript:/gi, '')     // strip JS protocol handlers
-    .replace(/on\w+\s*=/gi, '')       // strip inline event handlers
-    .trim();
+  if (!str) return "";
+  let sanitized = str.trim();
+  
+  // Strip common tag formats to keep it text-friendly, then escape HTML chars
+  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  sanitized = sanitized.replace(/javascript:/gi, '');
+  sanitized = sanitized.replace(/\s(on\w+)\s*=/gi, ' data-disallowed-$1=');
+
+  const escapeMap: { [key: string]: string } = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  };
+  return sanitized.replace(/[&<>"]/g, (char) => escapeMap[char]);
 }
 
 /**

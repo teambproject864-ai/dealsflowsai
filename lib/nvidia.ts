@@ -104,6 +104,9 @@ export async function nvInfer(
         durationMs,
         modelUsed: model
       });
+      if (performanceHistory.length > 100) {
+        performanceHistory.shift();
+      }
       console.log(`[nvidia.ts] Inference successful with model: ${model}, duration: ${durationMs}ms`);
       return content;
     } catch (error: any) {

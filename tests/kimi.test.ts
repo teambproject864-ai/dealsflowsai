@@ -42,7 +42,7 @@ describe("KimiClient", () => {
   test("should cache responses", async () => {
     const request = {
       model: "moonshot-v1-8k",
-      messages: [{ role: "user", content: "Hello" }],
+      messages: [{ role: "user" as const, content: "Hello" }],
     };
     await client.chatCompletion(request);
     await client.chatCompletion(request);

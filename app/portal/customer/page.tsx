@@ -94,6 +94,7 @@ function CustomerPortalContent() {
       content: newMessage,
       attachments: attachments.length > 0 ? attachments : undefined,
       timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       read: false,
     };
     setChatMessages([...chatMessages, newMsg]);
@@ -128,6 +129,7 @@ function CustomerPortalContent() {
       status: "todo" as const,
       assignedAgentId: "agent-praneeth",
       customerId,
+      customerName,
       priority: "medium" as const,
       progressNotes: [],
       milestones: [
@@ -466,7 +468,7 @@ function CustomerPortalContent() {
                         </div>
                       )}
                       <p className="text-xs mt-1 opacity-70 text-right">
-                        {new Date(msg.timestamp).toLocaleTimeString()}
+                        {new Date(msg.createdAt || msg.timestamp || "").toLocaleTimeString()}
                       </p>
                     </div>
                   </div>

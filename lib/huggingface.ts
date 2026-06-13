@@ -166,9 +166,16 @@ export async function hfInferJSON(
 
   let raw1 = "";
   try {
-    raw1 = await hfInfer(prompt, jsonSystem, jsonOpts);
+    if (typeof options === "function") {
+      raw1 = await options();
+    } else {
+      raw1 = await hfInfer(prompt, jsonSystem, jsonOpts);
+    }
     return parseLenient(raw1);
   } catch (e1) {
+    if (typeof options === "function") {
+      throw e1; // If it's a test mock, we don't want to attempt fallbacks using real API calls
+    }
     const candidate = repairJson(extractJsonCandidate(stripFences(String(raw1 || ""))));
     const clipped = candidate.length > 6000 ? candidate.slice(0, 6000) : candidate;
     try {
@@ -187,8 +194,7 @@ export async function hfInferJSON(
 export async function hfEmbed(text: string): Promise<number[]> {
   const hfToken = (process.env.HUGGINGFACE_API_TOKEN || process.env.HUGGINGFACE_API_KEY || "").trim();
   if (!hfToken) {
-    console.warn("HUGGINGFACE_API_KEY is missing, returning empty embedding.");
-    return new Array(384).fill(0);
+    throw new Error("HUGGINGFACE_API_KEY is missing or empty.");
   }
   const hf = new HfInference(hfToken);
   
@@ -199,14 +205,20 @@ export async function hfEmbed(text: string): Promise<number[]> {
     });
     // Ensure it's a flat array of numbers. HuggingFace might return number[] or number[][]
     if (Array.isArray(res)) {
+      let flatArray: number[];
       if (Array.isArray(res[0])) {
-        return res[0] as number[];
+        flatArray = res[0] as number[];
+      } else {
+        flatArray = res as number[];
       }
-      return res as number[];
+      if (flatArray.length === 0) {
+        throw new Error("HuggingFace returned an empty embedding array");
+      }
+      return flatArray;
     }
-    return [];
-  } catch (err) {
+    throw new Error("HuggingFace did not return an array for feature extraction");
+  } catch (err: any) {
     console.error('Embedding generation failed:', err);
-    return new Array(384).fill(0);
+    throw new Error(`Embedding generation failed: ${err.message}`);
   }
 }

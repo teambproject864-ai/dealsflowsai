@@ -159,6 +159,7 @@ export class SemanticCache {
       agentId: metadata.agentId,
       keywords: queryText.toLowerCase().split(/\s+/),
       importance: 8,
+      metadata: metadata || {},
     });
 
     return entry;

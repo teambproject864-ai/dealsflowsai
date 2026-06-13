@@ -1,9 +1,21 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { db } from "./firebase-admin";
+import { logger } from "./logger";
 
 // --- Constants & Configuration ---
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-in-production-env-var-only";
+const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET environment variable is not defined in production.");
+    }
+    return "your-secret-key-in-production-env-var-only";
+  }
+  return secret;
+})();
 const JWT_EXPIRES_IN = "1h"; // Short-lived as requested
 const AUTH_COOKIE_NAME = "df_auth_token";
 const SALT_ROUNDS = 12;
@@ -42,11 +54,9 @@ interface DemoCustomer {
 }
 
 // --- Demo User Data (replace with real DB in production) ---
-// We'll use hardcoded admin, and bcrypt-hashed agent password!
 export const DEMO_ADMIN = {
   id: "admin-1",
   email: "admin@dealflow.ai",
-  // Plaintext password is: AdminDF (we'll compare directly as requested for admin)
   name: "Administrator",
   role: "admin" as const,
 };
@@ -98,22 +108,10 @@ export const DEMO_CUSTOMERS: DemoCustomer[] = [
   },
 ];
 
-// --- In-memory new customers (from registration) ---
+// --- In-memory new customers (legacy fallback, now stored in Firestore) ---
 export let NEW_CUSTOMERS: DemoCustomer[] = [];
 
 // --- Audit Logging ---
-// In-memory for demo, use Firestore/DB in production!
-export const auditLogs: Array<{
-  id: string;
-  timestamp: string;
-  email: string;
-  role: UserRole | "unknown";
-  success: boolean;
-  ip?: string;
-  userAgent?: string;
-  message: string;
-}> = [];
-
 export function addAuditLog(
   email: string,
   role: UserRole | "unknown",
@@ -128,12 +126,22 @@ export function addAuditLog(
     email,
     role,
     success,
-    ip,
-    userAgent,
+    ip: ip || "unknown",
+    userAgent: userAgent || "unknown",
     message,
   };
-  auditLogs.unshift(log);
-  console.log("[AUDIT LOG]", log);
+
+  // Write structured JSON log
+  logger.info(`[AUDIT LOG] ${message}`, log);
+
+  // Persist to Firestore asynchronously
+  if (db) {
+    db.collection("audit_logs")
+      .add(log)
+      .catch((err) => {
+        logger.error("Failed to write audit log to Firestore", err);
+      });
+  }
 }
 
 // --- Password Hashing ---
@@ -191,8 +199,16 @@ export async function deleteAuthCookie() {
 }
 
 // --- Current User Helper ---
-export async function getCurrentUser(): Promise<AuthUser | null> {
-  const token = await getAuthCookie();
+export async function getAuthenticatedUser(req?: Request): Promise<AuthUser | null> {
+  let token = await getAuthCookie();
+  
+  if (!token && req) {
+    const authHeader = req.headers.get("authorization") ?? "";
+    if (authHeader.startsWith("Bearer ")) {
+      token = authHeader.slice(7);
+    }
+  }
+  
   if (!token) return null;
   const payload = verifyToken(token);
   if (!payload) return null;
@@ -202,4 +218,40 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     role: payload.role,
     name: payload.name,
   };
+}
+
+export async function getCurrentUser(): Promise<AuthUser | null> {
+  return getAuthenticatedUser();
+}
+
+/**
+ * Reusable RBAC/Auth Guard for Next.js endpoints.
+ */
+export async function requireAuth(
+  req: Request,
+  allowedRoles?: UserRole[]
+): Promise<{ user: AuthUser | null; errorResponse?: NextResponse }> {
+  const user = await getAuthenticatedUser(req);
+  
+  if (!user) {
+    return {
+      user: null,
+      errorResponse: NextResponse.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      ),
+    };
+  }
+  
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return {
+      user,
+      errorResponse: NextResponse.json(
+        { success: false, error: "Forbidden: insufficient permissions" },
+        { status: 403 }
+      ),
+    };
+  }
+  
+  return { user };
 }

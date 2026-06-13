@@ -5,6 +5,7 @@ import { Settings, ToggleLeft, ToggleRight, Bell, Shield, Sliders, Save, CheckCi
 import { ExtrudedButton, GlassPanel, SunkenInput } from "@/components/immersive";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface SettingsData {
   theme: string;

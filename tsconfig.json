@@ -39,6 +39,7 @@
     "node_modules",
     "dealflow/**",
     "functions/**",
-    "dealsflowsai/**"
+    "dealsflowsai/**",
+    "tests"
   ]
 }

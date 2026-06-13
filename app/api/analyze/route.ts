@@ -3,6 +3,7 @@ import { analysisGraph } from "@/lib/agents/analysisGraph";
 import { v4 as uuidv4 } from "uuid";
 import { getInMemoryLeads, getInMemoryAnalyses } from "@/lib/memory-storage";
 import { checkRateLimit } from "@/lib/rate-limiter";
+import { db } from "@/lib/firebase-admin";
 
 export const maxDuration = 120; // Extended from 60 to allow more time
 export const dynamic = "force-dynamic";
@@ -60,6 +61,13 @@ export async function POST(req: Request) {
     let companyData = providedData;
     if (!companyData && leadId) {
       companyData = inMemoryLeads.get(leadId);
+      if (!companyData && db) {
+        const doc = await db.collection("leads").doc(leadId).get();
+        if (doc.exists) {
+          companyData = doc.data();
+          inMemoryLeads.set(leadId, companyData);
+        }
+      }
       if (!companyData) {
         return NextResponse.json({ success: false, error: "Lead not found" }, { status: 404 });
       }
@@ -83,19 +91,39 @@ export async function POST(req: Request) {
     analysisId = uuidv4();
     success = true;
 
-    inMemoryAnalyses.set(analysisId, {
+    const analysisRecord = {
       id: analysisId,
       leadId,
       companyName: companyData.companyName || null,
       ...analysis,
       createdAt: new Date().toISOString(),
-    });
+    };
 
-    if (leadId && inMemoryLeads.has(leadId)) {
-      inMemoryLeads.set(leadId, {
-        ...inMemoryLeads.get(leadId),
-        analysisId,
-      });
+    // Save to Firestore
+    if (db) {
+      await db.collection("analyses").doc(analysisId).set(analysisRecord);
+    }
+    inMemoryAnalyses.set(analysisId, analysisRecord);
+
+    if (leadId) {
+      let leadRecord = inMemoryLeads.get(leadId);
+      if (!leadRecord && db) {
+        const doc = await db.collection("leads").doc(leadId).get();
+        if (doc.exists) {
+          leadRecord = doc.data();
+        }
+      }
+      
+      if (leadRecord) {
+        const updatedLead = {
+          ...leadRecord,
+          analysisId,
+        };
+        if (db) {
+          await db.collection("leads").doc(leadId).set(updatedLead);
+        }
+        inMemoryLeads.set(leadId, updatedLead);
+      }
     }
 
     console.log("[analyze/route] Analysis complete, returning response");

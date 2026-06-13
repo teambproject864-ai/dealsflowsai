@@ -101,6 +101,8 @@ export default function GtmPage() {
       jobTitle: "GTM Consultant",
       companyName: companyName,
       websiteUrl: websiteUrl || "https://example.com",
+      headquartersCountry: "United States",
+      headquartersCity: "San Francisco",
       companyDescription: `A high-growth business specialized in ${industry} targeting regional operations.`,
       productsServices: "Core operational tools and integrations.",
       primaryOutcome: "Pipeline velocity acceleration and RevOps alignment.",

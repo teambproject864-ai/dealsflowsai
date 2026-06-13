@@ -300,7 +300,7 @@ function SceneInner() {
 
       {/* Post Processing Composer Effects */}
       {enable3D && (
-        <EffectComposer disableNormalPass>
+        <EffectComposer enableNormalPass={false}>
           <Bloom 
             luminanceThreshold={0.18} 
             luminanceSmoothing={0.85} 

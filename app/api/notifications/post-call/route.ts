@@ -5,7 +5,13 @@ import { hfInfer } from '@/lib/huggingface';
 import { sendEmailWithRetry, sendSMS } from '@/lib/notifications';
 import { detectNoShow, hashRecipient, interpolateTemplate, redactMeetingLink } from '@/lib/post-meeting';
 import { fetchGoogleCalendarEvent } from '@/lib/google-meet';
+import { requireAuth } from '@/lib/auth';
+
 export async function POST(req: Request) {
+  // ── Authentication ─────────────────────────────────────────
+  const { errorResponse } = await requireAuth(req, ['admin', 'agent']);
+  if (errorResponse) return errorResponse;
+
   try {
     const { callId } = await req.json();
     if (!callId) return NextResponse.json({ error: "Missing callId" }, { status: 400 });

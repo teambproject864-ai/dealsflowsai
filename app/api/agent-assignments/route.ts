@@ -5,10 +5,17 @@ import {
 } from "@/lib/memory-storage";
 import { AgentAssignment, getAgentByKey } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
+import { db } from "@/lib/firebase-admin";
+import { requireAuth } from "@/lib/auth";
+import * as admin from "firebase-admin";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  // ── Authentication ─────────────────────────────────────────
+  const { errorResponse } = await requireAuth(req);
+  if (errorResponse) return errorResponse;
+
   try {
     const body = await req.json();
     const { leadId, agentKey } = body;
@@ -40,15 +47,31 @@ export async function POST(req: Request) {
     const assignmentsMap = getInMemoryAgentAssignments();
     assignmentsMap.set(assignment.id, assignment);
 
-    // Also update the lead record
+    // Save to Firestore
+    if (db) {
+      await db.collection("agent_assignments").doc(assignment.id).set(assignment);
+    }
+
+    // Also update the lead record in Firestore and cache
     const leadsMap = getInMemoryLeads();
-    const lead = leadsMap.get(leadId);
+    let lead = leadsMap.get(leadId);
+    if (!lead && db) {
+      const doc = await db.collection("leads").doc(leadId).get();
+      if (doc.exists) {
+        lead = doc.data();
+      }
+    }
+
     if (lead) {
-      leadsMap.set(leadId, {
+      const updatedLead = {
         ...lead,
         assignedAgentKey: agentKey,
         agentAssignmentId: assignment.id,
-      });
+      };
+      leadsMap.set(leadId, updatedLead);
+      if (db) {
+        await db.collection("leads").doc(leadId).set(updatedLead);
+      }
     }
 
     return NextResponse.json({ success: true, assignment });
@@ -62,22 +85,42 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
+  // ── Authentication ─────────────────────────────────────────
+  const { errorResponse } = await requireAuth(req);
+  if (errorResponse) return errorResponse;
+
   try {
     const { searchParams } = new URL(req.url);
     const leadId = searchParams.get("leadId");
     const agentKey = searchParams.get("agentKey");
 
-    const assignments = Array.from(getInMemoryAgentAssignments().values());
-    let filteredAssignments = assignments;
+    let assignments: AgentAssignment[] = [];
 
-    if (leadId) {
-      filteredAssignments = filteredAssignments.filter(a => a.leadId === leadId);
-    }
-    if (agentKey) {
-      filteredAssignments = filteredAssignments.filter(a => a.agentKey === agentKey);
+    // Retrieve from Firestore if available
+    if (db) {
+      let query: any = db.collection("agent_assignments");
+      if (leadId) {
+        query = query.where("leadId", "==", leadId);
+      }
+      if (agentKey) {
+        query = query.where("agentKey", "==", agentKey);
+      }
+      const snap = await query.get();
+      snap.forEach((doc: any) => {
+        assignments.push(doc.data() as AgentAssignment);
+      });
+    } else {
+      // Fallback to in-memory map
+      assignments = Array.from(getInMemoryAgentAssignments().values());
+      if (leadId) {
+        assignments = assignments.filter(a => a.leadId === leadId);
+      }
+      if (agentKey) {
+        assignments = assignments.filter(a => a.agentKey === agentKey);
+      }
     }
 
-    return NextResponse.json({ success: true, assignments: filteredAssignments });
+    return NextResponse.json({ success: true, assignments });
   } catch (error) {
     console.error("[agent-assignments GET] failed:", error);
     return NextResponse.json(

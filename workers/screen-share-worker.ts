@@ -142,11 +142,99 @@ setInterval(() => {
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 
+// --- Security Helper Functions & Middleware ---
+function isSafeUrl(urlString: string): boolean {
+  try {
+    const parsed = new URL(urlString);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
+    
+    // Normalize hostname
+    let hostname = parsed.hostname.toLowerCase().trim();
+    if (hostname.startsWith('[') && hostname.endsWith(']')) {
+      hostname = hostname.substring(1, hostname.length - 1);
+    }
+    
+    if (hostname === 'localhost' || hostname === 'localhost.localdomain') {
+      return false;
+    }
+    
+    // IPv4 check
+    const ipv4Pattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+    const match = hostname.match(ipv4Pattern);
+    if (match) {
+      const parts = match.slice(1).map(Number);
+      if (parts.some(p => p > 255)) return false;
+      
+      const first = parts[0];
+      const second = parts[1];
+      
+      // Loopback: 127.0.0.0/8
+      if (first === 127) return false;
+      // Private Class A: 10.0.0.0/8
+      if (first === 10) return false;
+      // Private Class B: 172.16.0.0/12
+      if (first === 172 && second >= 16 && second <= 31) return false;
+      // Private Class C: 192.168.0.0/16
+      if (first === 192 && second === 168) return false;
+      // Link-local: 169.254.0.0/16
+      if (first === 169 && second === 254) return false;
+      // Broadcast/unspecified
+      if (first === 0 || (first === 255 && second === 255 && parts[2] === 255 && parts[3] === 255)) return false;
+    }
+    
+    // IPv6 checks
+    if (hostname === '::1' || hostname === '0:0:0:0:0:0:0:1') return false;
+    if (hostname === '::' || hostname === '0:0:0:0:0:0:0:0') return false;
+    
+    // Link local (fe80::) or site/unique local (fc00::, fd00::)
+    if (hostname.startsWith('fe80:') || hostname.startsWith('fc00:') || hostname.startsWith('fd00:') || hostname.startsWith('fd') || hostname.startsWith('fc')) {
+      const hex = hostname.split(':')[0];
+      if (hex) {
+        const num = parseInt(hex, 16);
+        if (!isNaN(num)) {
+          if (num >= 0xfc00 && num <= 0xfdff) return false;
+          if (num >= 0xfe80 && num <= 0xfebf) return false;
+        }
+      }
+    }
+    
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  const secretKey = process.env.SCREEN_SHARE_WORKER_KEY;
+  if (!secretKey) {
+    return next();
+  }
+  const authHeader = req.headers.authorization;
+  const apiKeyHeader = req.headers['x-api-key'];
+  const queryKey = req.query.key;
+  
+  let token = '';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else if (typeof apiKeyHeader === 'string') {
+    token = apiKeyHeader;
+  } else if (typeof queryKey === 'string') {
+    token = queryKey;
+  }
+
+  if (token !== secretKey) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing key' });
+  }
+  next();
+}
+
 // --- CORS Middleware ---
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);
   }
@@ -166,7 +254,7 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // --- Navigate Endpoint ---
-app.post('/navigate', async (req: Request, res: Response) => {
+app.post('/navigate', authMiddleware, async (req: Request, res: Response) => {
   try {
     const validated = NavigateRequestSchema.safeParse(req.body);
     if (!validated.success) {
@@ -178,6 +266,13 @@ app.post('/navigate', async (req: Request, res: Response) => {
     }
 
     const { callId, url } = validated.data;
+    if (!isSafeUrl(url)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid or forbidden URL',
+      });
+    }
+
     const session = await getOrCreateSession(callId);
     
     log(`Navigating call ${callId} to ${url}`);
@@ -203,9 +298,9 @@ app.post('/navigate', async (req: Request, res: Response) => {
 });
 
 // --- Screenshot Endpoint ---
-app.get('/screenshot/:callId', async (req: Request, res: Response) => {
+app.get('/screenshot/:callId', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { callId } = req.params;
+    const callId = req.params.callId as string;
     const session = sessions.get(callId);
     
     if (!session) {
@@ -243,8 +338,8 @@ app.get('/screenshot/:callId', async (req: Request, res: Response) => {
 });
 
 // --- Display Endpoint (Simple HTML) ---
-app.get('/display/:callId', async (req: Request, res: Response) => {
-  const { callId } = req.params;
+app.get('/display/:callId', authMiddleware, async (req: Request, res: Response) => {
+  const callId = req.params.callId as string;
   try {
     await getOrCreateSession(callId); // Ensure session exists
     res.send(`
@@ -280,8 +375,8 @@ app.get('/display/:callId', async (req: Request, res: Response) => {
 });
 
 // --- Delete Session Endpoint ---
-app.delete('/session/:callId', async (req: Request, res: Response) => {
-  const { callId } = req.params;
+app.delete('/session/:callId', authMiddleware, async (req: Request, res: Response) => {
+  const callId = req.params.callId as string;
   try {
     await closeSession(callId);
     res.status(200).json({

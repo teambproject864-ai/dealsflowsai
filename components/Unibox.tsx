@@ -106,6 +106,7 @@ export function Unibox() {
       senderRole: "agent" as const,
       content: chatInput,
       attachments: attachments.length > 0 ? attachments : undefined,
+      createdAt: new Date().toISOString(),
       timestamp: new Date().toISOString(),
       read: true,
     };
@@ -257,7 +258,7 @@ export function Unibox() {
                               </div>
                             )}
                             <p className="text-[10px] mt-1 opacity-70 text-right">
-                              {new Date(msg.timestamp).toLocaleTimeString(undefined, {
+                              {new Date(msg.createdAt || msg.timestamp || "").toLocaleTimeString(undefined, {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })}

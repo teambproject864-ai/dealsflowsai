@@ -139,7 +139,7 @@ Examples:
       process.exit(1);
     }
 
-    await rasterize(args);
+    await rasterize(args as any);
   } catch (error: any) {
     log(`Error: ${error.message}`, 'error');
     if (error instanceof z.ZodError) {

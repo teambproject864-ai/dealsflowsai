@@ -42,7 +42,7 @@ export class HeyGenClient {
   private baseUrl: string;
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || HEYGEN_API_KEY;
+    this.apiKey = apiKey || HEYGEN_API_KEY || "";
     this.baseUrl = HEYGEN_BASE_URL;
   }
 
@@ -59,7 +59,7 @@ export class HeyGenClient {
 
     console.log(
       `[HeyGen] Request: ${options.method || "GET"} ${url}`,
-      options.body ? `Body size: ${options.body.length} bytes` : ""
+      options.body && typeof options.body === "string" ? `Body size: ${options.body.length} bytes` : ""
     );
 
     const response = await fetch(url, { ...options, headers });

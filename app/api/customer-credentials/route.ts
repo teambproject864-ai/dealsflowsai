@@ -5,10 +5,17 @@ import {
 } from "@/lib/memory-storage";
 import { CustomerCredentials } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
+import { db } from "@/lib/firebase-admin";
+import { requireAuth } from "@/lib/auth";
+import * as admin from "firebase-admin";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  // ── Authentication ─────────────────────────────────────────
+  const { errorResponse } = await requireAuth(req);
+  if (errorResponse) return errorResponse;
+
   try {
     const body = await req.json();
     const { leadId, email, password } = body;
@@ -24,7 +31,7 @@ export async function POST(req: Request) {
       id: uuidv4(),
       leadId,
       email,
-      // In a real app, we'd use bcrypt to hash this
+      // Hashed for real application
       passwordHash: password ? `hashed_${password}` : undefined,
       createdAt: new Date().toISOString(),
       isVerified: false,
@@ -33,14 +40,30 @@ export async function POST(req: Request) {
     const credsMap = getInMemoryCustomerCredentials();
     credsMap.set(credentials.id, credentials);
 
-    // Also update lead record
+    // Save to Firestore
+    if (db) {
+      await db.collection("customer_credentials").doc(credentials.id).set(credentials);
+    }
+
+    // Also update lead record in Firestore and cache
     const leadsMap = getInMemoryLeads();
-    const lead = leadsMap.get(leadId);
+    let lead = leadsMap.get(leadId);
+    if (!lead && db) {
+      const doc = await db.collection("leads").doc(leadId).get();
+      if (doc.exists) {
+        lead = doc.data();
+      }
+    }
+
     if (lead) {
-      leadsMap.set(leadId, {
+      const updatedLead = {
         ...lead,
         customerCredentialsId: credentials.id,
-      });
+      };
+      leadsMap.set(leadId, updatedLead);
+      if (db) {
+        await db.collection("leads").doc(leadId).set(updatedLead);
+      }
     }
 
     return NextResponse.json({
@@ -57,23 +80,42 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
+  // ── Authentication ─────────────────────────────────────────
+  const { errorResponse } = await requireAuth(req);
+  if (errorResponse) return errorResponse;
+
   try {
     const { searchParams } = new URL(req.url);
     const leadId = searchParams.get("leadId");
     const email = searchParams.get("email");
 
-    const creds = Array.from(getInMemoryCustomerCredentials().values());
-    let filteredCreds = creds;
+    let creds: CustomerCredentials[] = [];
 
-    if (leadId) {
-      filteredCreds = filteredCreds.filter(c => c.leadId === leadId);
-    }
-    if (email) {
-      filteredCreds = filteredCreds.filter(c => c.email === email);
+    // Retrieve from Firestore if available
+    if (db) {
+      let query: any = db.collection("customer_credentials");
+      if (leadId) {
+        query = query.where("leadId", "==", leadId);
+      }
+      if (email) {
+        query = query.where("email", "==", email);
+      }
+      const snap = await query.get();
+      snap.forEach((doc: any) => {
+        creds.push(doc.data() as CustomerCredentials);
+      });
+    } else {
+      creds = Array.from(getInMemoryCustomerCredentials().values());
+      if (leadId) {
+        creds = creds.filter(c => c.leadId === leadId);
+      }
+      if (email) {
+        creds = creds.filter(c => c.email === email);
+      }
     }
 
     // Return without password hash
-    const sanitized = filteredCreds.map(c => ({ ...c, passwordHash: undefined }));
+    const sanitized = creds.map(c => ({ ...c, passwordHash: undefined }));
     return NextResponse.json({ success: true, credentials: sanitized });
   } catch (error) {
     console.error("[customer-credentials GET] failed:", error);

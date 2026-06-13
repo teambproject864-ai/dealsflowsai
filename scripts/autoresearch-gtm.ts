@@ -101,7 +101,7 @@ async function scanForGtm(url: string): Promise<GtmAuditReport> {
 
     // 2. Check for dataLayer
     const hasDataLayer = await page.evaluate(() => {
-      return typeof window.dataLayer !== 'undefined';
+      return typeof (window as any).dataLayer !== 'undefined';
     });
 
     report.gtmDataLayerPresent = hasDataLayer;

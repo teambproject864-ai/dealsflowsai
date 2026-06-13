@@ -252,9 +252,9 @@ export function ThreeScene({ data }: { data: SystemData }) {
                 </label>
                 <div className="space-y-2 overflow-y-auto max-h-[140px] pr-1">
                   {(data.users.length > 0 ? data.users.slice(0, 3) : [
-                    { name: "Admin System", role: "Superuser", status: "Active", time: "Now" },
-                    { name: "Integration Bot", role: "Automation", status: "Active", time: "Now" },
-                    { name: "Security Auditor", role: "Compliance", status: "Active", time: "Now" }
+                    { id: "1", name: "Admin System", role: "Superuser", lastSeen: "Now" },
+                    { id: "2", name: "Integration Bot", role: "Automation", lastSeen: "Now" },
+                    { id: "3", name: "Security Auditor", role: "Compliance", lastSeen: "Now" }
                   ]).map((user, i) => (
                     <div key={i} className="flex items-center justify-between bg-white/[0.02] p-2.5 border border-white/5 rounded-xl text-xs">
                       <div>
@@ -263,7 +263,7 @@ export function ThreeScene({ data }: { data: SystemData }) {
                       </div>
                       <div className="text-right">
                         <span className="text-[9px] font-bold text-emerald-400 block">● Active</span>
-                        <span className="text-[9px] text-slate-500 mt-0.5 block">{user.time || "Now"}</span>
+                        <span className="text-[9px] text-slate-500 mt-0.5 block">{user.lastSeen || "Now"}</span>
                       </div>
                     </div>
                   ))}

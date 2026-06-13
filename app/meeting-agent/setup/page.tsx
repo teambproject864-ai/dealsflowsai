@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, AlertCircle, Calendar } from "lucide-react";
 import { isValidMeetingUrl } from "@/lib/meeting-utils";
 import { v4 as uuidv4 } from "uuid";
-import { getInMemoryLeads } from "@/lib/memory-storage";
 
 function SetupContent() {
   const searchParams = useSearchParams();
@@ -35,10 +34,12 @@ function SetupContent() {
       }
 
       try {
-        const inMemoryLeads = getInMemoryLeads();
-        const lead = inMemoryLeads.get(id);
-        if (lead) {
-          setLeadData(lead);
+        const res = await fetch(`/api/leads/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setLeadData(data);
+          }
         }
       } catch (err) {
         console.error("Error loading lead data:", err);
