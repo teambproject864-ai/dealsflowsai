@@ -800,7 +800,7 @@ export default function HomePage() {
 
           <div className="space-y-4 max-w-6xl mx-auto">
             {/* Memory OS Wide Flagship Hero Card */}
-            <div className="p-8 rounded-3xl border border-white/10 bg-gradient-to-br from-violet-950/20 via-[#08081b]/50 to-teal-950/10 hover:border-violet-500/40 transition-all duration-500 shadow-xl relative overflow-hidden group">
+            <div className="p-8 rounded-3xl border border-slate-200 dark:border-white/10 bg-gradient-to-br from-violet-50/30 via-white/50 to-teal-50/30 dark:from-violet-950/20 dark:via-[#08081b]/50 dark:to-teal-950/10 hover:border-violet-500/20 dark:hover:border-violet-500/40 transition-all duration-500 shadow-xl relative overflow-hidden group">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_120%,rgba(108,59,255,0.06),transparent)] pointer-events-none" />
               <div className="df-specular" />
               
@@ -832,23 +832,23 @@ export default function HomePage() {
 
                 {/* Content Column (8 cols) */}
                 <div className="md:col-span-8 space-y-4">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-[10px] font-bold uppercase tracking-wider select-none">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-300 text-[10px] font-bold uppercase tracking-wider select-none">
                     Flagship Core
                   </div>
-                  <h3 className="text-2xl font-bold text-white tracking-tight">
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
                     Agents that remember every deal, forever
                   </h3>
-                  <p className="text-sm text-slate-400 leading-relaxed max-w-2xl">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl">
                     Unified memory management system that retains deal context, buyer signals, and pipeline state across every interaction. Every meeting note, email thread, and deal constraint is cataloged and instantly retrievable.
                   </p>
                   <div className="grid grid-cols-2 gap-4 pt-2">
                     <div className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-xs text-slate-300 font-medium">Persistent Context Windows</span>
+                      <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">Persistent Context Windows</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-xs text-slate-300 font-medium">Cross-Agent Synchronization</span>
+                      <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">Cross-Agent Synchronization</span>
                     </div>
                   </div>
                 </div>
@@ -1017,14 +1017,14 @@ export default function HomePage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
             {/* Starter Plan */}
-            <div className="relative p-8 rounded-3xl border border-white/5 bg-white/[0.01] flex flex-col justify-between hover:border-white/10 hover:bg-white/[0.02] transition-all duration-300">
+            <div className="relative p-8 rounded-3xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] hover:border-slate-300 dark:hover:border-white/10 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] transition-all duration-300 flex flex-col justify-between">
               <div className="space-y-6">
                 <div>
-                  <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Starter</div>
-                  <div className="text-3xl font-bold text-white font-mono">{isAnnual ? "$399/mo" : "$499/mo"}</div>
+                  <div className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Starter</div>
+                  <div className="text-3xl font-bold text-slate-900 dark:text-white font-mono">{isAnnual ? "$399/mo" : "$499/mo"}</div>
                   <div className="text-[10px] text-slate-500 mt-1">{isAnnual ? "Billed annually" : "Billed monthly"}</div>
                 </div>
-                <p className="text-slate-400 text-xs leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
                   For teams just starting to bring AI into their sales motion
                 </p>
                 <div className="border-t border-white/5 my-4" />
@@ -1032,7 +1032,7 @@ export default function HomePage() {
                   {["Up to 5 AI Revenue Agents", "Memory OS — 30-day context", "GTM Pipeline Analysis", "Standard Integrations"].map((f, i) => (
                     <li key={i} className="flex items-start gap-2.5">
                       <CheckCircle2 className="w-4 h-4 mt-0.5 text-teal-500 flex-shrink-0" />
-                      <span className="text-slate-300 text-xs">{f}</span>
+                      <span className="text-slate-700 dark:text-slate-300 text-xs">{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -1040,7 +1040,7 @@ export default function HomePage() {
               <div className="mt-8">
                 <Link
                   href="/book-demo"
-                  className="w-full h-11 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-colors"
+                  className="w-full h-11 flex items-center justify-center rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white font-bold text-xs transition-colors"
                 >
                   Start free trial
                 </Link>
@@ -1060,10 +1060,10 @@ export default function HomePage() {
               <div className="space-y-6">
                 <div>
                   <div className="text-violet-400 text-[10px] font-bold uppercase tracking-widest mb-1">Growth</div>
-                  <div className="text-3xl font-bold text-white font-mono">{isAnnual ? "$999/mo" : "$1,299/mo"}</div>
+                  <div className="text-3xl font-bold text-slate-900 dark:text-white font-mono">{isAnnual ? "$999/mo" : "$1,299/mo"}</div>
                   <div className="text-[10px] text-slate-500 mt-1">{isAnnual ? "Billed annually" : "Billed monthly"}</div>
                 </div>
-                <p className="text-slate-400 text-xs leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
                   For teams scaling a multi-rep GTM motion with advanced agent orchestration
                 </p>
                 <div className="border-t border-violet-500/10 my-4" />
@@ -1090,14 +1090,14 @@ export default function HomePage() {
             </div>
 
             {/* Enterprise Plan */}
-            <div className="relative p-8 rounded-3xl border border-white/5 bg-white/[0.01] flex flex-col justify-between hover:border-white/10 hover:bg-white/[0.02] transition-all duration-300">
+            <div className="relative p-8 rounded-3xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] hover:border-slate-300 dark:hover:border-white/10 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] transition-all duration-300 flex flex-col justify-between">
               <div className="space-y-6">
                 <div>
-                  <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Enterprise</div>
-                  <div className="text-3xl font-bold text-white font-mono">Custom</div>
+                  <div className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Enterprise</div>
+                  <div className="text-3xl font-bold text-slate-900 dark:text-white font-mono">Custom</div>
                   <div className="text-[10px] text-slate-500 mt-1">Bespoke contract</div>
                 </div>
-                <p className="text-slate-400 text-xs leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
                   For large orgs needing bespoke AI infrastructure, compliance, and dedicated support
                 </p>
                 <div className="border-t border-white/5 my-4" />
@@ -1105,7 +1105,7 @@ export default function HomePage() {
                   {["Unlimited AI Revenue Agents", "Custom memory architecture", "On-premise / VPC deployment", "SOC 2 Type II compliance", "Custom integrations & SLA support"].map((f, i) => (
                     <li key={i} className="flex items-start gap-2.5">
                       <CheckCircle2 className="w-4 h-4 mt-0.5 text-teal-500 flex-shrink-0" />
-                      <span className="text-slate-300 text-xs">{f}</span>
+                      <span className="text-slate-700 dark:text-slate-300 text-xs">{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -1113,7 +1113,7 @@ export default function HomePage() {
               <div className="mt-8">
                 <Link
                   href="/book-demo"
-                  className="w-full h-11 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition-colors"
+                  className="w-full h-11 flex items-center justify-center rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white font-bold text-xs transition-colors"
                 >
                   Contact Sales
                 </Link>

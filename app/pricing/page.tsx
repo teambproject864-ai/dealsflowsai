@@ -34,8 +34,8 @@ const tiers: PricingTier[] = [
       { text: "ALMA adaptive learning models", included: false },
     ],
     cta: "Get Started",
-    color: "border-white/8 hover:border-white/15 bg-white/3",
-    glow: "shadow-white/5"
+    color: "border-slate-200 dark:border-white/8 hover:border-slate-350 dark:hover:border-white/15 bg-slate-50/50 dark:bg-white/3",
+    glow: "shadow-slate-200/50 dark:shadow-white/5"
   },
   {
     name: "Growth",
@@ -53,8 +53,8 @@ const tiers: PricingTier[] = [
     ],
     cta: "Start 14-Day Free Trial",
     popular: true,
-    color: "border-teal-500/30 bg-teal-950/5 hover:border-teal-500/50",
-    glow: "shadow-teal-500/5"
+    color: "border-teal-300 dark:border-teal-500/30 bg-teal-50/50 dark:bg-teal-950/5 hover:border-teal-500",
+    glow: "shadow-teal-500/10 dark:shadow-teal-500/5"
   },
   {
     name: "Enterprise",
@@ -71,8 +71,8 @@ const tiers: PricingTier[] = [
       { text: "Custom system fine-tuning (ALMA)", included: true },
     ],
     cta: "Contact Sales",
-    color: "border-violet-500/30 bg-violet-950/5 hover:border-violet-500/50",
-    glow: "shadow-violet-500/5"
+    color: "border-violet-300 dark:border-violet-500/30 bg-violet-50/50 dark:bg-violet-950/5 hover:border-violet-500",
+    glow: "shadow-violet-500/10 dark:shadow-violet-500/5"
   }
 ];
 
@@ -131,10 +131,10 @@ const featureCategories = [
 function FAQAccordionItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="border-b border-white/5 py-4.5">
+    <div className="border-b border-slate-200 dark:border-white/5 py-4.5">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex justify-between items-center text-left py-2 text-white font-semibold hover:text-teal-400 transition-colors focus:outline-none"
+        className="w-full flex justify-between items-center text-left py-2 text-slate-800 dark:text-white font-semibold hover:text-teal-650 dark:hover:text-teal-400 transition-colors focus:outline-none"
       >
         <span className="text-base sm:text-lg flex items-center gap-3">
           <HelpCircle className="h-5 w-5 text-slate-500 shrink-0" />
@@ -153,7 +153,7 @@ function FAQAccordionItem({ question, answer }: { question: string; answer: stri
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <p className="text-slate-400 text-sm pl-8 pr-4 py-2.5 leading-relaxed">{answer}</p>
+            <p className="text-slate-650 dark:text-slate-400 text-sm pl-8 pr-4 py-2.5 leading-relaxed">{answer}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -165,37 +165,37 @@ export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(true);
 
   return (
-    <div className="relative min-h-screen bg-dealflow-ink overflow-hidden">
+    <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
       {/* Decorative gradients */}
       <div className="absolute top-[10%] left-[-15%] w-[35rem] h-[35rem] rounded-full bg-violet-600/5 blur-[120px] pointer-events-none" />
       <div className="absolute top-[40%] right-[-15%] w-[35rem] h-[35rem] rounded-full bg-teal-600/5 blur-[120px] pointer-events-none" />
 
       {/* Hero Section */}
-      <section className="relative pt-28 pb-12 md:pt-36 md:pb-16 text-center border-b border-white/5">
+      <section className="relative pt-28 pb-12 md:pt-36 md:pb-16 text-center border-b border-slate-200 dark:border-white/5">
         <div className="max-w-4xl mx-auto px-6 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-300 text-xs font-semibold uppercase tracking-wider mb-2">
-            <Sparkles className="h-3.5 w-3.5 text-teal-400" />
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-600 dark:text-teal-300 text-xs font-semibold uppercase tracking-wider mb-2">
+            <Sparkles className="h-3.5 w-3.5 text-teal-500 dark:text-teal-400" />
             <span>Pricing Packages</span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white leading-tight font-sans">
+          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight font-sans">
             Transparent Pricing for{" "}
-            <span className="bg-gradient-to-r from-teal-400 via-cyan-400 to-violet-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-teal-600 via-cyan-600 to-violet-700 dark:from-teal-400 dark:via-cyan-400 dark:to-violet-500 bg-clip-text text-transparent">
               Any Scale
             </span>
           </h1>
-          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto">
+          <p className="text-slate-650 dark:text-slate-400 text-lg md:text-xl max-w-2xl mx-auto">
             Choose the operational framework that fits your sales team. Deploy fully compliant autonomous agents in under 10 minutes.
           </p>
 
           {/* Monthly/Annual Toggle Switch */}
           <div className="pt-6">
-            <div className="inline-flex items-center bg-white/3 rounded-xl p-1 border border-white/8 backdrop-blur-md">
+            <div className="inline-flex items-center bg-slate-100 dark:bg-white/3 rounded-xl p-1 border border-slate-200 dark:border-white/8 backdrop-blur-md">
               <button
                 onClick={() => setIsAnnual(false)}
                 className={`px-6 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
                   !isAnnual 
                     ? "bg-teal-500 text-white shadow-lg shadow-teal-500/20" 
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 Monthly
@@ -205,11 +205,11 @@ export default function PricingPage() {
                 className={`px-6 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 ${
                   isAnnual 
                     ? "bg-teal-500 text-white shadow-lg shadow-teal-500/20" 
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 <span>Annual</span>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold uppercase tracking-normal">Save 20%</span>
+                <span className="text-[10px] bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 px-1.5 py-0.5 rounded font-bold uppercase tracking-normal">Save 20%</span>
               </button>
             </div>
           </div>
@@ -241,30 +241,30 @@ export default function PricingPage() {
                 
                 <div>
                   <div className="mb-8">
-                    <h3 className="text-2xl font-bold text-white mb-2">{tier.name}</h3>
-                    <p className="text-slate-400 text-xs leading-relaxed min-h-[40px]">{tier.description}</p>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{tier.name}</h3>
+                    <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed min-h-[40px]">{tier.description}</p>
                     <div className="mt-6 flex items-baseline">
-                      <span className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight font-sans">
+                      <span className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
                         ${isAnnual ? tier.price.annual : tier.price.monthly}
                       </span>
-                      <span className="text-slate-500 text-sm ml-2">/ month</span>
+                      <span className="text-slate-500 dark:text-slate-450 ml-2 text-sm">/ month</span>
                     </div>
                     {isAnnual && (
-                      <p className="text-[10px] text-emerald-400 mt-1.5 font-bold uppercase tracking-wider">Billed annually</p>
+                      <p className="text-[10px] text-emerald-650 dark:text-emerald-400 mt-1.5 font-bold uppercase tracking-wider">Billed annually</p>
                     )}
                   </div>
 
-                  <div className="border-t border-white/5 my-6"></div>
+                  <div className="border-t border-slate-200 dark:border-white/5 my-6"></div>
 
                   <ul className="space-y-4 mb-8">
                     {tier.features.map((feature, i) => (
                       <li key={i} className="flex items-start gap-3">
                         {feature.included ? (
-                          <Check className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+                          <Check className="h-5 w-5 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5" />
                         ) : (
-                          <X className="h-5 w-5 text-slate-600 shrink-0 mt-0.5" />
+                          <X className="h-5 w-5 text-slate-400 dark:text-slate-600 shrink-0 mt-0.5" />
                         )}
-                        <span className={`text-sm leading-tight ${feature.included ? "text-slate-200" : "text-slate-500 line-through"}`}>
+                        <span className={`text-sm leading-tight ${feature.included ? "text-slate-700 dark:text-slate-200" : "text-slate-400 dark:text-slate-500 line-through"}`}>
                           {feature.text}
                         </span>
                       </li>
@@ -272,13 +272,13 @@ export default function PricingPage() {
                   </ul>
                 </div>
 
-                <div className="mt-auto pt-6 border-t border-white/5">
+                <div className="mt-auto pt-6 border-t border-slate-200 dark:border-white/5">
                   <Link href={tier.name === "Enterprise" ? "/book-demo" : "/book-demo?trial=true"}>
                     <Button
                       className={`w-full h-13 rounded-xl font-semibold uppercase tracking-wider text-xs transition-all duration-300 ${
                         tier.popular 
-                          ? "bg-teal-500 hover:bg-teal-400 text-white shadow-lg shadow-teal-500/25" 
-                          : "bg-white/3 border-white/10 hover:bg-white/5 text-white"
+                          ? "bg-teal-600 dark:bg-teal-500 hover:bg-teal-500 dark:hover:bg-teal-400 text-white shadow-lg shadow-teal-500/25" 
+                          : "bg-slate-100 dark:bg-white/3 border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/5 text-slate-800 dark:text-white"
                       }`}
                       variant={tier.popular ? "default" : "outline"}
                     >
@@ -294,37 +294,37 @@ export default function PricingPage() {
       </section>
 
       {/* Feature Comparison Table Section */}
-      <section className="py-16 max-w-7xl mx-auto px-6 border-t border-white/5">
+      <section className="py-16 max-w-7xl mx-auto px-6 border-t border-slate-200 dark:border-white/5">
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <h2 className="text-2xl sm:text-4xl font-bold text-white">Compare Plan Features</h2>
-          <p className="text-slate-400">Deep-dive comparison matrix of active modules, SLAs, and technical limitations.</p>
+          <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 dark:text-white">Compare Plan Features</h2>
+          <p className="text-slate-605 dark:text-slate-400">Deep-dive comparison matrix of active modules, SLAs, and technical limitations.</p>
         </div>
 
-        <GlassPanel material="glass" depth="mid" tilt={false} className="border-white/8 p-0 overflow-hidden shadow-2xl">
+        <GlassPanel material="glass" depth="mid" tilt={false} className="border-slate-200 dark:border-white/8 p-0 overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
-                <tr className="border-b border-white/10 bg-white/2 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-100/50 dark:bg-white/2 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
                   <th className="py-5 px-6">Operational Capabilities</th>
                   <th className="py-5 px-6 w-[20%]">Starter</th>
                   <th className="py-5 px-6 w-[20%]">Growth</th>
                   <th className="py-5 px-6 w-[20%]">Enterprise</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-200 dark:divide-white/5">
                 {featureCategories.map((category) => (
                   <Fragment key={category.name}>
-                    <tr className="bg-[#070715]/40 text-sm">
-                      <td colSpan={4} className="py-4 px-6 font-bold text-teal-400 bg-white/[0.01] uppercase tracking-wider text-xs border-b border-white/5">
+                    <tr className="bg-slate-50/50 dark:bg-[#070715]/40 text-sm">
+                      <td colSpan={4} className="py-4 px-6 font-bold text-teal-650 dark:text-teal-400 bg-slate-100/10 dark:bg-white/[0.01] uppercase tracking-wider text-xs border-b border-slate-200 dark:border-white/5">
                         {category.name}
                       </td>
                     </tr>
                     {category.items.map((item) => (
-                      <tr key={item.name} className="hover:bg-white/[0.01] transition-colors text-sm">
-                        <td className="py-4.5 px-6 text-slate-300 font-medium">{item.name}</td>
-                        <td className="py-4.5 px-6 text-slate-400 text-xs">{item.starter}</td>
-                        <td className="py-4.5 px-6 text-slate-200 text-xs font-semibold">{item.growth}</td>
-                        <td className="py-4.5 px-6 text-teal-300 text-xs font-semibold">{item.enterprise}</td>
+                      <tr key={item.name} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors text-sm">
+                        <td className="py-4.5 px-6 text-slate-705 dark:text-slate-300 font-medium">{item.name}</td>
+                        <td className="py-4.5 px-6 text-slate-500 dark:text-slate-400 text-xs">{item.starter}</td>
+                        <td className="py-4.5 px-6 text-slate-800 dark:text-slate-200 text-xs font-semibold">{item.growth}</td>
+                        <td className="py-4.5 px-6 text-teal-600 dark:text-teal-300 text-xs font-semibold">{item.enterprise}</td>
                       </tr>
                     ))}
                   </Fragment>
@@ -336,14 +336,14 @@ export default function PricingPage() {
       </section>
 
       {/* Interactive FAQ Accordion */}
-      <section className="py-20 max-w-4xl mx-auto px-6 border-t border-white/5">
+      <section className="py-20 max-w-4xl mx-auto px-6 border-t border-slate-200 dark:border-white/5">
         <div className="text-center mb-16 space-y-4">
-          <h2 className="text-2xl sm:text-4xl font-bold text-white">Frequently Asked Questions</h2>
-          <p className="text-slate-400">Everything you need to know about billing, architecture sync, and data guardrails.</p>
+          <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 dark:text-white">Frequently Asked Questions</h2>
+          <p className="text-slate-605 dark:text-slate-400">Everything you need to know about billing, architecture sync, and data guardrails.</p>
         </div>
 
-        <GlassPanel material="glass" depth="mid" tilt={false} className="border-white/8 p-6 sm:p-8">
-          <div className="divide-y divide-white/5">
+        <GlassPanel material="glass" depth="mid" tilt={false} className="border-slate-200 dark:border-white/8 p-6 sm:p-8">
+          <div className="divide-y divide-slate-200 dark:divide-white/5">
             {faqItems.map((item, idx) => (
               <FAQAccordionItem 
                 key={idx}
@@ -356,18 +356,18 @@ export default function PricingPage() {
       </section>
 
       {/* Trust Badges Bar */}
-      <section className="py-12 border-t border-white/5 bg-[#070715]/40">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-around gap-8 text-center text-slate-500 font-semibold uppercase tracking-widest text-[10px]">
+      <section className="py-12 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-[#070715]/40">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-around gap-8 text-center text-slate-550 dark:text-slate-500 font-semibold uppercase tracking-widest text-[10px]">
           <div className="flex items-center gap-2.5">
-            <Shield className="h-5 w-5 text-teal-500/50" />
+            <Shield className="h-5 w-5 text-teal-600/70 dark:text-teal-500/50" />
             <span>SOC2 Type II Compliant</span>
           </div>
           <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="h-5 w-5 text-teal-500/50" />
+            <CheckCircle2 className="h-5 w-5 text-teal-600/70 dark:text-teal-500/50" />
             <span>GDPR Ready Infrastructure</span>
           </div>
           <div className="flex items-center gap-2.5">
-            <Award className="h-5 w-5 text-teal-500/50" />
+            <Award className="h-5 w-5 text-teal-600/70 dark:text-teal-500/50" />
             <span>30-Day Money-Back Guarantee</span>
           </div>
         </div>

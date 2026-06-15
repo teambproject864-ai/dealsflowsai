@@ -131,23 +131,23 @@ export default function RagPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-10 text-slate-800 dark:text-white">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-white">RAG Ask (Streaming)</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">RAG Ask (Streaming)</h1>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-white/10 bg-black/30 backdrop-blur-xl">
+        <Card className="border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/30 backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="text-white">Query</CardTitle>
+            <CardTitle className="text-slate-900 dark:text-white">Query</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label className="text-xs font-medium text-gray-300">Question</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-gray-300">Question</label>
               <Textarea
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                className="min-h-[110px] bg-white/5 border-white/10"
+                className="min-h-[110px] bg-slate-100/50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus-visible:ring-teal-500/50"
                 placeholder="Ask a question..."
                 disabled={isStreaming}
               />
@@ -155,28 +155,28 @@ export default function RagPage() {
 
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-300">Provider</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-gray-300">Provider</label>
                 <select
                   value={provider}
                   onChange={(e) => setProvider(e.target.value as any)}
-                  className="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white"
+                  className="h-10 w-full rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50 cursor-pointer shadow-sm"
                   disabled={isStreaming}
                 >
-                  <option value="nvidia">nvidia</option>
-                  <option value="huggingface">huggingface</option>
+                  <option className="text-slate-900 dark:text-white bg-white dark:bg-[#0c0c20]" value="nvidia">nvidia</option>
+                  <option className="text-slate-900 dark:text-white bg-white dark:bg-[#0c0c20]" value="huggingface">huggingface</option>
                 </select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-300">Model (NVIDIA)</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-gray-300">Model (NVIDIA)</label>
                 <select
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
-                  className="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white"
+                  className="h-10 w-full rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50 cursor-pointer shadow-sm"
                   disabled={isStreaming || provider !== "nvidia"}
                 >
                   {MODEL_REGISTRY.nvidia.map((m) => (
-                    <option key={m.id} value={m.id}>
+                    <option key={m.id} value={m.id} className="text-slate-900 dark:text-white bg-white dark:bg-[#0c0c20]">
                       {m.name}
                     </option>
                   ))}
@@ -184,12 +184,12 @@ export default function RagPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-300">TopK</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-gray-300">TopK</label>
                 <Input
                   type="number"
                   value={topK}
                   onChange={(e) => setTopK(Number(e.target.value || 6))}
-                  className="bg-white/5 border-white/10"
+                  className="bg-slate-100/50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus-visible:ring-teal-500/50"
                   min={1}
                   max={20}
                   disabled={isStreaming}
@@ -200,34 +200,34 @@ export default function RagPage() {
             <Button
               onClick={runAskStream}
               disabled={isStreaming || !question.trim()}
-              className="w-full bg-teal-600 hover:bg-teal-500"
+              className="w-full bg-teal-600 hover:bg-teal-500 text-white"
             >
               {isStreaming ? "Streaming..." : "Ask (stream)"}
             </Button>
 
             {error && (
-              <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-200">
                 {error}
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-black/30 backdrop-blur-xl">
+        <Card className="border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/30 backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="text-white">Answer</CardTitle>
+            <CardTitle className="text-slate-900 dark:text-white">Answer</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="min-h-[160px] whitespace-pre-wrap rounded-lg border border-white/10 bg-white/5 p-3 text-sm text-gray-200">
+            <div className="min-h-[160px] whitespace-pre-wrap rounded-lg border border-slate-200 dark:border-white/10 bg-slate-100/30 dark:bg-white/5 p-3 text-sm text-slate-800 dark:text-gray-200">
               {answer || (isStreaming ? "..." : "Ask a question to see the streamed response.")}
             </div>
 
             {sources.length > 0 && (
               <div className="space-y-2">
-                <div className="text-xs font-medium text-gray-300">Sources</div>
+                <div className="text-xs font-medium text-slate-600 dark:text-gray-300">Sources</div>
                 <div className="flex flex-wrap gap-2">
                   {sources.map((s) => (
-                    <Badge key={`${s.docId}:${s.chunkIndex}`} variant="secondary" className="bg-white/10 text-gray-200">
+                    <Badge key={`${s.docId}:${s.chunkIndex}`} variant="secondary" className="bg-slate-200 dark:bg-white/10 text-slate-850 dark:text-gray-200 border-slate-350 dark:border-white/5">
                       {s.docName} [{s.docId}:{s.chunkIndex}] {s.score.toFixed(2)}
                     </Badge>
                   ))}
@@ -237,20 +237,20 @@ export default function RagPage() {
 
             {hits.length > 0 && (
               <div className="space-y-2">
-                <div className="text-xs font-medium text-gray-300">Retrieved</div>
+                <div className="text-xs font-medium text-slate-600 dark:text-gray-300">Retrieved</div>
                 <div className="space-y-2">
                   {hits.slice(0, 4).map((h) => (
                     <div
                       key={`${h.docId}:${h.chunkIndex}:${h.score}`}
-                      className="rounded-lg border border-white/10 bg-white/5 p-3"
+                      className="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-100/30 dark:bg-white/5 p-3"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="text-xs font-medium text-white">
-                          {h.docName} <span className="text-gray-400">[{h.docId}:{h.chunkIndex}]</span>
+                        <div className="text-xs font-medium text-slate-900 dark:text-white">
+                          {h.docName} <span className="text-slate-500 dark:text-gray-400">[{h.docId}:{h.chunkIndex}]</span>
                         </div>
-                        <div className="text-[11px] text-gray-400">{h.score.toFixed(3)}</div>
+                        <div className="text-[11px] text-slate-500 dark:text-gray-400">{h.score.toFixed(3)}</div>
                       </div>
-                      <div className="mt-2 line-clamp-4 text-xs text-gray-300 whitespace-pre-wrap">
+                      <div className="mt-2 line-clamp-4 text-xs text-slate-650 dark:text-gray-300 whitespace-pre-wrap">
                         {h.text}
                       </div>
                     </div>

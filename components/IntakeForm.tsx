@@ -342,16 +342,16 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
   }
 
   return (
-    <div className="mx-auto max-w-xl rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.45)] relative overflow-hidden">
+    <div className="mx-auto max-w-xl rounded-3xl border border-slate-200 dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-6 md:p-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.45)] relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_20%_10%,rgba(139,92,246,0.16),transparent)]" />
       <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-teal-500/10 blur-3xl" />
 
       <div className="mb-8 flex items-center justify-between gap-4 relative z-10">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-teal-300/90">
+          <p className="text-xs font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-300/90">
             Step {step + 1} of {stepTitles.length}
           </p>
-          <h2 className="text-lg font-bold text-white tracking-tight">{stepTitles[step]}</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{stepTitles[step]}</h2>
         </div>
         <div className="flex gap-1">
           {stepTitles.map((_, i) => (
@@ -392,7 +392,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
           {/* --- Step 1: Company Information --- */}
           {step === 0 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-2">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-white/5 pb-2">
                 Company Information
               </h3>
               <div className="space-y-2">
@@ -402,7 +402,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.name}
                   onChange={(e) => setData({ ...data, name: e.target.value })}
                   placeholder="John Doe"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                   aria-invalid={!!errors.name}
                   aria-describedby={errors.name ? 'name-error' : undefined}
                 />
@@ -425,7 +425,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.emailPersonal}
                   onChange={(e) => setData({ ...data, emailPersonal: e.target.value })}
                   placeholder="john@company.com"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
                 {errors.emailPersonal && <p className="text-xs text-red-400">{errors.emailPersonal}</p>}
               </div>
@@ -438,7 +438,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.additionalEmail}
                   onChange={(e) => setData({ ...data, additionalEmail: e.target.value })}
                   placeholder="optional@company.com"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
 
@@ -449,7 +449,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.companyName}
                   onChange={(e) => setData({ ...data, companyName: e.target.value })}
                   placeholder="Acme Corp"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
                 {errors.companyName && <p className="text-xs text-red-400">{errors.companyName}</p>}
               </div>
@@ -461,7 +461,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.websiteUrl}
                   onChange={(e) => setData({ ...data, websiteUrl: e.target.value })}
                   placeholder="https://acme.com"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
                 {errors.websiteUrl && <p className="text-xs text-red-400">{errors.websiteUrl}</p>}
               </div>
@@ -471,7 +471,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
           {/* --- Step 2: Proof of Results & Credibility --- */}
           {step === 1 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-2">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-white/5 pb-2">
                 Proof of Results & Credibility
               </h3>
 
@@ -484,7 +484,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.caseStudies}
                   onChange={(e) => setData({ ...data, caseStudies: e.target.value })}
                   placeholder="Case 1: X company grew by 40%... Bonus: Include video testimonials, customer quotes, or success stories..."
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[120px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[120px]"
                 />
                 {errors.caseStudies && <p className="text-xs text-red-400">{errors.caseStudies}</p>}
               </div>
@@ -505,7 +505,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   className="border-2 border-dashed border-white/10 hover:border-teal-500/50 bg-black/20 rounded-xl p-4 text-center cursor-pointer transition-all hover:bg-white/[0.02]"
                 >
                   <Upload className="mx-auto h-8 w-8 text-teal-400 mb-2" aria-hidden="true" />
-                  <p className="text-sm font-semibold text-white">Drag & drop files here or click to browse</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">Drag & drop files here or click to browse</p>
                   <p className="text-xs text-slate-500 mt-1">Supports PDF, DOCX, PNG, MP4 up to 50MB</p>
                   <input
                     id="case-study-upload"
@@ -567,7 +567,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.trustFactors}
                   onChange={(e) => setData({ ...data, trustFactors: e.target.value })}
                   placeholder="Social proof, authority, industry recognition, unique positioning, credibility indicators, etc."
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[80px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[80px]"
                 />
                 {errors.trustFactors && <p className="text-xs text-red-400">{errors.trustFactors}</p>}
               </div>
@@ -577,7 +577,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
           {/* --- Step 3: Brand Presence & Positioning --- */}
           {step === 2 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-2">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-white/5 pb-2">
                 Brand Presence & Positioning
               </h3>
 
@@ -607,15 +607,15 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.linkedInContent}
                   onChange={(e) => setData({ ...data, linkedInContent: e.target.value })}
                   placeholder="What do you post on LinkedIn?"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[70px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[70px]"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="publishingFrequency">How consistently do you publish content?</Label>
                 <Select value={data.publishingFrequency} onValueChange={(v) => setData({ ...data, publishingFrequency: v })}>
-                  <SelectTrigger className="bg-black/20 border-white/10 text-white"><SelectValue placeholder="Select..." /></SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/10 text-white">
+                  <SelectTrigger className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white"><SelectValue placeholder="Select..." /></SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white">
                     {publishingOptions.map((opt) => (
                       <SelectItem key={opt} value={opt} className="hover:bg-teal-500/20">{opt}</SelectItem>
                     ))}
@@ -630,7 +630,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.offerPromise}
                   onChange={(e) => setData({ ...data, offerPromise: e.target.value })}
                   placeholder="Clear, concise promise..."
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[70px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[70px]"
                 />
                 {errors.offerPromise && <p className="text-xs text-red-400">{errors.offerPromise}</p>}
               </div>
@@ -642,7 +642,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.irresistibleHook}
                   onChange={(e) => setData({ ...data, irresistibleHook: e.target.value })}
                   placeholder="Examples: Free Audit, Guaranteed Results, Done-for-You in 7 Days, Free Strategy Session..."
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[70px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[70px]"
                 />
               </div>
 
@@ -653,7 +653,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.painPoint}
                   onChange={(e) => setData({ ...data, painPoint: e.target.value })}
                   placeholder="Focus on the prospect's problem rather than product features..."
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[70px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[70px]"
                 />
                 {errors.painPoint && <p className="text-xs text-red-400">{errors.painPoint}</p>}
               </div>
@@ -663,7 +663,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
           {/* --- Step4: Offer & Sales Process --- */}
           {step === 3 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-2">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-white/5 pb-2">
                 Offer & Sales Process
               </h3>
 
@@ -696,8 +696,8 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
               <div className="space-y-2">
                 <Label htmlFor="timeToStart">How quickly can a customer get started with your offer?</Label>
                 <Select value={data.timeToStart} onValueChange={(v) => setData({ ...data, timeToStart: v })}>
-                  <SelectTrigger className="bg-black/20 border-white/10 text-white"><SelectValue placeholder="Select..." /></SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/10 text-white">
+                  <SelectTrigger className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white"><SelectValue placeholder="Select..." /></SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white">
                     {timeToStartOptions.map((opt) => (
                       <SelectItem key={opt} value={opt} className="hover:bg-teal-500/20">{opt}</SelectItem>
                     ))}
@@ -709,8 +709,8 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
               <div className="space-y-2">
                 <Label htmlFor="primaryCta">What is your primary Call-to-Action (CTA) for this campaign?</Label>
                 <Select value={data.primaryCta} onValueChange={(v) => setData({ ...data, primaryCta: v })}>
-                  <SelectTrigger className="bg-black/20 border-white/10 text-white"><SelectValue placeholder="Select..." /></SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/10 text-white">
+                  <SelectTrigger className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white"><SelectValue placeholder="Select..." /></SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white">
                     {primaryCtaOptions.map((opt) => (
                       <SelectItem key={opt} value={opt} className="hover:bg-teal-500/20">{opt}</SelectItem>
                     ))}
@@ -760,7 +760,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.objectionsHandling}
                   onChange={(e) => setData({ ...data, objectionsHandling: e.target.value })}
                   placeholder="Common objections and your responses..."
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[80px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[80px]"
                 />
                 {errors.objectionsHandling && <p className="text-xs text-red-400">{errors.objectionsHandling}</p>}
               </div>
@@ -772,15 +772,15 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.emailSequenceThemes}
                   onChange={(e) => setData({ ...data, emailSequenceThemes: e.target.value })}
                   placeholder="What themes and messaging should we include?"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[80px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[80px]"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="giftCard">Would you be open to offering a small thank-you gift card ($50) for a 15-minute customer research call?</Label>
                 <Select value={data.giftCard} onValueChange={(v) => setData({ ...data, giftCard: v })}>
-                  <SelectTrigger className="bg-black/20 border-white/10 text-white"><SelectValue placeholder="Select..." /></SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/10 text-white">
+                  <SelectTrigger className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white"><SelectValue placeholder="Select..." /></SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white">
                     {giftCardOptions.map((opt) => (
                       <SelectItem key={opt} value={opt} className="hover:bg-teal-500/20">{opt}</SelectItem>
                     ))}
@@ -794,7 +794,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
           {/* --- Step 5: Ideal Customer Profile (ICP) --- */}
           {step === 4 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-2">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-white/5 pb-2">
                 Ideal Customer Profile
               </h3>
 
@@ -805,7 +805,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.icpDescription}
                   onChange={(e) => setData({ ...data, icpDescription: e.target.value })}
                   placeholder="Describe your ICP..."
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[80px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[80px]"
                 />
                 {errors.icpDescription && <p className="text-xs text-red-400">{errors.icpDescription}</p>}
               </div>
@@ -864,7 +864,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.targetGeographicRegionsText}
                   onChange={(e) => setData({ ...data, targetGeographicRegionsText: e.target.value })}
                   placeholder="North America, Europe, APAC, etc. (comma separated)"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[80px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[80px]"
                 />
                 {errors.targetGeographicRegionsText && <p className="text-xs text-red-400">{errors.targetGeographicRegionsText}</p>}
               </div>
@@ -927,7 +927,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
           {/* --- Step 6: Tech Stack & Outreach --- */}
           {step === 5 && (
             <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 border-b border-white/5 pb-2">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-white/5 pb-2">
                 Tech Stack & Outreach
               </h3>
 
@@ -964,7 +964,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={data.additionalNotes}
                   onChange={(e) => setData({ ...data, additionalNotes: e.target.value })}
                   placeholder="Any other notes or requirements?"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500 min-h-[80px]"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 min-h-[80px]"
                 />
               </div>
             </div>
@@ -977,10 +977,10 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
         <div className="relative z-10 space-y-6">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-teal-300/90">
+              <p className="text-xs font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-300/90">
                 Step 1 of 2
               </p>
-              <h2 className="text-lg font-bold text-white tracking-tight">Select Your Agent</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Select Your Agent</h2>
             </div>
             <div className="flex gap-1">
               <span className="h-1.5 w-3.5 rounded-full bg-teal-500 shadow-[0_0_8px_#14b8a6]" />
@@ -1004,7 +1004,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   <span className="text-white font-bold text-lg">A</span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white">Automatically Assign Agent</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Automatically Assign Agent</h3>
                   <p className="text-xs text-slate-400 mt-1">
                     The system will match the best available qualified agent to your requirement.
                   </p>
@@ -1031,7 +1031,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                     <span className="text-white font-bold text-lg">{agent.name.charAt(0)}</span>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white">{agent.name}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{agent.name}</h3>
                     <p className="text-xs text-slate-400 mt-1">
                       {agent.expertise.join(", ")}
                     </p>
@@ -1050,7 +1050,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
               onClick={() => {
                 setPostSubmissionStep(null);
               }}
-              className="border-white/10 bg-white/5 hover:bg-white/10 text-white px-4 h-11 rounded-xl"
+              className="border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white px-4 h-11 rounded-xl"
             >
               <IconArrowLeft className="h-4 w-4 mr-2" /> Back
             </Button>
@@ -1104,10 +1104,10 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
         <div className="relative z-10 space-y-6">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-teal-300/90">
+              <p className="text-xs font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-300/90">
                 Step 2 of 2
               </p>
-              <h2 className="text-lg font-bold text-white tracking-tight">Create Your Account</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Create Your Account</h2>
             </div>
             <div className="flex gap-1">
               <span className="h-1.5 w-3.5 rounded-full bg-teal-500 shadow-[0_0_8px_#14b8a6]" />
@@ -1125,7 +1125,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={credentials.email}
                   onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
                   placeholder="you@company.com"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
               <div className="space-y-2">
@@ -1136,7 +1136,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
                   value={credentials.password}
                   onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                   placeholder="Create a password"
-                  className="bg-black/20 border-white/10 text-white placeholder-slate-500"
+                  className="bg-slate-100/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
               </div>
             </div>
@@ -1148,7 +1148,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
               onClick={() => {
                 setPostSubmissionStep(0);
               }}
-              className="border-white/10 bg-white/5 hover:bg-white/10 text-white px-4 h-11 rounded-xl"
+              className="border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white px-4 h-11 rounded-xl"
             >
               <IconArrowLeft className="h-4 w-4 mr-2" /> Back
             </Button>
@@ -1198,7 +1198,7 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
       {/* --- Regular step navigation only when not in post-submission flow --- */}
       {postSubmissionStep === null && (
         <div className="mt-8 flex justify-between gap-4 relative z-10">
-          <Button variant="outline" onClick={back} disabled={step === 0} className="border-white/10 bg-white/5 hover:bg-white/10 text-white disabled:opacity-40 px-4 h-11 rounded-xl">
+          <Button variant="outline" onClick={back} disabled={step === 0} className="border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white disabled:opacity-40 px-4 h-11 rounded-xl">
             <IconArrowLeft className="h-4 w-4 mr-2" /> Back
           </Button>
           <Button onClick={next} disabled={submitting} className="bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white px-6 h-11 rounded-xl shadow-lg shadow-teal-600/30 transition-all">

@@ -128,12 +128,12 @@ export default function SettingsPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-dealflow-blue text-white relative py-12 px-4 z-10 flex flex-col justify-center">
+    <main className="min-h-screen bg-background text-foreground relative py-12 px-4 z-10 flex flex-col justify-center">
       <div className="mx-auto max-w-3xl w-full">
         {/* Back Link */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-teal-400 transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to GTM Cockpit
@@ -147,11 +147,11 @@ export default function SettingsPage() {
         >
           {/* Header */}
           <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl font-display flex items-center gap-3 bg-gradient-to-r from-teal-300 to-violet-300 bg-clip-text text-transparent">
-              <Settings className="text-teal-400 h-8 w-8" />
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl font-display flex items-center gap-3 bg-gradient-to-r from-teal-650 to-violet-600 dark:from-teal-300 dark:to-violet-300 bg-clip-text text-transparent">
+              <Settings className="text-teal-600 dark:text-teal-400 h-8 w-8" />
               Settings Configuration
             </h1>
-            <p className="text-slate-400 text-sm">
+            <p className="text-slate-600 dark:text-slate-400 text-sm">
               Configure GTM system integrations, define operational alerts, and secure access protocols.
             </p>
           </div>
@@ -163,7 +163,7 @@ export default function SettingsPage() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="p-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-emerald-300 flex items-center gap-3"
+                className="p-4 rounded-xl border border-emerald-300 dark:border-emerald-500/25 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-center gap-3"
               >
                 <CheckCircle className="h-5 w-5 shrink-0" />
                 <span className="text-sm font-semibold">Settings preferences updated and compiled persistently!</span>
@@ -172,7 +172,7 @@ export default function SettingsPage() {
           </AnimatePresence>
 
           {/* Interactive Navigation Tabs */}
-          <div className="flex flex-wrap gap-2 border-b border-white/10 pb-1">
+          <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-white/10 pb-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -185,8 +185,8 @@ export default function SettingsPage() {
                   }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-sm font-semibold transition-all relative ${
                     activeTab === tab.id
-                      ? "text-teal-400 bg-white/5 border border-white/10 border-b-transparent"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "text-teal-600 dark:text-teal-400 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 border-b-transparent"
+                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -194,7 +194,7 @@ export default function SettingsPage() {
                   {activeTab === tab.id && (
                     <motion.div
                       layoutId="settings-tab-underline"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-400"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600 dark:bg-teal-400"
                     />
                   )}
                 </button>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
           </div>
 
           <form onSubmit={handleSave} className="space-y-6">
-            <GlassPanel material="glass" className="border border-white/10 shadow-2xl rounded-3xl overflow-hidden p-8" tilt={false}>
+            <GlassPanel material="glass" className="border border-slate-200 dark:border-white/10 shadow-2xl rounded-3xl overflow-hidden p-8" tilt={false}>
               <AnimatePresence mode="wait">
                 {/* GENERAL TAB */}
                 {activeTab === "general" && (
@@ -216,37 +216,37 @@ export default function SettingsPage() {
                     className="space-y-6"
                   >
                     <div>
-                      <h3 className="text-lg font-bold text-white mb-1">General Workspace Prefs</h3>
-                      <p className="text-xs text-slate-400">Establish local workspace themes and localization.</p>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">General Workspace Prefs</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Establish local workspace themes and localization.</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {/* Theme Selection */}
                       <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Workspace Theme</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Workspace Theme</label>
                         <select
                           value={settings.theme}
                           onChange={(e) => setSettings({ ...settings, theme: e.target.value })}
-                          className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 transition-all cursor-pointer shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
+                          className="w-full bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 transition-all cursor-pointer shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
                         >
-                          <option value="dark">Deep Ocean Dark (Default)</option>
-                          <option value="cyberpunk">Cyberpunk Neon</option>
-                          <option value="light">Classic Light Workspace</option>
+                          <option className="bg-white dark:bg-[#0c0c20] text-slate-800 dark:text-white" value="dark">Deep Ocean Dark (Default)</option>
+                          <option className="bg-white dark:bg-[#0c0c20] text-slate-800 dark:text-white" value="cyberpunk">Cyberpunk Neon</option>
+                          <option className="bg-white dark:bg-[#0c0c20] text-slate-800 dark:text-white" value="light">Classic Light Workspace</option>
                         </select>
                       </div>
 
                       {/* Timezone */}
                       <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-400">System Timezone</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">System Timezone</label>
                         <select
                           value={settings.timezone}
                           onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
-                          className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 transition-all cursor-pointer shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
+                          className="w-full bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-400/50 transition-all cursor-pointer shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
                         >
-                          <option value="UTC">UTC / Coordinated Universal Time</option>
-                          <option value="America/New_York">EST (America / New York)</option>
-                          <option value="Europe/London">GMT/BST (Europe / London)</option>
-                          <option value="Asia/Kolkata">IST (Asia / Kolkata)</option>
+                          <option className="bg-white dark:bg-[#0c0c20] text-slate-800 dark:text-white" value="UTC">UTC / Coordinated Universal Time</option>
+                          <option className="bg-white dark:bg-[#0c0c20] text-slate-800 dark:text-white" value="America/New_York">EST (America / New York)</option>
+                          <option className="bg-white dark:bg-[#0c0c20] text-slate-800 dark:text-white" value="Europe/London">GMT/BST (Europe / London)</option>
+                          <option className="bg-white dark:bg-[#0c0c20] text-slate-800 dark:text-white" value="Asia/Kolkata">IST (Asia / Kolkata)</option>
                         </select>
                       </div>
                     </div>
@@ -264,32 +264,32 @@ export default function SettingsPage() {
                     className="space-y-8"
                   >
                     <div>
-                      <h3 className="text-lg font-bold text-white mb-1">Integrations &amp; CRM Sync</h3>
-                      <p className="text-xs text-slate-400">Connect CRM suites and operational platforms to establish continuous pipeline loading.</p>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Integrations &amp; CRM Sync</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Connect CRM suites and operational platforms to establish continuous pipeline loading.</p>
                     </div>
 
                     <div className="space-y-6">
                       {/* Salesforce */}
-                      <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4">
+                      <div className="p-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-400">
+                            <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-600 dark:text-blue-400">
                               <Database className="h-5 w-5" />
                             </div>
                             <div>
-                              <h4 className="text-sm font-bold text-white">Salesforce CRM Integration</h4>
-                              <p className="text-[11px] text-slate-400">Synchronize client accounts and pipeline opportunities automatically.</p>
+                              <h4 className="text-sm font-bold text-slate-900 dark:text-white">Salesforce CRM Integration</h4>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">Synchronize client accounts and pipeline opportunities automatically.</p>
                             </div>
                           </div>
                           <button
                             type="button"
                             onClick={() => setSettings({ ...settings, salesforceActive: !settings.salesforceActive })}
-                            className="focus:outline-none transition-transform active:scale-95 text-teal-400"
+                            className="focus:outline-none transition-transform active:scale-95 text-teal-600 dark:text-teal-400"
                           >
                             {settings.salesforceActive ? (
-                              <ToggleRight className="h-10 w-10 text-teal-400" />
+                              <ToggleRight className="h-10 w-10 text-teal-500 dark:text-teal-400" />
                             ) : (
-                              <ToggleLeft className="h-10 w-10 text-slate-500" />
+                              <ToggleLeft className="h-10 w-10 text-slate-400 dark:text-slate-500" />
                             )}
                           </button>
                         </div>
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                             animate={{ opacity: 1, height: "auto" }}
                             className="pt-2 space-y-2"
                           >
-                            <label className="text-[11px] font-semibold text-slate-300">Salesforce API Access Token</label>
+                            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Salesforce API Access Token</label>
                             <SunkenInput
                               type="password"
                               value={settings.salesforceToken}
@@ -313,32 +313,32 @@ export default function SettingsPage() {
                               )}
                               placeholder="Enter Salesforce consumer API token"
                             />
-                            {errors.salesforceToken && <p className="text-[10px] text-red-400">{errors.salesforceToken}</p>}
+                            {errors.salesforceToken && <p className="text-[10px] text-red-500 dark:text-red-400">{errors.salesforceToken}</p>}
                           </motion.div>
                         )}
                       </div>
 
                       {/* HubSpot */}
-                      <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4">
+                      <div className="p-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-orange-500/10 border border-orange-500/25 text-orange-400">
+                            <div className="p-2 rounded-xl bg-orange-500/10 border border-orange-500/25 text-orange-600 dark:text-orange-400">
                               <Database className="h-5 w-5" />
                             </div>
                             <div>
-                              <h4 className="text-sm font-bold text-white">HubSpot CRM Integration</h4>
-                              <p className="text-[11px] text-slate-400">Sync contacts, deals, and engagement history logs.</p>
+                              <h4 className="text-sm font-bold text-slate-900 dark:text-white">HubSpot CRM Integration</h4>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">Sync contacts, deals, and engagement history logs.</p>
                             </div>
                           </div>
                           <button
                             type="button"
                             onClick={() => setSettings({ ...settings, hubspotActive: !settings.hubspotActive })}
-                            className="focus:outline-none transition-transform active:scale-95 text-teal-400"
+                            className="focus:outline-none transition-transform active:scale-95 text-teal-600 dark:text-teal-400"
                           >
                             {settings.hubspotActive ? (
-                              <ToggleRight className="h-10 w-10 text-teal-400" />
+                              <ToggleRight className="h-10 w-10 text-teal-500 dark:text-teal-400" />
                             ) : (
-                              <ToggleLeft className="h-10 w-10 text-slate-500" />
+                              <ToggleLeft className="h-10 w-10 text-slate-400 dark:text-slate-500" />
                             )}
                           </button>
                         </div>
@@ -349,7 +349,7 @@ export default function SettingsPage() {
                             animate={{ opacity: 1, height: "auto" }}
                             className="pt-2 space-y-2"
                           >
-                            <label className="text-[11px] font-semibold text-slate-300">HubSpot API Access Key</label>
+                            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">HubSpot API Access Key</label>
                             <SunkenInput
                               type="password"
                               value={settings.hubspotToken}
@@ -362,32 +362,32 @@ export default function SettingsPage() {
                               )}
                               placeholder="Enter HubSpot private app key"
                             />
-                            {errors.hubspotToken && <p className="text-[10px] text-red-400">{errors.hubspotToken}</p>}
+                            {errors.hubspotToken && <p className="text-[10px] text-red-500 dark:text-red-400">{errors.hubspotToken}</p>}
                           </motion.div>
                         )}
                       </div>
 
                       {/* Clay */}
-                      <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4">
+                      <div className="p-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-violet-500/10 border border-violet-500/25 text-violet-400">
+                            <div className="p-2 rounded-xl bg-violet-500/10 border border-violet-500/25 text-violet-600 dark:text-violet-400">
                               <Database className="h-5 w-5" />
                             </div>
                             <div>
-                              <h4 className="text-sm font-bold text-white">Clay Enrichment Sync</h4>
-                              <p className="text-[11px] text-slate-400">Enrich scheduled leads with company size, funding, and tech stack details.</p>
+                              <h4 className="text-sm font-bold text-slate-900 dark:text-white">Clay Enrichment Sync</h4>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">Enrich scheduled leads with company size, funding, and tech stack details.</p>
                             </div>
                           </div>
                           <button
                             type="button"
                             onClick={() => setSettings({ ...settings, clayActive: !settings.clayActive })}
-                            className="focus:outline-none transition-transform active:scale-95 text-teal-400"
+                            className="focus:outline-none transition-transform active:scale-95 text-teal-600 dark:text-teal-400"
                           >
                             {settings.clayActive ? (
-                              <ToggleRight className="h-10 w-10 text-teal-400" />
+                              <ToggleRight className="h-10 w-10 text-teal-500 dark:text-teal-400" />
                             ) : (
-                              <ToggleLeft className="h-10 w-10 text-slate-500" />
+                              <ToggleLeft className="h-10 w-10 text-slate-400 dark:text-slate-500" />
                             )}
                           </button>
                         </div>
@@ -398,7 +398,7 @@ export default function SettingsPage() {
                             animate={{ opacity: 1, height: "auto" }}
                             className="pt-2 space-y-2"
                           >
-                            <label className="text-[11px] font-semibold text-slate-300">Clay API Enrichment Token</label>
+                            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Clay API Enrichment Token</label>
                             <SunkenInput
                               type="password"
                               value={settings.clayToken}
@@ -411,32 +411,32 @@ export default function SettingsPage() {
                               )}
                               placeholder="Enter Clay credential token"
                             />
-                            {errors.clayToken && <p className="text-[10px] text-red-400">{errors.clayToken}</p>}
+                            {errors.clayToken && <p className="text-[10px] text-red-500 dark:text-red-400">{errors.clayToken}</p>}
                           </motion.div>
                         )}
                       </div>
 
                       {/* Twilio */}
-                      <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4">
+                      <div className="p-4 rounded-2xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/25 text-red-400">
+                            <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/25 text-red-600 dark:text-red-400">
                               <Database className="h-5 w-5" />
                             </div>
                             <div>
-                              <h4 className="text-sm font-bold text-white">Twilio Outbound Voice/SMS</h4>
-                              <p className="text-[11px] text-slate-400">Trigger outbound scheduling confirmation texts and voice reminders.</p>
+                              <h4 className="text-sm font-bold text-slate-900 dark:text-white">Twilio Outbound Voice/SMS</h4>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">Trigger outbound scheduling confirmation texts and voice reminders.</p>
                             </div>
                           </div>
                           <button
                             type="button"
                             onClick={() => setSettings({ ...settings, twilioActive: !settings.twilioActive })}
-                            className="focus:outline-none transition-transform active:scale-95 text-teal-400"
+                            className="focus:outline-none transition-transform active:scale-95 text-teal-600 dark:text-teal-400"
                           >
                             {settings.twilioActive ? (
-                              <ToggleRight className="h-10 w-10 text-teal-400" />
+                              <ToggleRight className="h-10 w-10 text-teal-500 dark:text-teal-400" />
                             ) : (
-                              <ToggleLeft className="h-10 w-10 text-slate-500" />
+                              <ToggleLeft className="h-10 w-10 text-slate-400 dark:text-slate-500" />
                             )}
                           </button>
                         </div>
@@ -447,7 +447,7 @@ export default function SettingsPage() {
                             animate={{ opacity: 1, height: "auto" }}
                             className="pt-2 space-y-2"
                           >
-                            <label className="text-[11px] font-semibold text-slate-300">Twilio Auth Token</label>
+                            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Twilio Auth Token</label>
                             <SunkenInput
                               type="password"
                               value={settings.twilioToken}
@@ -460,7 +460,7 @@ export default function SettingsPage() {
                               )}
                               placeholder="Enter Twilio production auth token"
                             />
-                            {errors.twilioToken && <p className="text-[10px] text-red-400">{errors.twilioToken}</p>}
+                            {errors.twilioToken && <p className="text-[10px] text-red-500 dark:text-red-400">{errors.twilioToken}</p>}
                           </motion.div>
                         )}
                       </div>

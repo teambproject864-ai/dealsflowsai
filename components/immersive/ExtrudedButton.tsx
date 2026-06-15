@@ -18,8 +18,9 @@ const extrudedVariants = cva(
         default:
           "immersive-btn-extrude bg-gradient-to-b from-teal-500 to-teal-700 text-white border border-teal-400/30",
         outline:
-          "immersive-btn-extrude-outline bg-white/5 text-teal-200 border border-teal-500/40",
-        ghost: "immersive-btn-flat text-slate-300 hover:text-white hover:bg-white/5",
+          "immersive-btn-extrude-outline bg-teal-50/50 dark:bg-white/5 text-teal-700 dark:text-teal-200 border border-teal-400/50 dark:border-teal-500/40 hover:bg-teal-100/50 dark:hover:bg-white/10",
+        ghost:
+          "immersive-btn-flat text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-white/5",
         destructive:
           "immersive-btn-extrude bg-red-600/90 text-white border border-red-400/30",
       },

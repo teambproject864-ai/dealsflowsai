@@ -190,11 +190,11 @@ html {
 
 /* ─── Background patterns ───────────────────────── */
 .cosmic-bg {
-  background-color: #060612;
+  background-color: hsl(var(--background));
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(108, 59, 255, 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(0, 212, 255, 0.08) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(8, 8, 24, 1) 0%, #060612 100%);
+    radial-gradient(circle at 10% 20%, rgba(108, 59, 255, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(0, 212, 255, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(8, 8, 24, 0.05) 0%, hsl(var(--background)) 100%);
 }
 
 .grid-pattern {
@@ -202,6 +202,12 @@ html {
     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), 
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 80px 80px;
+}
+
+.light .grid-pattern {
+  background-image: 
+    linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px), 
+    linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
 }
 
 .aurora-mesh {
@@ -229,6 +235,15 @@ html {
   transition: backdrop-filter 0.3s, background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 
+.light .df-glass, .light .immersive-glass-neuro {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 
+    0 2px 4px rgba(15, 23, 42, 0.02),
+    0 12px 24px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
 /* Layer 2: Refraction overlay simulating light bending */
 .df-glass::after, .immersive-glass-neuro::after {
   content: "";
@@ -237,6 +252,10 @@ html {
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.08) 100%);
   pointer-events: none;
   z-index: 1;
+}
+
+.light .df-glass::after, .light .immersive-glass-neuro::after {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0%, rgba(15, 23, 42, 0.01) 100%);
 }
 
 /* Layer 3: Iridescent Edge Shimmer */
@@ -262,6 +281,17 @@ html {
   animation: shimmerRotate 6s linear infinite;
   opacity: 0.8;
   transition: opacity 0.3s;
+}
+
+.light .df-glass::before, .light .immersive-glass-neuro::before {
+  background: linear-gradient(
+    135deg, 
+    rgba(124, 58, 237, 0.15) 0%, 
+    rgba(6, 182, 212, 0.15) 33%,
+    rgba(245, 158, 11, 0.15) 66%,
+    rgba(225, 29, 72, 0.15) 100%
+  );
+  opacity: 0.6;
 }
 
 @keyframes shimmerRotate {
@@ -295,6 +325,15 @@ html {
     0 16px 16px rgba(0, 0, 0, 0.25),
     0 50px 50px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.light .df-glass:hover, .light .immersive-glass-neuro:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(15, 23, 42, 0.15);
+  box-shadow: 
+    0 4px 8px rgba(15, 23, 42, 0.04),
+    0 16px 32px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .df-glass:hover .df-specular, .immersive-glass-neuro:hover .df-specular {
