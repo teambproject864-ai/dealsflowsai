@@ -349,21 +349,21 @@ function BookDemoContent() {
                 </p>
               </div>
               <Select value={meetingType} onValueChange={(v: any) => setMeetingType(v)}>
-                    <SelectTrigger className="w-full md:w-[260px] bg-slate-950 border-white/10 text-white h-12 px-5 rounded-xl transition-all focus:border-teal-500/40" aria-label="Select scheduling platform">
-                      <SelectValue placeholder="Select tool" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0A0F1E] border-white/10 text-white rounded-xl shadow-2xl backdrop-blur-xl">
-                      <SelectItem value="cal" className="cursor-pointer hover:bg-white/5 text-sm py-3" aria-label="Cal.com scheduling">
-                        Cal.com (Default)
-                      </SelectItem>
-                      <SelectItem value="calendly" className="cursor-pointer hover:bg-white/5 text-sm py-3" aria-label="Calendly scheduling">
-                        Calendly
-                      </SelectItem>
-                      <SelectItem value="other" className="cursor-pointer hover:bg-white/5 text-sm py-3" aria-label="Other manual link">
-                        Other / Manual Link
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                <SelectTrigger className="w-full md:w-[260px] bg-slate-950 border-white/10 text-white h-12 px-5 rounded-xl transition-all focus:border-teal-500/40" aria-label="Select scheduling platform">
+                  <SelectValue placeholder="Select tool" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0a0a1f] border-white/10 text-white rounded-xl shadow-2xl backdrop-blur-xl">
+                  <SelectItem value="cal" className="cursor-pointer hover:bg-white/5 text-sm py-3">
+                    Cal.com (Default)
+                  </SelectItem>
+                  <SelectItem value="calendly" className="cursor-pointer hover:bg-white/5 text-sm py-3">
+                    Calendly
+                  </SelectItem>
+                  <SelectItem value="other" className="cursor-pointer hover:bg-white/5 text-sm py-3">
+                    Other / Manual Link
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </GlassPanel>
 
             {meetingType === "other" ? (
@@ -527,21 +527,21 @@ function BookDemoContent() {
               </p>
             </div>
             <Select value={meetingType} onValueChange={(v: any) => setMeetingType(v)}>
-                    <SelectTrigger className="w-full md:w-[260px] bg-slate-950 border-white/10 text-white h-12 px-5 rounded-xl transition-all focus:border-teal-500/40" aria-label="Select scheduling platform">
-                      <SelectValue placeholder="Select tool" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0A0F1E] border-white/10 text-white rounded-xl shadow-2xl backdrop-blur-xl">
-                      <SelectItem value="cal" className="cursor-pointer hover:bg-white/5 text-sm py-3" aria-label="Cal.com scheduling">
-                        Cal.com (Default)
-                      </SelectItem>
-                      <SelectItem value="calendly" className="cursor-pointer hover:bg-white/5 text-sm py-3" aria-label="Calendly scheduling">
-                        Calendly
-                      </SelectItem>
-                      <SelectItem value="other" className="cursor-pointer hover:bg-white/5 text-sm py-3" aria-label="Other manual link">
-                        Other / Manual Link
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+              <SelectTrigger className="w-full md:w-[260px] bg-slate-950 border-white/10 text-white h-12 px-5 rounded-xl transition-all focus:border-teal-500/40" aria-label="Select scheduling platform">
+                <SelectValue placeholder="Select tool" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0a0a1f] border-white/10 text-white rounded-xl shadow-2xl backdrop-blur-xl">
+                <SelectItem value="cal" className="cursor-pointer hover:bg-white/5 text-sm py-3">
+                  Cal.com (Default)
+                </SelectItem>
+                <SelectItem value="calendly" className="cursor-pointer hover:bg-white/5 text-sm py-3">
+                  Calendly
+                </SelectItem>
+                <SelectItem value="other" className="cursor-pointer hover:bg-white/5 text-sm py-3">
+                  Other / Manual Link
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </GlassPanel>
 
           {meetingType === "other" ? (
