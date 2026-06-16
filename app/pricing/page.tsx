@@ -34,7 +34,7 @@ const tiers: PricingTier[] = [
       { text: "ALMA adaptive learning models", included: false },
     ],
     cta: "Get Started",
-    color: "border-slate-200 dark:border-white/8 hover:border-slate-350 dark:hover:border-white/15 bg-slate-50/50 dark:bg-white/3",
+    color: "border-slate-200 dark:border-white/15 hover:border-slate-300 dark:hover:border-white/20 bg-slate-50 dark:bg-slate-900",
     glow: "shadow-slate-200/50 dark:shadow-white/5"
   },
   {
@@ -53,7 +53,7 @@ const tiers: PricingTier[] = [
     ],
     cta: "Start 14-Day Free Trial",
     popular: true,
-    color: "border-teal-300 dark:border-teal-500/30 bg-teal-50/50 dark:bg-teal-950/5 hover:border-teal-500",
+    color: "border-teal-300 dark:border-teal-500/30 bg-teal-50 dark:bg-slate-900 hover:border-teal-500",
     glow: "shadow-teal-500/10 dark:shadow-teal-500/5"
   },
   {
@@ -71,7 +71,7 @@ const tiers: PricingTier[] = [
       { text: "Custom system fine-tuning (ALMA)", included: true },
     ],
     cta: "Contact Sales",
-    color: "border-violet-300 dark:border-violet-500/30 bg-violet-50/50 dark:bg-violet-950/5 hover:border-violet-500",
+    color: "border-violet-300 dark:border-violet-500/30 bg-violet-50 dark:bg-slate-900 hover:border-violet-500",
     glow: "shadow-violet-500/10 dark:shadow-violet-500/5"
   }
 ];
@@ -189,7 +189,7 @@ export default function PricingPage() {
 
           {/* Monthly/Annual Toggle Switch */}
           <div className="pt-6">
-            <div className="inline-flex items-center bg-slate-100 dark:bg-white/3 rounded-xl p-1 border border-slate-200 dark:border-white/8 backdrop-blur-md">
+            <div className="inline-flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 border border-slate-200 dark:border-white/15">
               <button
                 onClick={() => setIsAnnual(false)}
                 className={`px-6 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${
@@ -356,7 +356,7 @@ export default function PricingPage() {
       </section>
 
       {/* Trust Badges Bar */}
-      <section className="py-12 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-[#070715]/40">
+      <section className="py-12 border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-around gap-8 text-center text-slate-550 dark:text-slate-500 font-semibold uppercase tracking-widest text-[10px]">
           <div className="flex items-center gap-2.5">
             <Shield className="h-5 w-5 text-teal-600/70 dark:text-teal-500/50" />
