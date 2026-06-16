@@ -239,8 +239,8 @@ const HolographicGTM = React.memo(function HolographicGTM() {
               onClick={() => setActiveSection(i)}
               className={`group/btn relative flex items-start gap-3 p-3.5 rounded-2xl border transition-all duration-300 text-left ${
                 activeSection === i
-                  ? "border-violet-500/40 bg-violet-500/10"
-                  : "border-slate-200/80 dark:border-white/8 bg-slate-50 dark:bg-white/3 hover:border-violet-500/15 hover:bg-slate-100 dark:hover:bg-white/5"
+                  ? "border-violet-500/40 bg-slate-50 dark:bg-slate-900"
+                  : "border-slate-200/80 dark:border-white/15 bg-slate-50 dark:bg-slate-900 hover:border-violet-500/15 hover:bg-slate-100 dark:hover:bg-slate-800"
               }`}
               style={{
                 boxShadow: activeSection === i ? `0 0 15px ${activeGlow}` : undefined,
