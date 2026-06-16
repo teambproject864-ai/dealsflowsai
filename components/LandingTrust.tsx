@@ -48,7 +48,7 @@ export function LandingTrust() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.06 }}
-                  className="rounded-xl border border-white/10 bg-white/[0.03] p-4"
+                  className="rounded-xl border border-white/15 bg-slate-900 p-4"
                 >
                   <p className="text-2xl font-bold tabular-nums text-white">{s.value}</p>
                   <p className="text-sm text-muted-foreground">{s.label}</p>
@@ -73,14 +73,14 @@ export function LandingTrust() {
               {logos.map((name) => (
                 <span
                   key={name}
-                  className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-muted-foreground"
+                  className="rounded-lg border border-white/15 bg-slate-900 px-3 py-2 text-xs font-medium text-muted-foreground"
                 >
                   {name}
                 </span>
               ))}
             </div>
             {testimonials.map((t) => (
-              <blockquote key={t.name} className="rounded-xl border border-teal-500/25 bg-teal-950/25 p-5">
+              <blockquote key={t.name} className="rounded-xl border border-teal-500/30 bg-slate-900 p-5">
                 <p className="text-sm leading-relaxed text-foreground/90">“{t.quote}”</p>
                 <footer className="mt-3 text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">{t.name}</span> — {t.role}
