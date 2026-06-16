@@ -251,6 +251,14 @@ export function BookingWidget({
   // Form and Step States
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [bookingMode, setBookingMode] = useState<"ai" | "live" | null>(null);
+  
+  // When forcedMeetingType changes, update step and booking mode
+  useEffect(() => {
+    if (forcedMeetingType) {
+      setBookingMode("live");
+      setStep(2);
+    }
+  }, [forcedMeetingType]);
   const [showAgentPicker, setShowAgentPicker] = useState(false);
   const [agents, setAgents] = useState<RevenueAgentProfile[]>([]);
   const [selectedAgentKeys, setSelectedAgentKeys] = useState<string[]>([]);
@@ -1265,6 +1273,22 @@ export function BookingWidget({
                         height: "100%",
                         width: "100%"
                       }}
+                    />
+                  </div>
+                </div>
+              ) : forcedMeetingType === "cal" ? (
+                <div className="rounded-2xl border border-white/10 bg-[#0A0F1E]/50 overflow-hidden min-h-[660px] relative shadow-inner">
+                  {/* Accessibility support announcement */}
+                  <span className="sr-only">Cal.com Scheduling Widget. Use keyboard tab to navigate scheduling calendar below.</span>
+                  
+                  <div style={{ height: "650px", width: "100%" }}>
+                    <iframe
+                      src={`${process.env.NEXT_PUBLIC_CAL_URL || "https://cal.com/praneethburada/30min"}?name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}`}
+                      frameBorder="0"
+                      height="100%"
+                      width="100%"
+                      title="Cal.com Scheduling"
+                      className="border-0"
                     />
                   </div>
                 </div>
