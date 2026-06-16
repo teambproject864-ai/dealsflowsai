@@ -5,22 +5,22 @@
 @layer base {
   :root {
     --background: 220 50% 4%;
-    --foreground: 210 35% 97%;
+    --foreground: 0 0% 98%; /* Increased lightness for max contrast */
     --card: 220 42% 7%;
-    --card-foreground: 210 35% 97%;
+    --card-foreground: 0 0% 98%;
     --popover: 220 42% 7%;
-    --popover-foreground: 210 35% 97%;
+    --popover-foreground: 0 0% 98%;
     --primary: 262 88% 62%;
-    --primary-foreground: 210 35% 97%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 217 32% 12%;
-    --secondary-foreground: 210 35% 97%;
+    --secondary-foreground: 0 0% 98%;
     --muted: 217 26% 10%;
-    --muted-foreground: 215 20% 70%;
+    --muted-foreground: 215 30% 85%; /* Increased lightness from 70% to 85% for better contrast */
     --accent: 174 86% 45%;
     --accent-foreground: 220 50% 4%;
     --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 26% 15%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 26% 20%; /* Darker border for better visibility */
     --input: 217 26% 15%;
     --ring: 262 88% 62%;
     --radius: 0.75rem;
@@ -472,11 +472,11 @@ html {
   background: rgba(6, 6, 18, 0.8);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(20, 184, 166, 0.25);
+  background: rgba(20, 184, 166, 0.5); /* Increased opacity for better contrast */
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(20, 184, 166, 0.45);
+  background: rgba(20, 184, 166, 0.7); /* Even more visible on hover */
 }
 
 /* ─── Table utilities ───────────────────────────── */
