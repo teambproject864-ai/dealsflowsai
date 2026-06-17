@@ -166,7 +166,17 @@ export default function LoginForm({ role, allowRegistration = false }: LoginForm
           </div>
         </div>
 
-
+        {isLogin && (
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => router.push("/auth/forgot-password")}
+              className="text-xs text-teal-400 hover:text-teal-300 font-semibold transition-colors"
+            >
+              Forgot Password?
+            </button>
+          </div>
+        )}
 
         <ExtrudedButton
           type="submit"
