@@ -12,15 +12,20 @@ test.describe('Admin Portal - Authentication & Navigation', () => {
     
     const expectedTabs = [
       'Dashboard',
+      'LLM Manager',
+      'Bot Monitor',
+      'Tasks',
+      'Customers',
+      'Resignations',
+      'Documents',
+      'Requirements',
       'GTM Reports',
       'Agents',
-      'Requirements',
-      'Tickets',
-      'Settings',
+      'Interactions',
     ];
     
     for (const tabName of expectedTabs) {
-      await expect(authenticatedAdmin.getByRole('link', { name: tabName, exact: false })).toBeVisible();
+      await expect(authenticatedAdmin.getByRole('button', { name: tabName, exact: true })).toBeVisible();
     }
   });
 });
