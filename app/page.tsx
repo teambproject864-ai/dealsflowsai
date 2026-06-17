@@ -232,7 +232,7 @@ const HolographicGTM = React.memo(function HolographicGTM() {
         </div>
 
         {/* Action Controls/Tabs Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {sections.map((section, i) => (
             <button
               key={i}
@@ -548,7 +548,7 @@ export default function HomePage() {
               >
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
                   <Link
-                    href="/#how-it-works"
+                    href="/analysis/new"
                     onClick={() => trackEvent("cta_start_analysis", { surface: "hero_v3", abVariant })}
                     className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold text-base transition-all duration-300 shadow-lg shadow-violet-500/25 hover:-translate-y-0.5"
                   >
@@ -1193,7 +1193,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
               <Link
-                href="/#how-it-works"
+                href="/analysis/new"
                 onClick={() => trackEvent("cta_start_analysis", { surface: "bottom_cta_v3", abVariant })}
                 className="group inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-teal-600 via-cyan-500 to-teal-500 hover:from-teal-500 hover:via-cyan-400 hover:to-teal-400 text-white font-bold text-base transition-all duration-300 shadow-xl shadow-teal-500/20 hover:-translate-y-0.5"
               >

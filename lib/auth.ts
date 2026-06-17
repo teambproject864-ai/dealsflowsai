@@ -16,7 +16,7 @@ function getJwtSecret(): string {
   }
   return secret;
 }
-const JWT_EXPIRES_IN = "1h"; // Short-lived as requested
+const JWT_EXPIRES_IN = "8h"; // 8-hour sessions — auto-refreshed on activity
 const AUTH_COOKIE_NAME = "df_auth_token";
 const SALT_ROUNDS = 12;
 
@@ -176,6 +176,22 @@ export function verifyToken(token: string): JwtPayload | null {
   }
 }
 
+/**
+ * Refreshes a valid token — reissues a fresh JWT if the current one is still valid.
+ * Returns null if the token is expired or invalid.
+ */
+export function refreshToken(existingToken: string): string | null {
+  const payload = verifyToken(existingToken);
+  if (!payload) return null;
+  const user: AuthUser = {
+    id: payload.userId,
+    email: payload.email,
+    role: payload.role,
+    name: payload.name,
+  };
+  return createToken(user);
+}
+
 // --- Cookie Management ---
 export async function setAuthCookie(token: string) {
   const cookieStore = await cookies();
@@ -184,7 +200,7 @@ export async function setAuthCookie(token: string) {
     secure: process.env.NODE_ENV === "production", // Only HTTPS in production
     sameSite: "lax", // Prevent CSRF
     path: "/",
-    maxAge: 60 * 60, // 1 hour (matches JWT expiry)
+    maxAge: 60 * 60 * 8, // 8 hours (matches JWT expiry)
   });
 }
 

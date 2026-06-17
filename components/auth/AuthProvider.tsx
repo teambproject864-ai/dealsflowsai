@@ -20,26 +20,27 @@ export default function AuthProvider({
   const pathname = usePathname();
 
   useEffect(() => {
+    const currentPath = pathname || "";
     const checkAuth = async () => {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
         const data = await res.json();
         if (data.success && allowedRoles.includes(data.user.role)) {
           setIsAuthenticated(true);
         } else {
           // Determine which login page to redirect to based on pathname
           let role: UserRole = "agent";
-          if (pathname.includes("/admin")) role = "admin";
-          else if (pathname.includes("/customer")) role = "customer";
+          if (currentPath.includes("/admin")) role = "admin";
+          else if (currentPath.includes("/customer")) role = "customer";
           
-          router.push(`/portal/${role}/login?redirect=${encodeURIComponent(pathname)}`);
+          router.push(`/portal/${role}/login?redirect=${encodeURIComponent(currentPath)}`);
         }
       } catch (e) {
         let role: UserRole = "agent";
-        if (pathname.includes("/admin")) role = "admin";
-        else if (pathname.includes("/customer")) role = "customer";
+        if (currentPath.includes("/admin")) role = "admin";
+        else if (currentPath.includes("/customer")) role = "customer";
         
-        router.push(`/portal/${role}/login?redirect=${encodeURIComponent(pathname)}`);
+        router.push(`/portal/${role}/login?redirect=${encodeURIComponent(currentPath)}`);
       } finally {
         setIsLoading(false);
       }

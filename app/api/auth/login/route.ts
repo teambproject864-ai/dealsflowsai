@@ -51,12 +51,20 @@ export async function POST(req: NextRequest) {
 
     if (role === "admin") {
       if (email === DEMO_ADMIN.email) {
-        const adminHash = process.env.ADMIN_PASSWORD_HASH || "$2b$12$uk3Jhz4U/imu0ltb85adU.djZHTwzPvDh36hemik5qYWSHgKlKJPq";
+        const adminHash = process.env.ADMIN_PASSWORD_HASH;
+        if (!adminHash) {
+          // ADMIN_PASSWORD_HASH env var must be set — no fallback to prevent hash exposure in source
+          addAuditLog(email, role, false, "Admin login failed: ADMIN_PASSWORD_HASH not configured", ip, userAgent);
+          return NextResponse.json(
+            { success: false, error: "Admin authentication not configured. Set ADMIN_PASSWORD_HASH." },
+            { status: 503 }
+          );
+        }
         const isValidPassword = await verifyPassword(password, adminHash);
-        
+
         if (isValidPassword) {
-          // 2FA has been permanently disabled for admin account as per security policy
-          addAuditLog(email, role, true, "Admin logged in with 2FA disabled", ip, userAgent);
+          // Note: TOTP-based 2FA is disabled per security policy decision recorded in audit log
+          addAuditLog(email, role, true, "Admin login successful (2FA disabled by policy)", ip, userAgent);
           user = { ...DEMO_ADMIN, role: "admin" as const };
         }
       }

@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     siteName: "DealFlow AI",
     images: [
       {
-        url: "https://dealflow.ai/images/dealflow-preview.png",
+        url: "/opengraph-image.png",
         width: 1200,
         height: 630,
         alt: "DealFlow AI GTM & Revenue Operations Platform",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "DEALFLOW AI — GTM & Revenue Operations",
     description: "AI agents for revenue teams. Pipeline intelligence, persistent memory, and autonomous outreach — from ICP to closed deal.",
-    images: ["https://dealflow.ai/images/dealflow-preview.png"],
+    images: ["/opengraph-image.png"],
   }
 };
 

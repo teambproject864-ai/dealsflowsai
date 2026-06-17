@@ -53,8 +53,9 @@ import {
   limit,
   onSnapshot,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase-client";
+import { db, getDb } from "@/lib/firebase-client";
 import { type AgentSession, type AgentAssignmentNotification, getRevenueAgentCatalog, AGENT_FULL_NAMES } from "@/lib/types";
+import { type AuditLogEntry } from "@/lib/portal-types";
 
 const tabs = [
   { id: "dashboard", label: "Dashboard", icon: Activity },
@@ -188,7 +189,7 @@ function AdminPortalContent() {
     }
   };
   
-  const addAuditLog = (actionType: string, actionDetails: string, targetId?: string, targetType?: string) => {
+  const addAuditLog = (actionType: AuditLogEntry["actionType"], actionDetails: string, targetId?: string, targetType?: string) => {
     const newLog = {
       id: `audit-${Date.now()}`,
       actionType,
@@ -333,7 +334,7 @@ function AdminPortalContent() {
 
   // Load real-time agent notifications from Firebase (only if configured)
   useEffect(() => {
-    const firestore = require("@/lib/firebase-client").getDb();
+    const firestore = getDb();
     if (!firestore) {
       console.log("[Admin Portal] Firebase not configured, skipping real-time updates");
       return;
@@ -1579,7 +1580,8 @@ function AdminPortalContent() {
             ))}
           </div>
         </div>
-        )}
+      </div>
+      )}
 
         {/* Bot Monitor Tab */}
         {activeTab === "bot-monitor" && (

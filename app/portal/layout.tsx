@@ -17,9 +17,34 @@ export default function PortalLayout({
   const { user: currentUser, isLoading } = useCurrentUser();
   const [checkingAccess, setCheckingAccess] = useState(true);
 
+  // Auth guard: redirect unauthenticated users to the correct login page
   useEffect(() => {
+    if (isLoading) return; // Wait until user state is resolved
+
+    const currentPath = pathname || "";
+
+    // Determine if the current path is a login/public page
+    const isLoginPage =
+      currentPath === "/portal" ||
+      currentPath === "/portal/admin/login" ||
+      currentPath === "/portal/customer/login" ||
+      currentPath === "/portal/agent/login";
+
+    if (!currentUser && !isLoginPage) {
+      // Redirect to the appropriate login based on path
+      if (currentPath.startsWith("/portal/admin")) {
+        router.push("/portal/admin/login");
+      } else if (currentPath.startsWith("/portal/customer")) {
+        router.push("/portal/customer/login");
+      } else if (currentPath.startsWith("/portal/agent")) {
+        router.push("/portal/agent/login");
+      } else {
+        router.push("/portal");
+      }
+    }
+
     setCheckingAccess(false);
-  }, []);
+  }, [currentUser, isLoading, pathname, router]);
 
   if (checkingAccess || isLoading) {
     return (
@@ -52,7 +77,7 @@ export default function PortalLayout({
                 prefetch={false}
                 className={cn(
                   "immersive-nav-icon-extrude rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                  pathname.startsWith(link.match)
+                  pathname?.startsWith(link.match)
                     ? "text-teal-300 bg-teal-500/15"
                     : "text-slate-400 hover:text-teal-200"
                 )}
@@ -73,7 +98,7 @@ export default function PortalLayout({
               size="sm"
               onClick={async () => {
                 await fetch("/api/auth/logout", { method: "POST" });
-                router.push("/");
+                window.location.href = "/";
               }}
             >
               Logout

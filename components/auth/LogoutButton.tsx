@@ -13,8 +13,7 @@ export default function LogoutButton() {
     setIsLoggingOut(true);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      router.push("/");
-      router.refresh();
+      window.location.href = "/";
     } catch (e) {
       console.error("Logout failed:", e);
     } finally {

@@ -2,6 +2,12 @@
 const nextConfig = {
   // Streaming chat + intro effect behave more predictably without double-invoke in dev.
   reactStrictMode: false,
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.cache = false;
+    }
+    return config;
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -9,6 +15,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   async redirects() {
+
     return [
       {
         source: '/exit',
