@@ -16,6 +16,7 @@ export default function PortalLayout({
   const pathname = usePathname();
   const { user: currentUser, isLoading } = useCurrentUser();
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Auth guard: redirect unauthenticated users to the correct login page
   useEffect(() => {
@@ -41,9 +42,9 @@ export default function PortalLayout({
       } else {
         router.push("/portal");
       }
+    } else {
+      setCheckingAccess(false);
     }
-
-    setCheckingAccess(false);
   }, [currentUser, isLoading, pathname, router]);
 
   if (checkingAccess || isLoading) {
@@ -96,12 +97,19 @@ export default function PortalLayout({
             <ExtrudedButton
               variant="outline"
               size="sm"
+              disabled={isLoggingOut}
               onClick={async () => {
-                await fetch("/api/auth/logout", { method: "POST" });
-                window.location.href = "/";
+                setIsLoggingOut(true);
+                try {
+                  await fetch("/api/auth/logout", { method: "POST" });
+                  window.location.replace("/");
+                } catch (e) {
+                  console.error("Logout failed:", e);
+                  setIsLoggingOut(false);
+                }
               }}
             >
-              Logout
+              {isLoggingOut ? "Logging out..." : "Logout"}
             </ExtrudedButton>
           </div>
         </div>

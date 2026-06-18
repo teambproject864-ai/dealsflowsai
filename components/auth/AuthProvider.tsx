@@ -19,13 +19,16 @@ export default function AuthProvider({
   const router = useRouter();
   const pathname = usePathname();
 
+  const rolesKey = allowedRoles.join(",");
+
   useEffect(() => {
     const currentPath = pathname || "";
     const checkAuth = async () => {
       try {
         const res = await fetch("/api/auth/me", { cache: "no-store" });
         const data = await res.json();
-        if (data.success && allowedRoles.includes(data.user.role)) {
+        const roles = rolesKey.split(",") as UserRole[];
+        if (data.success && roles.includes(data.user.role)) {
           setIsAuthenticated(true);
         } else {
           // Determine which login page to redirect to based on pathname
@@ -47,7 +50,7 @@ export default function AuthProvider({
     };
 
     checkAuth();
-  }, [allowedRoles, pathname, router]);
+  }, [rolesKey, pathname, router]);
 
   if (isLoading) {
     return (

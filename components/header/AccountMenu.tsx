@@ -66,9 +66,8 @@ export function AccountMenu() {
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      refetchUser();
       setIsOpen(false);
-      router.push("/");
+      window.location.replace("/");
     } catch (e) {
       console.error("Logout failed", e);
     }
