@@ -1,5 +1,3 @@
-import { useRouter } from "next/navigation";
-
 // Define command types
 export interface Command {
   id: string;
@@ -29,8 +27,13 @@ export interface BrowserAgentAction {
   targetUrl?: string;
 }
 
+// Generic router interface to avoid importing useRouter
+interface Router {
+  push: (url: string) => void;
+}
+
 export class UnifiedBrowserAgentController {
-  private router: ReturnType<typeof useRouter> | null = null;
+  private router: Router | null = null;
   private connectionStatus: "connected" | "connecting" | "disconnected" = "connected";
 
   constructor() {
@@ -45,7 +48,7 @@ export class UnifiedBrowserAgentController {
     }, 500);
   }
 
-  setRouter(router: ReturnType<typeof useRouter>) {
+  setRouter(router: Router) {
     this.router = router;
   }
 
