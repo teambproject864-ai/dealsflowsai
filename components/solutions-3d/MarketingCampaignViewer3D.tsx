@@ -406,7 +406,7 @@ export function MarketingCampaignViewer3D() {
   }
 
   return (
-    <div className="relative min-h-[70vh] w-full" onClick={() => setSelectedCampaign(null)}>
+    <div className="relative h-[600px] w-full" onClick={() => setSelectedCampaign(null)}>
       <Canvas shadows dpr={dpr}>
         <PerformanceMonitor
           onIncline={() => { setDpr(2); setPerf("high"); }}

@@ -347,7 +347,7 @@ export function SalesPipeline3D() {
   }
 
   return (
-    <div className="relative min-h-[70vh] w-full" onClick={() => setSelectedStage(null)}>
+    <div className="relative h-[600px] w-full" onClick={() => setSelectedStage(null)}>
       <Canvas shadows dpr={dpr}>
         <PerformanceMonitor
           onIncline={() => { setDpr(2); setPerf("high"); }}
