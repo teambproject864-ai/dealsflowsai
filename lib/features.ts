@@ -98,6 +98,7 @@ export const APP_FEATURES: Feature[] = [
     iconName: "Mail",
     status: "active",
     updatedAt: "2024-04-28T00:00:00Z",
+    version: 1,
   },
   {
     id: "sms-automation",
@@ -107,6 +108,7 @@ export const APP_FEATURES: Feature[] = [
     iconName: "MessageSquare",
     status: "beta",
     updatedAt: "2024-04-28T00:00:00Z",
+    version: 1,
   },
   {
     id: "sentiment-analysis",
@@ -116,6 +118,7 @@ export const APP_FEATURES: Feature[] = [
     iconName: "TrendingUp",
     status: "active",
     updatedAt: "2024-04-28T00:00:00Z",
+    version: 1,
   },
   {
     id: "roi-tracking",
@@ -125,6 +128,7 @@ export const APP_FEATURES: Feature[] = [
     iconName: "BarChart",
     status: "active",
     updatedAt: "2024-04-28T00:00:00Z",
+    version: 1,
   },
   {
     id: "e2e-encryption",
@@ -134,6 +138,7 @@ export const APP_FEATURES: Feature[] = [
     iconName: "Lock",
     status: "active",
     updatedAt: "2024-04-28T00:00:00Z",
+    version: 1,
   },
   {
     id: "immutable-logs",
@@ -143,6 +148,7 @@ export const APP_FEATURES: Feature[] = [
     iconName: "Shield",
     status: "active",
     updatedAt: "2024-04-28T00:00:00Z",
+    version: 1,
   },
   {
     id: "crm-sync",
@@ -152,6 +158,7 @@ export const APP_FEATURES: Feature[] = [
     iconName: "Workflow",
     status: "active",
     updatedAt: "2024-04-28T00:00:00Z",
+    version: 1,
   },
   {
     id: "calendar-integration",
@@ -161,6 +168,7 @@ export const APP_FEATURES: Feature[] = [
     iconName: "Calendar",
     status: "active",
     updatedAt: "2024-04-28T00:00:00Z",
+    version: 1,
   },
   {
     id: "pinecone-search",
@@ -172,6 +180,7 @@ export const APP_FEATURES: Feature[] = [
     status: "active",
     isNew: true,
     updatedAt: "2024-05-01T00:00:00Z",
+    version: 1,
   },
   {
     id: "autonomous-scheduler",
@@ -181,6 +190,7 @@ export const APP_FEATURES: Feature[] = [
     iconName: "Calendar",
     status: "active",
     updatedAt: "2024-05-01T00:00:00Z",
+    version: 1,
   },
   {
     id: "realtime-notifications",
@@ -190,6 +200,7 @@ export const APP_FEATURES: Feature[] = [
     iconName: "Bell",
     status: "active",
     updatedAt: "2024-05-01T00:00:00Z",
+    version: 1,
   },
   {
     id: "memory-palace",
@@ -201,6 +212,7 @@ export const APP_FEATURES: Feature[] = [
     status: "active",
     isNew: true,
     updatedAt: "2024-05-03T00:00:00Z",
+    version: 1,
   },
   {
     id: "sms-notifications-premium",
