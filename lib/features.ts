@@ -345,6 +345,17 @@ export const APP_FEATURES: Feature[] = [
     updatedAt: "2026-06-05T00:00:00Z",
     version: 1,
   },
+  {
+    id: "fapo-autonomous-prompt-optimization",
+    name: "Fully Autonomous Prompt Optimization (FAPO)",
+    description: "AI-driven prompt optimization system that automatically generates, tests, and refines prompts to maximize accuracy, relevance, and performance across multiple LLM providers (Hugging Face, NVIDIA, KIMI, etc.).",
+    category: "AI & Automation",
+    iconName: "Sparkles",
+    status: "active",
+    isNew: true,
+    updatedAt: "2026-06-21T00:00:00Z",
+    version: 1,
+  },
 ];
 
 export const getIconComponent = (iconName: string) => getGtmFeatureIcon(iconName);

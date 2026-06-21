@@ -1,5 +1,5 @@
 import twilio from "twilio";
-import { getDb } from "./firebase-admin";
+import { db } from "./firebase-admin";
 import { z } from "zod";
 
 export interface OTPRecord {
@@ -184,7 +184,7 @@ export class TwilioService {
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5-minute validity window
 
     // Save/Update in Firestore
-    const otpDocRef = db.collection("otps").doc(formattedTo);
+    const otpDocRef = db!.collection("otps").doc(formattedTo);
     const otpData: OTPRecord = {
       phone: formattedTo,
       code: rawCode, // in real production you can hash this, but simple string is standard for auditing/local test mockability
@@ -215,7 +215,7 @@ export class TwilioService {
     const parsedPhone = z.string().min(8).parse(to.trim());
     const formattedTo = parsedPhone.startsWith("+") ? parsedPhone : `+1${parsedPhone.replace(/\D/g, "")}`;
 
-    const otpDocRef = db.collection("otps").doc(formattedTo);
+    const otpDocRef = db!.collection("otps").doc(formattedTo);
     const otpSnap = await otpDocRef.get();
 
     if (!otpSnap.exists) {
@@ -282,7 +282,7 @@ export class TwilioService {
     price?: string,
     priceUnit?: string
   ): Promise<void> {
-    const statusDocRef = db.collection("twilio_delivery_statuses").doc(sid);
+    const statusDocRef = db!.collection("twilio_delivery_statuses").doc(sid);
     const snap = await statusDocRef.get();
 
     if (snap.exists) {
@@ -328,7 +328,7 @@ export class TwilioService {
     channel: "sms" | "whatsapp" | "voice",
     status: string
   ): Promise<void> {
-    const statusDocRef = db.collection("twilio_delivery_statuses").doc(sid);
+    const statusDocRef = db!.collection("twilio_delivery_statuses").doc(sid);
     const data: DeliveryStatusRecord = {
       messageSid: sid,
       to,
@@ -346,7 +346,7 @@ export class TwilioService {
    */
   private async logAudit(type: string, metadata: Record<string, any>): Promise<void> {
     try {
-      await db.collection("audit_logs").add({
+      await db!.collection("audit_logs").add({
         type,
         service: "twilio",
         ...metadata,

@@ -209,7 +209,7 @@ export function Header() {
       ],
     },
     {
-      name: "Go-to-Market (GTM) Analysis",
+      name: "GTM Analysis",
       href: "/solutions/gtm",
     },
     {

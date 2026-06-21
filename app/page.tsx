@@ -20,6 +20,9 @@ import {
   PlayCircle,
   Bot,
   Target,
+  Rocket,
+  BarChart2,
+  RefreshCw,
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 const IntakeForm = lazy(() => import("@/components/IntakeForm").then((m) => ({ default: m.IntakeForm })));
@@ -542,11 +545,11 @@ export default function HomePage() {
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                   <Link
-                    href="/solutions/gtm"
-                    onClick={() => trackEvent("cta_browser_agent", { surface: "hero_v3", abVariant })}
+                    href="/fapo"
+                    onClick={() => trackEvent("cta_fapo_hero", { surface: "hero_v3", abVariant })}
                     className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-teal-600 via-cyan-500 to-teal-500 hover:from-teal-500 hover:via-cyan-400 hover:to-teal-400 text-white font-semibold text-base transition-all duration-300 shadow-xl shadow-teal-600/35 hover:-translate-y-0.5"
                   >
-                    Browser Agent
+                    Try FAPO
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                   <Link
@@ -676,6 +679,106 @@ export default function HomePage() {
                 <span className="text-[10px] font-mono text-rose-400 flex items-center gap-1">
                   🔒 End-to-End Encrypted
                 </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAPO: FULLY AUTONOMOUS PROMPT OPTIMIZATION SECTION ───────────────────── */}
+      <section className="snap-section relative border-b border-slate-200 dark:border-white/5 bg-background py-20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(108,59,255,0.03),transparent)] pointer-events-none" />
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-violet-500/20 bg-violet-500/10 text-violet-600 dark:text-violet-300 text-xs font-mono uppercase tracking-wider mb-4">
+              <Rocket className="w-3.5 h-3.5" />
+              FAPO Engine
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
+              Fully Autonomous Prompt Optimization
+            </h2>
+            <p className="max-w-2xl mx-auto text-lg text-slate-600 dark:text-slate-400">
+              Continuously refine and optimize your prompts automatically using advanced AI-driven iteration and evaluation.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Features Grid */}
+            <div className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="p-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.03] hover:border-violet-500/20 transition-all">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600/20 to-purple-600/20 mb-4">
+                    <RefreshCw className="w-6 h-6 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Auto-Optimization</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Iterative refinement loops that generate prompt variations, test performance, and select optimal versions.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.03] hover:border-violet-500/20 transition-all">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-teal-600/20 to-cyan-600/20 mb-4">
+                    <BarChart2 className="w-6 h-6 text-teal-600 dark:text-teal-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Comprehensive Metrics</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Track accuracy, latency, relevance, and task-specific success rates for every prompt variant.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.03] hover:border-violet-500/20 transition-all">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-amber-600/20 to-orange-600/20 mb-4">
+                    <Brain className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Adaptive Learning</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Adjusts optimization strategies based on historical performance data and changing task requirements.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.03] hover:border-violet-500/20 transition-all">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-600/20 to-green-600/20 mb-4">
+                    <Network className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Multi-LLM Support</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Optimize prompts across Hugging Face, NVIDIA, and other major LLM providers with our AI Provider Router.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href="/fapo"
+                onClick={() => trackEvent("cta_fapo", { surface: "homepage" })}
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:via-purple-500 hover:to-indigo-500 text-white font-semibold text-base transition-all duration-300 shadow-lg shadow-violet-500/25 hover:-translate-y-0.5"
+              >
+                Try FAPO Now
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+
+            {/* Right: Interactive Visualization */}
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-cyan-500/10 rounded-[2rem] blur-2xl" />
+              <div className="relative rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.03] p-6 shadow-xl">
+                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-100 dark:border-white/10">
+                  <div className="flex gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                  </div>
+                  <span className="text-xs font-mono text-slate-400 ml-2">fapo-engine.log</span>
+                </div>
+                <div className="font-mono text-xs space-y-2 bg-slate-50 dark:bg-black/30 rounded-xl p-4 max-h-80 overflow-y-auto">
+                  <div className="text-slate-400">[2025-01-15 09:15:32] 🔧 Initializing FAPO optimization cycle...</div>
+                  <div className="text-violet-400">[2025-01-15 09:15:33] 🧬 Generating initial prompt population (5 variants)</div>
+                  <div className="text-teal-400">[2025-01-15 09:15:35] 📊 Evaluating against 3 test cases...</div>
+                  <div className="text-emerald-400">[2025-01-15 09:15:40] ✅ Prompt Variant #3: Score 0.92 (92% accuracy)</div>
+                  <div className="text-slate-300">[2025-01-15 09:15:42] 🔄 Evolving population based on fitness...</div>
+                  <div className="text-amber-400">[2025-01-15 09:15:45] 📈 Best prompt so far: Variant #7 (Score: 0.95)</div>
+                  <div className="text-cyan-400">[2025-01-15 09:15:50] 🔍 Running multi-LLM validation...</div>
+                  <div className="text-emerald-400 font-bold">[2025-01-15 09:15:55] 🎉 Optimization complete! Improved by 15%</div>
+                </div>
               </div>
             </div>
           </div>
