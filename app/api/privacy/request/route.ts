@@ -29,7 +29,7 @@ async function findLeadIdByEmail(email: string): Promise<string | null> {
       const decrypted = decryptLead({ id: doc.id, ...doc.data() });
       if (decrypted.contactEmail?.toLowerCase().trim() === emailLower) {
         // Cache it in-memory
-        inMemoryLeads.set(doc.id, doc.data());
+        inMemoryLeads.set(doc.id, { id: doc.id, ...doc.data() } as ExtendedLeadRecord);
         return doc.id;
       }
     }

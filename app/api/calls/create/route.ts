@@ -49,12 +49,15 @@ export async function POST(req: Request) {
     };
 
     const db = getDb();
+    if (!db) {
+      return NextResponse.json({ success: false, error: "Database not configured." }, { status: 500 });
+    }
     const callRef = await db.collection("calls").add(callData);
     const callId = callRef.id;
 
     // Use environment variable for notification recipient
-    const recipient = process.env.ADMIN_NOTIFICATION_EMAIL || "praneeth@growstack.ai";
-    
+    const recipient = process.env.ADMIN_NOTIFICATION_EMAIL || "praneethburada@gmail.com";
+
     if (meetingUrl) {
       void ensureBotForCall({
         callId,

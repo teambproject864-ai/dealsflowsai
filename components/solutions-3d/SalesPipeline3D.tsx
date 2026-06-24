@@ -348,7 +348,7 @@ export function SalesPipeline3D() {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    const currentIndex = pipelineStages.indexOf(selectedStage || "");
+    const currentIndex = (pipelineStages as readonly string[]).indexOf(selectedStage || "");
     if (e.key === "Tab" || e.key === "ArrowRight" || e.key === "ArrowDown") {
       e.preventDefault();
       const nextIndex = (currentIndex + 1) % pipelineStages.length;

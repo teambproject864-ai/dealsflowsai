@@ -16,6 +16,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid meeting URL" }, { status: 400 });
     }
 
+    if (!db) {
+      return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+    }
+
     // Fetch call and lead details for the email
     const callDoc = await db.collection("calls").doc(callId).get();
     if (!callDoc.exists) {
