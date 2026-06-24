@@ -316,8 +316,12 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
       if (result.success && result.leadId) {
         saveLeadContext(fullValidation.data, null);
         await saveLeadOffline(result.leadId, fullValidation.data, null, true);
-        setLeadId(result.leadId);
-        setPostSubmissionStep(0);
+        // Skip agent selection step, go directly to analysis!
+        if (onComplete) {
+          onComplete();
+        } else {
+          router.push(`/analysis?leadId=${result.leadId}`);
+        }
       } else {
         alert(result.error || "Failed to save lead");
         setSubmitting(false);
