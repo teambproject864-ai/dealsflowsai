@@ -11,9 +11,14 @@ export function AccountMenu() {
   const router = useRouter();
   const { user, isLoading, refetchUser } = useCurrentUser();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const firstFocusableRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Handle clicks outside to close
   useEffect(() => {
@@ -88,6 +93,23 @@ export function AccountMenu() {
     { name: "Agent Portal", href: "/portal/agent/login", icon: UserCheck, color: "text-teal-400" },
     { name: "Customer Portal", href: "/portal/customer/login", icon: Users, color: "text-violet-400" },
   ];
+
+  if (!mounted) {
+    return (
+      <div className="relative z-40">
+        {/* Server-rendered placeholder to match client structure */}
+        <button
+          className="flex items-center justify-center h-10 w-10 rounded-2xl border border-white/10 bg-white/5 text-slate-300 overflow-hidden"
+          aria-label="User account menu"
+          aria-expanded="false"
+          aria-haspopup="true"
+          data-testid="account-menu-trigger"
+        >
+          <User className="h-4.5 w-4.5" />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div ref={dropdownRef} className="relative z-40">
