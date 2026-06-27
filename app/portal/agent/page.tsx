@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,8 +50,11 @@ import {
   Brain,
   SearchIcon,
   CreditCard,
-  Users3,
   CalendarCheck,
+  Sparkles,
+  PhoneOff,
+  VolumeX,
+  Volume2
 } from "lucide-react";
 import { COUNTRIES, formatPhoneNumber, isPhoneValid } from "@/lib/countries";
 import { cn } from "@/lib/utils";
@@ -83,15 +87,483 @@ const tabs = [
   { id: "voice-whatsapp", label: "Voice & WhatsApp", icon: Settings },
 ] as const;
 
+// Structured marketing campaign categories & tactics mapping
+const MARKETING_CATEGORIES = [
+  {
+    id: "outreach",
+    title: "Outreach & Direct Engagement",
+    icon: Mail,
+    color: "text-teal-400",
+    hoverColor: "hover:border-teal-500/40",
+    borderColor: "border-teal-500/20",
+    glowColor: "shadow-teal-500/10",
+    items: [
+      "Cold email outreach (sequences, personalization at scale)",
+      "LinkedIn outreach / social selling",
+      "Cold calling / SDR outreach",
+      "Account-based marketing (ABM) campaigns"
+    ]
+  },
+  {
+    id: "influencer",
+    title: "Influencer & creator partnerships",
+    icon: Users2,
+    color: "text-purple-400",
+    hoverColor: "hover:border-purple-500/40",
+    borderColor: "border-purple-500/20",
+    glowColor: "shadow-purple-500/10",
+    items: [
+      "Affiliate marketing programs",
+      "PR outreach / journalist pitching (HARO, etc.)"
+    ]
+  },
+  {
+    id: "written",
+    title: "Written Content",
+    icon: BookOpen,
+    color: "text-blue-400",
+    hoverColor: "hover:border-blue-500/40",
+    borderColor: "border-blue-500/20",
+    glowColor: "shadow-blue-500/10",
+    items: [
+      "Blog posts (educational, SEO-focused, thought leadership)",
+      "Guest posting on other sites",
+      "Case studies / customer success stories",
+      "Whitepapers & ebooks (gated for lead gen)",
+      "Newsletters (email digests)",
+      "Press releases",
+      "Comparison pages (\"X vs Y\" content for SEO)",
+      "Glossary / definition pages (SEO long-tail)",
+      "Documentation-as-marketing (great docs that rank in search)"
+    ]
+  },
+  {
+    id: "social",
+    title: "Social Media Posts",
+    icon: MessageCircle,
+    color: "text-pink-400",
+    hoverColor: "hover:border-pink-500/40",
+    borderColor: "border-pink-500/20",
+    glowColor: "shadow-pink-500/10",
+    items: [
+      "LinkedIn posts (company page + founder/employee personal brand)",
+      "Twitter/X threads",
+      "Instagram posts/reels",
+      "Facebook posts/ads",
+      "Reddit engagement (organic, community-driven)",
+      "Quora answers"
+    ]
+  },
+  {
+    id: "video",
+    title: "Video Content",
+    icon: VideoIcon,
+    color: "text-emerald-400",
+    hoverColor: "hover:border-emerald-500/40",
+    borderColor: "border-emerald-500/20",
+    glowColor: "shadow-emerald-500/10",
+    items: [
+      "Auto video generation (AI tools turning blog posts/scripts into videos)",
+      "Explainer videos / product demos",
+      "YouTube tutorials",
+      "Short-form video (Reels, TikTok, YouTube Shorts)",
+      "Webinars (live + recorded)",
+      "Customer testimonial videos",
+      "Founder vlogs / behind-the-scenes",
+      "Animated product walkthroughs"
+    ]
+  },
+  {
+    id: "audio",
+    title: "Audio",
+    icon: Music2,
+    color: "text-yellow-400",
+    hoverColor: "hover:border-yellow-500/40",
+    borderColor: "border-yellow-500/20",
+    glowColor: "shadow-yellow-500/10",
+    items: [
+      "Podcasts (own podcast + guest appearances)",
+      "AI-generated audio summaries of content"
+    ]
+  },
+  {
+    id: "visual",
+    title: "Visual/Design Content",
+    icon: PenTool,
+    color: "text-indigo-400",
+    hoverColor: "hover:border-indigo-500/40",
+    borderColor: "border-indigo-500/20",
+    glowColor: "shadow-indigo-500/10",
+    items: [
+      "Infographics",
+      "Carousel posts (LinkedIn/Instagram)",
+      "Memes (industry-specific humor)",
+      "Data visualizations / original research graphics",
+      "Slide decks shared publicly (SlideShare-style)"
+    ]
+  },
+  {
+    id: "ai",
+    title: "AI-Generated / Automated Content",
+    icon: Brain,
+    color: "text-violet-400",
+    hoverColor: "hover:border-violet-500/40",
+    borderColor: "border-violet-500/20",
+    glowColor: "shadow-violet-500/10",
+    items: [
+      "AI blog post generation (then human-edited)",
+      "AI video generation (Synthesia, HeyGen-style avatar videos)",
+      "AI image generation for visuals",
+      "AI-personalized email content",
+      "Auto-generated social posts from long-form content (repurposing)",
+      "AI voiceovers for videos",
+      "Chatbot-driven content delivery"
+    ]
+  },
+  {
+    id: "seo",
+    title: "SEO-Specific Tactics",
+    icon: SearchIcon,
+    color: "text-green-400",
+    hoverColor: "hover:border-green-500/40",
+    borderColor: "border-green-500/20",
+    glowColor: "shadow-green-500/10",
+    items: [
+      "Keyword-targeted landing pages",
+      "Programmatic SEO (auto-generated pages at scale, e.g., \"best tool for X city/industry\")",
+      "Backlink building campaigns",
+      "Internal linking strategy content"
+    ]
+  },
+  {
+    id: "paid",
+    title: "Paid Promotion",
+    icon: CreditCard,
+    color: "text-orange-400",
+    hoverColor: "hover:border-orange-500/40",
+    borderColor: "border-orange-500/20",
+    glowColor: "shadow-orange-500/10",
+    items: [
+      "Google Ads / search ads",
+      "LinkedIn Ads",
+      "Retargeting ads",
+      "Sponsored newsletter placements",
+      "Podcast sponsorships"
+    ]
+  },
+  {
+    id: "community",
+    title: "Community-Driven Content",
+    icon: Users2,
+    color: "text-cyan-400",
+    hoverColor: "hover:border-cyan-500/40",
+    borderColor: "border-cyan-500/20",
+    glowColor: "shadow-cyan-500/10",
+    items: [
+      "User-generated content (UGC) campaigns",
+      "Review site presence (G2, Capterra, TrustRadius)",
+      "Community Q&A / forums",
+      "Open-source contributions (if applicable) as marketing"
+    ]
+  },
+  {
+    id: "events",
+    title: "Events",
+    icon: CalendarCheck,
+    color: "text-rose-400",
+    hoverColor: "hover:border-rose-500/40",
+    borderColor: "border-rose-500/20",
+    glowColor: "shadow-rose-500/10",
+    items: [
+      "Webinars",
+      "Virtual summits / conferences",
+      "Local meetups",
+      "Trade show presence"
+    ]
+  }
+];
+
+// Contextual AI Campaign Asset Generator
+function generateCampaignCopy(
+  tactic: string,
+  company: string,
+  promise: string,
+  painPoint: string,
+  icp: string,
+  tone: string
+): string {
+  const t = tone.toLowerCase();
+  const brand = company || "our brand";
+  const prom = promise || "deliver cutting-edge solutions";
+  const pain = painPoint || "operational inefficiencies";
+  const target = icp || "target audience";
+
+  const salutation = t === "casual" ? "Hey there," : t === "friendly" ? "Hi there!" : "Dear Client,";
+  const signoff = t === "casual" ? "Cheers,\n\nDealFlow.AI Campaign Agent" : t === "bold" ? "To your growth,\n\nDealFlow.AI Team" : "Best regards,\n\nLead Marketing Coordinator";
+
+  // Outreach & Direct Engagement
+  if (tactic.toLowerCase().includes("cold email")) {
+    return `Campaign Type: Cold Email outreach Sequence
+
+[EMAIL 1: The Hook]
+Subject: Solving ${pain} for your team?
+
+${salutation}
+
+I've been following your work at ${brand}. Many organizations in your industry struggle with ${pain}, which often leads to lost revenue and wasted time.
+
+We specialize in helping businesses like yours ${prom}.
+
+Are you open to a brief 10-minute chat next Tuesday to see how we could help you tackle this?
+
+${signoff}
+
+---
+
+[EMAIL 2: The Proof]
+Subject: Quick question about ${brand}'s workflow
+
+${salutation}
+
+I wanted to share a quick case study: we recently worked with a company similar to ${brand} who was suffering from ${pain}. By implementing our playbook, they were able to ${prom} and see a 40% improvement in performance.
+
+Would you be interested in seeing the detailed breakdown of how we did it?
+
+${signoff}`;
+  }
+  
+  if (tactic.toLowerCase().includes("linkedin outreach")) {
+    return `Campaign Type: LinkedIn Connection & Message Flow
+
+[CONNECTION REQUEST NOTE (Max 300 chars)]
+"Hi {{Name}}, noticed your profile and your focus on ${brand}. We work with leaders dealing with ${pain} to help them ${prom}. Would love to connect!"
+
+---
+
+[FOLLOW-UP 1 (24h after connection)]
+"Thanks for connecting! I wanted to share a quick insight on how we help teams like yours solve ${pain} and achieve ${prom}. Are you free for a quick chat sometime next week?"`;
+  }
+
+  if (tactic.toLowerCase().includes("cold calling")) {
+    return `Campaign Type: Cold Call Conversation Script
+
+[INTRO & HOOK]
+"Hi {{Name}}, this is [Agent Name] calling from DealFlow.AI. I'm reaching out because we help companies like ${brand} who are struggling with ${pain}.
+
+Specifically, we've developed a framework that allows you to ${prom}.
+
+I know you weren't expecting my call, but do you have 2 minutes to see if this is relevant to your team?"
+
+[OBJECTION HANDLING: 'Too busy']
+"Totally understand. We're all running fast. If you're open to it, I can send a 1-minute video summary of how we help with ${pain}. What's the best email for you?"`;
+  }
+
+  if (tactic.toLowerCase().includes("account-based marketing")) {
+    return `Campaign Type: ABM Playbook (Target: ${brand})
+
+1. Personalization Parameters:
+   - Target Accounts: ICP accounts matching size/industry criteria.
+   - Primary Value Proposition: ${prom}
+   - Specific Pain Targeted: ${pain}
+
+2. Multichannel Touches:
+   - Touch 1: Send personalized 1-to-1 video addressing ${brand}'s specific challenges.
+   - Touch 2: LinkedIn message sharing industry report.
+   - Touch 3: Cold outreach email detailing custom audit of their website/GTM.
+   - Touch 4: Direct mail (educational handbook) sent to decision-maker's office.`;
+  }
+
+  // Influencer & Creator Partnerships
+  if (tactic.toLowerCase().includes("affiliate marketing")) {
+    return `Campaign Type: Affiliate Outreach & Commission Proposal
+
+Subject: Partnering with ${brand} - Affiliate Program
+
+${salutation}
+
+We've been tracking your content and believe your audience would benefit greatly from learning how to ${prom}. 
+
+We'd love to propose an affiliate partnership. We offer:
+- 20% recurring commission on all referrals
+- Custom landing page and marketing assets tailored to ${brand}
+- Priority support for your community
+
+Our tools directly address the common frustration of ${pain}.
+
+Let me know if you'd be open to reviewing the partner agreement!
+
+${signoff}`;
+  }
+
+  if (tactic.toLowerCase().includes("pr outreach")) {
+    return `Campaign Type: Journalist / Pitch Outline
+
+Subject: PITCH: Why companies are failing at ${pain} (and how to fix it)
+
+Hi {{Journalist Name}},
+
+With the current market conditions, more organizations are struggling with ${pain} than ever before. 
+
+I'm the lead strategist at ${brand}, and we've analyzed over 500 companies in this space. Our findings show that teams who focus on ${prom} see a 3x higher success rate.
+
+I'd love to share our proprietary data, or write a guest piece for you outlining:
+1. The root causes of ${pain} in 2026.
+2. Three tactical steps companies can take to implement ${prom}.
+
+Would this be of interest for your upcoming column?
+
+${signoff}`;
+  }
+
+  // Written Content
+  if (tactic.toLowerCase().includes("blog posts")) {
+    return `Campaign Type: SEO Blog Post Brief
+
+Title Idea: The Definitive Guide to Solving ${pain} for Good
+Primary Keyword: How to solve ${pain}
+Tone: ${tone}
+
+[OUTLINE]
+1. Introduction: The rising cost of ${pain} and why traditional methods fail.
+2. The Core Problem: How ${pain} slows down growth for ${brand}.
+3. The Solution: Step-by-step framework to ${prom}.
+4. Case Study: Real-world results from implementing these steps.
+5. Conclusion & Action Plan (CTA to schedule a consultation).`;
+  }
+
+  if (tactic.toLowerCase().includes("comparison pages")) {
+    return `Campaign Type: Comparison Page Template ("X vs Y")
+
+URL Slug: /vs/our-tool-competitors
+Focus: Highlighting how we outperform competitors on ${prom}.
+
+[KEY SECTIONS]
+1. Header: Tired of dealing with ${pain}? Compare why our solution is built differently.
+2. Side-by-Side Comparison Table:
+   - Feature 1: Performance (Ours: Active / Competitors: Limited)
+   - Feature 2: Support (Ours: 24/7 Dedicated / Competitors: Email only)
+   - Feature 3: Solve ${pain} (Ours: Built-in automated flow / Competitors: Manual setup)
+3. Deep-Dive Section: Why companies are switching from legacy tools to our platform to ${prom}.`;
+  }
+
+  if (tactic.toLowerCase().includes("ai blog post generation")) {
+    return `Campaign Type: AI-Generated Content Draft (Human-in-the-loop)
+
+Title: Leveraging Automation to ${prom}
+
+[AI Generated Intro]
+In today's fast-paced environment, organizations cannot afford to tolerate ${pain}. Yet, many teams continue to struggle with outdated methods that waste time and resources. 
+
+[Section 1: The Impact of ${pain}]
+When ${pain} is left unaddressed, the downstream effects are severe. It impacts team morale, customer satisfaction, and the bottom line. 
+
+[Section 2: Implementing ${prom}]
+The key to unlocking growth is a systematic approach to ${prom}. By automating repetitive tasks, teams can focus on strategic initiatives.
+
+[Section 3: Call to Action]
+Ready to stop struggling with ${pain}? Let ${brand} show you how to streamline your operations today.`;
+  }
+
+  return `Campaign Type: ${tactic} Blueprint & Proposal
+Client Name: ${brand}
+Tone: ${tone}
+
+[STRATEGY SUMMARY]
+We are launching a campaign for ${tactic} tailored to the needs of ${brand}. 
+Our primary objective is to engage audiences interested in "${prom}" while directly addressing the core market pain point of "${pain}".
+
+[TACTICAL EXECUTION STEPS]
+1. Define campaign goals aligned with ${prom}.
+2. Set up target parameters for the ${target} audience segment.
+3. Draft custom content emphasizing how we eliminate ${pain}.
+4. Launch, monitor metrics, and optimize for conversion.
+
+[SUGGESTED CAMPAIGN PARAMETERS]
+- Target Channels: Relevant digital platforms
+- Estimated Budget: 250 credits / month
+- Key Metrics to Track: CTR, engagement rate, task conversions`;
+}
+
 function AgentPortalContent() {
   const { user, isLoading: userLoading } = useCurrentUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<typeof tabs[number]["id"]>("requirements");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [newNote, setNewNote] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [chatMessages, setChatMessages] = useState([...demoChatMessages]);
-  const [tasks, setTasks] = useState([...demoTasks]);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [isStateSynced, setIsStateSynced] = useState(false);
+
+  // Dialer & Call State Additions
+  const [dialedNumber, setDialedNumber] = useState("");
+  const [outboundCallState, setOutboundCallState] = useState<"idle" | "ringing" | "connected">("idle");
+  const [outboundCallDuration, setOutboundCallDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isHeld, setIsHeld] = useState(false);
+
+  // Sync state with localStorage to allow seamless sharing with dedicated workspace page
+  useEffect(() => {
+    const savedTasks = localStorage.getItem("df_agent_tasks");
+    const savedMessages = localStorage.getItem("df_chat_messages");
+    
+    if (savedTasks) {
+      try {
+        setTasks(JSON.parse(savedTasks));
+      } catch (e) {
+        setTasks([...demoTasks]);
+      }
+    } else {
+      setTasks([...demoTasks]);
+    }
+
+    if (savedMessages) {
+      try {
+        setChatMessages(JSON.parse(savedMessages));
+      } catch (e) {
+        setChatMessages([...demoChatMessages]);
+      }
+    } else {
+      setChatMessages([...demoChatMessages]);
+    }
+    
+    setIsStateSynced(true);
+  }, []);
+
+  useEffect(() => {
+    if (isStateSynced) {
+      localStorage.setItem("df_agent_tasks", JSON.stringify(tasks));
+    }
+  }, [tasks, isStateSynced]);
+
+  useEffect(() => {
+    if (isStateSynced) {
+      localStorage.setItem("df_chat_messages", JSON.stringify(chatMessages));
+    }
+  }, [chatMessages, isStateSynced]);
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && tabs.some(t => t.id === tabParam)) {
+      setActiveTab(tabParam as any);
+    }
+  }, [searchParams]);
+
+  // Outbound call duration ticking
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (outboundCallState === "connected") {
+      timer = setInterval(() => {
+        setOutboundCallDuration(d => d + 1);
+      }, 1000);
+    } else {
+      setOutboundCallDuration(0);
+    }
+    return () => clearInterval(timer);
+  }, [outboundCallState]);
+
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -101,6 +573,15 @@ function AgentPortalContent() {
     message: string;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Interactive Workspace State
+  const [activeWorkspaceLeadId, setActiveWorkspaceLeadId] = useState<string>("");
+  const [selectedTactic, setSelectedTactic] = useState<{ category: string; name: string } | null>(null);
+  const [workspaceTone, setWorkspaceTone] = useState<string>("Professional");
+  const [workspaceKeywords, setWorkspaceKeywords] = useState<string>("");
+  const [isGeneratingWorkspaceContent, setIsGeneratingWorkspaceContent] = useState(false);
+  const [generatedWorkspaceContent, setGeneratedWorkspaceContent] = useState<string>("");
+  const [tacticStatuses, setTacticStatuses] = useState<Record<string, string>>({});
 
   const [leads, setLeads] = useState<any[]>([]);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
@@ -136,11 +617,11 @@ function AgentPortalContent() {
         }, 2000)
       );
       
-      // Simulate in-progress → completed after 8s
+      // Simulate in-progress → completed after 10s
       timeouts.push(
         setTimeout(() => {
           setActiveCallSession(prev => prev ? { ...prev, status: "completed" } : null);
-        }, 10000)
+        }, 12000)
       );
       
       return () => {
@@ -163,6 +644,7 @@ function AgentPortalContent() {
     
     return () => clearInterval(pollInterval);
   }, [activeCallSession?.sessionId]);
+
   // WhatsApp state
   const [waToPhone, setWaToPhone] = useState("");
   const [waCustomerName, setWaCustomerName] = useState("");
@@ -179,6 +661,7 @@ function AgentPortalContent() {
           setLeads(data.leads);
           if (data.leads.length > 0) {
             setSelectedLeadId(data.leads[0].id);
+            setActiveWorkspaceLeadId(data.leads[0].id);
           }
         }
       } catch (err) {
@@ -354,8 +837,6 @@ function AgentPortalContent() {
     setTimeout(() => setShowNotification(null), 3000);
   };
 
-
-
   // Format file size
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + " B";
@@ -448,7 +929,7 @@ function AgentPortalContent() {
         t.id === taskId
           ? {
               ...t,
-              milestones: t.milestones.map((m) =>
+              milestones: t.milestones.map((m: any) =>
                 m.id === milestoneId
                   ? {
                       ...m,
@@ -470,7 +951,7 @@ function AgentPortalContent() {
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-teal-500" />
-          <p className="text-slate-400 font-medium">Loading your workspace...</p>
+          <p className="text-slate-400 font-medium animate-pulse">Loading your workspace...</p>
         </div>
       </div>
     );
@@ -478,79 +959,91 @@ function AgentPortalContent() {
 
   const selectedLead = leads.find((l) => l.id === selectedLeadId);
 
+  // Helper to dial numbers
+  const appendDialDigit = (digit: string) => {
+    setDialedNumber(prev => prev + digit);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative">
+    <div className="min-h-screen bg-slate-950 text-white relative font-sans antialiased overflow-x-hidden selection:bg-teal-500/30 selection:text-teal-200">
+      {/* Background glow effects */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-500/5 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-violet-500/5 blur-[120px] pointer-events-none" />
+
       {/* Notification Toast */}
       {showNotification && (
-        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right-4 duration-300">
-          <div
+        <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-top-6 duration-300">
+          <GlassPanel
+            tilt={false}
             className={cn(
-              "flex items-start gap-3 px-4 py-3 rounded-lg shadow-xl border max-w-sm",
+              "flex items-start gap-3.5 px-4.5 py-3.5 rounded-2xl shadow-2xl border min-w-[320px] max-w-sm",
               showNotification.type === "success"
-                ? "bg-green-900/90 border-green-600"
+                ? "border-emerald-500/30 bg-emerald-950/80 text-emerald-200"
                 : showNotification.type === "error"
-                ? "bg-red-900/90 border-red-600"
-                : "bg-blue-900/90 border-blue-600"
+                ? "border-rose-500/30 bg-rose-950/80 text-rose-200"
+                : "border-blue-500/30 bg-blue-950/80 text-blue-200"
             )}
           >
             <div className="mt-0.5">
               {showNotification.type === "success" ? (
-                <CheckCircle2 className="h-5 w-5 text-green-400" />
+                <CheckCircle2 className="h-5 w-5 text-emerald-400 animate-pulse" />
               ) : showNotification.type === "error" ? (
-                <AlertCircle className="h-5 w-5 text-red-400" />
+                <AlertCircle className="h-5 w-5 text-rose-400" />
               ) : (
                 <AlertCircle className="h-5 w-5 text-blue-400" />
               )}
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-white text-sm">{showNotification.title}</p>
-              <p className="text-slate-300 text-xs mt-0.5">{showNotification.message}</p>
+              <p className="font-bold text-white text-sm leading-tight">{showNotification.title}</p>
+              <p className="text-slate-300 text-xs mt-1 leading-relaxed">{showNotification.message}</p>
             </div>
             <button
               onClick={() => setShowNotification(null)}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-slate-400 hover:text-white transition-colors p-1"
+              aria-label="Dismiss message"
             >
               <X className="h-4 w-4" />
             </button>
-          </div>
+          </GlassPanel>
         </div>
       )}
 
       {/* Agent Portal Header */}
-      <div className="sticky top-0 z-40 bg-gradient-to-b from-slate-950 to-slate-950/90 backdrop-blur-xl border-b border-slate-800">
-        <div className="container mx-auto px-6 py-4">
+      <div className="sticky top-0 z-40 bg-gradient-to-b from-slate-950 to-slate-950/90 backdrop-blur-xl border-b border-slate-900 shadow-lg shadow-black/30">
+        <div className="container mx-auto px-6 py-4.5">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500/20 to-cyan-500/10 flex items-center justify-center border border-teal-500/20">
-                  <Users className="h-5 w-5 text-teal-400" />
+              <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-3.5">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500/20 via-cyan-500/10 to-transparent flex items-center justify-center border border-teal-500/30 shadow-md shadow-teal-500/5">
+                  <Users className="h-5 w-5 text-teal-400 animate-pulse" />
                 </div>
-                Agent Workspace
+                DealFlow Agent Platform
               </h1>
-              <p className="text-slate-400 mt-1 text-sm">
-                Welcome back, <span className="text-teal-400 font-semibold">{currentAgentName}</span>!
+              <p className="text-xs text-slate-400 mt-1">
+                Connected Agent: <span className="text-teal-300 font-bold">{currentAgentName}</span>
               </p>
             </div>
             <div className="flex items-center gap-4">
-              {/* Quick Stats */}
-              <div className="bg-slate-800/50 border border-slate-700/50 px-5 py-3 rounded-2xl flex items-center gap-5 shadow-xl">
+              {/* Quick Status Stats Widget */}
+              <div className="bg-slate-900/60 border border-slate-850 px-5 py-2.5 rounded-2xl flex items-center gap-6 shadow-inner">
                 <div className="text-center">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest">Tasks</p>
-                  <p className="text-xl font-bold text-teal-400">{agentTasks.length}</p>
+                  <p className="text-[9px] text-slate-500 uppercase tracking-widest font-semibold">My Tasks</p>
+                  <p className="text-base font-extrabold text-teal-400 mt-0.5">{agentTasks.length}</p>
                 </div>
-                <div className="h-8 w-px bg-slate-700" />
+                <div className="h-7 w-px bg-slate-800" />
                 <div className="text-center">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest">Rating</p>
-                  <p className="text-xl font-bold text-amber-400">
+                  <p className="text-[9px] text-slate-500 uppercase tracking-widest font-semibold">Avg Rating</p>
+                  <p className="text-base font-extrabold text-amber-400 mt-0.5 flex items-center justify-center gap-1">
                     {agentMetrics?.averageRating.toFixed(1) || "0"}
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                   </p>
                 </div>
                 {agentCredits && (
                   <>
-                    <div className="h-8 w-px bg-slate-700" />
+                    <div className="h-7 w-px bg-slate-800" />
                     <div className="text-center">
-                      <p className="text-[10px] text-slate-500 uppercase tracking-widest">Credits</p>
-                      <p className="text-xl font-bold text-violet-400">{agentCredits.balance}</p>
+                      <p className="text-[9px] text-slate-500 uppercase tracking-widest font-semibold">Credits</p>
+                      <p className="text-base font-extrabold text-violet-400 mt-0.5">{agentCredits.balance}</p>
                     </div>
                   </>
                 )}
@@ -562,42 +1055,52 @@ function AgentPortalContent() {
       </div>
 
       <div className="container mx-auto px-6 py-8 space-y-8">
-
-        {/* Tab Navigation */}
-        <div className="bg-slate-900 border border-slate-800 p-2 rounded-2xl flex flex-wrap gap-2">
+        {/* Premium Tab Selector Frame */}
+        <div className="bg-slate-900/50 border border-slate-850 p-2.5 rounded-2xl flex flex-wrap gap-2.5 shadow-xl shadow-black/40 relative">
           {tabs.map((tab) => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.id === "workspace") {
+                    router.push("/portal/agent/workspace");
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                }}
                 className={cn(
-                  "flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200",
-                  activeTab === tab.id
-                    ? "bg-slate-800 text-white shadow-lg border border-slate-700"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  "relative flex items-center gap-2.5 px-5 py-3 rounded-xl text-xs font-bold transition-all duration-300 outline-none focus:ring-2 focus:ring-teal-500/50",
+                  isActive
+                    ? "bg-gradient-to-r from-teal-500/20 via-cyan-500/10 to-teal-500/5 border border-teal-500/30 text-teal-300 shadow-[0_0_15px_rgba(20,184,166,0.15)] shadow-teal-500/10"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent"
                 )}
+                aria-current={isActive ? "page" : undefined}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className={cn("h-4 w-4", isActive ? "text-teal-400" : "text-slate-400")} />
                 {tab.label}
               </button>
             );
           })}
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content Panels */}
         <div className="mt-6">
           {activeTab === "requirements" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Requirements List */}
+              {/* Requirements Selector */}
               <div className="lg:col-span-1 space-y-4">
-                <h3 className="text-xl font-semibold text-slate-100">Assigned Requirements</h3>
+                <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-teal-400" />
+                  Assigned Requirements
+                </h3>
                 <div className="space-y-3">
                   {leads.length === 0 ? (
-                    <GlassPanel tilt={false} className="border-slate-700/50">
-                      <CardContent className="py-10 text-center">
-                        <Users className="h-12 w-12 text-slate-700 mx-auto mb-3" />
-                        <p className="text-slate-400 font-medium">No requirements assigned</p>
+                    <GlassPanel tilt={false} className="border-slate-800/50">
+                      <CardContent className="py-12 text-center">
+                        <Users className="h-10 w-10 text-slate-700 mx-auto mb-3" />
+                        <p className="text-slate-400 text-xs font-semibold">No requirements assigned</p>
                       </CardContent>
                     </GlassPanel>
                   ) : (
@@ -606,15 +1109,15 @@ function AgentPortalContent() {
                         key={lead.id}
                         tilt={true}
                         className={cn(
-                          "cursor-pointer border-slate-700/50 hover:border-teal-500/50 transition-all duration-200 hover:shadow-md",
-                          selectedLeadId === lead.id ? "border-teal-500 shadow-lg shadow-teal-500/20" : ""
+                          "cursor-pointer border-slate-800 hover:border-teal-500/40 transition-all duration-350 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-500/50 rounded-2xl",
+                          selectedLeadId === lead.id ? "border-teal-500/60 shadow-lg shadow-teal-500/10 bg-slate-800/20" : ""
                         )}
                         onClick={() => setSelectedLeadId(lead.id)}
                       >
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-lg text-slate-100 font-bold">{lead.companyName}</CardTitle>
-                          <p className="text-xs text-teal-400 mt-1">{lead.websiteUrl || lead.website}</p>
-                          <p className="text-xs text-slate-500 mt-1">Submitted by: {lead.name}</p>
+                        <CardHeader className="pb-3.5 p-5">
+                          <CardTitle className="text-base text-slate-100 font-extrabold">{lead.companyName}</CardTitle>
+                          <p className="text-xs text-teal-400 font-semibold mt-1">{lead.websiteUrl || lead.website}</p>
+                          <p className="text-[10px] text-slate-500 mt-2 font-mono">Lead contact: {lead.name}</p>
                         </CardHeader>
                       </GlassPanel>
                     ))
@@ -622,7 +1125,7 @@ function AgentPortalContent() {
                 </div>
               </div>
 
-              {/* Requirement Details & Matched ICP */}
+              {/* Requirement Dossier Details */}
               <div className="lg:col-span-2">
                 {selectedLeadId ? (
                   (() => {
@@ -635,17 +1138,17 @@ function AgentPortalContent() {
                     const businessModel = matchedCustomer?.businessModel || "b2b";
                     
                     return (
-                      <GlassPanel tilt={false} className="border-slate-700/50 space-y-6">
-                        <CardHeader className="border-b border-slate-800 pb-4">
-                          <div className="flex items-center justify-between">
+                      <GlassPanel tilt={false} className="border-slate-850 p-6 space-y-6">
+                        <CardHeader className="border-b border-slate-850 pb-5 p-0">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
                             <div className="flex items-center gap-3">
-                              <CardTitle className="text-2xl text-slate-100 font-bold">{lead.companyName}</CardTitle>
+                              <CardTitle className="text-xl text-slate-100 font-black">{lead.companyName}</CardTitle>
                               <span className={cn(
-                                "text-xs px-2.5 py-0.5 rounded-full font-extrabold uppercase border",
-                                businessModel === "b2b" ? "bg-indigo-950 border-indigo-800 text-indigo-400" :
-                                businessModel === "b2c" ? "bg-emerald-950 border-emerald-800 text-emerald-400" :
-                                businessModel === "d2c" ? "bg-pink-950 border-pink-800 text-pink-400" :
-                                "bg-amber-950 border-amber-800 text-amber-400"
+                                "text-[10px] px-3 py-0.5 rounded-full font-extrabold uppercase border tracking-widest",
+                                businessModel === "b2b" ? "bg-indigo-950/80 border-indigo-500/30 text-indigo-400" :
+                                businessModel === "b2c" ? "bg-emerald-950/80 border-emerald-500/30 text-emerald-400" :
+                                businessModel === "d2c" ? "bg-pink-950/80 border-pink-500/30 text-pink-400" :
+                                "bg-amber-950/80 border-amber-800/30 text-amber-400"
                               )}>
                                 {businessModel}
                               </span>
@@ -655,147 +1158,52 @@ function AgentPortalContent() {
                                 href={lead.websiteUrl || lead.website}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-sm text-teal-400 hover:underline flex items-center gap-1"
+                                className="text-xs text-teal-400 hover:text-teal-300 font-bold hover:underline flex items-center gap-1.5"
                               >
-                                Visit Website <ChevronRight className="h-4 w-4" />
+                                View Live Site <ChevronRight className="h-3 w-3" />
                               </a>
                             )}
                           </div>
-                          <p className="text-sm text-slate-400 mt-1">Contact: {lead.name} ({lead.emailPersonal})</p>
                         </CardHeader>
-                        <CardContent className="space-y-6 pt-4">
-                          {/* Business Model specifics */}
-                          <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2">
-                            <h4 className="text-sm font-semibold text-teal-400">Business Model Parameters ({businessModel.toUpperCase()})</h4>
-                            {businessModel === "b2b" && (
-                              <div className="text-xs text-slate-300 space-y-1">
-                                <p><strong>Operational Model:</strong> Enterprise Wholesale Deals & Custom Pilot Contracts</p>
-                                <p><strong>Metrics:</strong> Total Contract Value, Wholesale Order Volume, Tiered Discount Rates</p>
-                              </div>
-                            )}
-                            {businessModel === "b2c" && (
-                              <div className="text-xs text-slate-300 space-y-1">
-                                <p><strong>Operational Model:</strong> Direct Retail Storefront & Consumer Transactions</p>
-                                <p><strong>Metrics:</strong> Conversion Rate, Shopping Cart Abandonment, Simulated Checkout Payments</p>
-                              </div>
-                            )}
-                            {businessModel === "d2c" && (
-                              <div className="text-xs text-slate-300 space-y-1">
-                                <p><strong>Operational Model:</strong> Direct-to-Customer Branding & White-Label Customization</p>
-                                <p><strong>Metrics:</strong> Brand Sentiment, Instagram ROI, Custom Stylesheets</p>
-                              </div>
-                            )}
-                            {businessModel === "custom" && (
-                              <div className="text-xs text-slate-300 space-y-1">
-                                <p><strong>Operational Model:</strong> Custom Creator-Brand & Subscription Referrals</p>
-                                <p><strong>Metrics:</strong> System Credit Reserves, Flat Commission Payout Rules</p>
-                              </div>
-                            )}
-                          </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <h4 className="text-md font-semibold text-teal-400 mb-2">Offer Promise & Pain Point</h4>
-                              <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-2">
-                                <p className="text-sm text-slate-200"><strong>Promise:</strong> {lead.offerPromise || "Not specified"}</p>
-                                <p className="text-sm text-slate-200"><strong>Pain Point:</strong> {lead.painPoint || "Not specified"}</p>
-                              </div>
+                        <CardContent className="space-y-6 p-0">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="p-4 rounded-xl bg-slate-900 border border-slate-850">
+                              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Offer Promise</p>
+                              <p className="text-xs text-slate-200 mt-1 font-bold leading-normal">{lead.offerPromise || "Not specified"}</p>
                             </div>
-                            <div>
-                              <h4 className="text-md font-semibold text-teal-400 mb-2">Ideal Customer Profile (ICP)</h4>
-                              <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-2">
-                                <p className="text-sm text-slate-200"><strong>Description:</strong> {lead.icpDescription || "Not specified"}</p>
-                                <p className="text-sm text-slate-200"><strong>Target Industries:</strong> {Array.isArray(lead.targetIndustries) ? lead.targetIndustries.join(", ") : lead.targetIndustries || "Not specified"}</p>
-                              </div>
+                            <div className="p-4 rounded-xl bg-slate-900 border border-slate-850">
+                              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Core Pain Point</p>
+                              <p className="text-xs text-slate-200 mt-1 font-bold leading-normal">{lead.painPoint || "Not specified"}</p>
+                            </div>
+                            <div className="p-4 rounded-xl bg-slate-900 border border-slate-850">
+                              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">ICP Classification</p>
+                              <p className="text-xs text-slate-200 mt-1 font-bold leading-normal">{lead.icpDescription || "Not specified"}</p>
                             </div>
                           </div>
 
-                          <div className="space-y-3">
-                            <h4 className="text-md font-semibold text-teal-400">Targeting Details</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 text-center">
-                                <p className="text-xs text-slate-500 uppercase tracking-wider">Company Sizes</p>
-                                <p className="text-sm text-slate-200 font-semibold mt-1">
-                                  {Array.isArray(lead.targetCompanySizes) ? lead.targetCompanySizes.join(", ") : lead.targetCompanySizes || "Not specified"}
-                                </p>
-                              </div>
-                              <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 text-center">
-                                <p className="text-xs text-slate-500 uppercase tracking-wider">Decision Makers</p>
-                                <p className="text-sm text-slate-200 font-semibold mt-1">
-                                  {Array.isArray(lead.decisionMakers) ? lead.decisionMakers.join(", ") : lead.decisionMakers || "Not specified"}
-                                </p>
-                              </div>
-                              <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800 text-center">
-                                <p className="text-xs text-slate-500 uppercase tracking-wider">Geographics</p>
-                                <p className="text-sm text-slate-200 font-semibold mt-1">
-                                  {lead.targetGeographicRegionsText || (Array.isArray(lead.targetGeographics) ? lead.targetGeographics.join(", ") : "Not specified")}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="border-t border-slate-800 pt-4 space-y-3">
-                            <h4 className="text-md font-semibold text-teal-400">Credibility & Case Studies</h4>
-                            <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/40 p-4 rounded-xl border border-slate-800">
-                              {lead.caseStudies || lead.successStories || "No case studies provided."}
-                            </p>
-                          </div>
-
-                          {/* Assigned Requirements Section */}
+                          {/* Consensus Validation playbooks */}
                           {(() => {
                             try {
                               const blueprint = generateICPDocument(lead as any);
                               return (
-                                <div className="border-t border-slate-800 pt-6 space-y-6">
-                                  <h4 className="text-md font-semibold text-teal-400 flex items-center gap-2">
-                                    <FileText className="h-5 w-5 text-teal-400" />
-                                    Assigned Requirements
+                                <div className="border-t border-slate-850 pt-6 space-y-6">
+                                  <h4 className="text-sm font-bold text-teal-400 flex items-center gap-1.5">
+                                    <FileText className="h-4 w-4 text-teal-400" />
+                                    Consensus GTM Blueprint Analysis
                                   </h4>
 
-                                  {/* Customer Profile Summary */}
-                                  <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/80 space-y-3">
-                                    <h5 className="text-sm font-semibold text-slate-200">Customer Profile Summary</h5>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                      <div>
-                                        <p className="text-xs text-slate-500">Company Name</p>
-                                        <p className="text-sm text-slate-200 font-medium">{blueprint["Assigned Requirements"]["Customer Profile Summary"].companyName}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-slate-500">Website</p>
-                                        <a href={blueprint["Assigned Requirements"]["Customer Profile Summary"].websiteUrl} target="_blank" rel="noreferrer" className="text-sm text-teal-400 hover:underline">
-                                          {blueprint["Assigned Requirements"]["Customer Profile Summary"].websiteUrl}
-                                        </a>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-slate-500">Contact</p>
-                                        <p className="text-sm text-slate-200">{blueprint["Assigned Requirements"]["Customer Profile Summary"].contactName} ({blueprint["Assigned Requirements"]["Customer Profile Summary"].contactEmail})</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-slate-500">Primary Challenge</p>
-                                        <p className="text-sm text-slate-200">{blueprint["Assigned Requirements"]["Customer Profile Summary"].primaryChallenge}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-slate-500">Target Industries</p>
-                                        <p className="text-sm text-slate-200">{blueprint["Assigned Requirements"]["Customer Profile Summary"].targetIndustries.join(", ")}</p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-slate-500">Current Tools</p>
-                                        <p className="text-sm text-slate-200">{blueprint["Assigned Requirements"]["Customer Profile Summary"].currentTools.join(", ")}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Technical Execution Playbook */}
-                                  <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/80 space-y-4">
-                                    <h5 className="text-sm font-semibold text-slate-200">Technical Execution Playbook</h5>
+                                  {/* Playbook milestones outline */}
+                                  <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-850 space-y-4">
+                                    <h5 className="text-xs font-bold text-slate-300">Technical Execution Playbook Steps</h5>
                                     {Object.entries(blueprint["Assigned Requirements"]["Technical Execution Playbook"]).map(([phase, steps]) => (
                                       <div key={phase} className="space-y-2">
-                                        <p className="text-xs font-bold text-teal-400 uppercase tracking-wider">{phase}</p>
-                                        <div className="grid grid-cols-1 gap-2">
+                                        <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">{phase}</p>
+                                        <div className="grid grid-cols-1 gap-2.5">
                                           {steps.map((step, i) => (
-                                            <div key={i} className="flex items-start gap-2 text-xs text-slate-300">
-                                              <div className="mt-1 h-4 w-4 rounded-full border border-teal-500/50 flex items-center justify-center">
-                                                <div className="h-2 w-2 rounded-full bg-teal-500" />
+                                            <div key={i} className="flex items-start gap-2.5 text-xs text-slate-300 leading-normal">
+                                              <div className="mt-1 h-3.5 w-3.5 rounded-full border border-teal-500/50 flex items-center justify-center shrink-0">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-teal-400" />
                                               </div>
                                               <p>{step}</p>
                                             </div>
@@ -805,66 +1213,24 @@ function AgentPortalContent() {
                                     ))}
                                   </div>
 
-                                  {/* Dynamic GTM Blueprint (Technical Integration) */}
-                                  <div className="space-y-4">
-                                    <h5 className="text-md font-semibold text-teal-400 flex items-center gap-2">
-                                      <Zap className="h-5 w-5 text-teal-400 animate-pulse" />
-                                      Dynamic GTM Blueprint (Technical Integration)
-                                    </h5>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                      <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/80">
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Memory OS (Hermes) Alignment</p>
-                                        <p className="text-xs text-slate-300 leading-relaxed">
-                                          {blueprint["Technical Product Value Proposition Alignment"]?.["Memory OS (Hermes) Alignment"] || "Aligning memory parameters..."}
-                                        </p>
-                                      </div>
-                                      <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/80">
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Agent Security (Clawpatrol) Alignment</p>
-                                        <p className="text-xs text-slate-300 leading-relaxed">
-                                          {blueprint["Technical Product Value Proposition Alignment"]?.["Agent Security Firewall (Clawpatrol) Alignment"] || "Applying compliance firewalls..."}
-                                        </p>
-                                      </div>
-                                      <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/80">
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Multi-Agent Framework Alignment</p>
-                                        <p className="text-xs text-slate-300 leading-relaxed">
-                                          {blueprint["Technical Product Value Proposition Alignment"]?.["Multi-Agent Framework Alignment"] || "Orchestrating agent collaboration..."}
-                                        </p>
-                                      </div>
-                                      <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/80">
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">TAM & Competitor Estimates</p>
-                                        <p className="text-xs text-slate-300 leading-relaxed">
-                                          <strong>TAM 2026:</strong> {blueprint["Market Sizing & Competitor Estimates"]?.["TAM 2026 Consensus"]}<br/>
-                                          <strong>CAGR:</strong> {blueprint["Market Sizing & Competitor Estimates"]?.["Consensus Growth CAGR"]}<br/>
-                                          <strong>Competitors:</strong> {blueprint["Market Sizing & Competitor Estimates"]?.["Competitor Market Shares"]}
-                                        </p>
-                                      </div>
+                                  {/* Dynamic estimates */}
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-850">
+                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Memory OS (Hermes) Parameters</p>
+                                      <p className="text-xs text-slate-300 leading-relaxed">
+                                        {blueprint["Technical Product Value Proposition Alignment"]?.["Memory OS (Hermes) Alignment"]}
+                                      </p>
                                     </div>
-                                    <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/80">
-                                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Consensus Validation Log</p>
-                                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                                        <div>
-                                          <span className="text-slate-500 block text-[10px] uppercase">Status:</span>
-                                          <span className="text-green-400 font-semibold">{blueprint["Consensus Validation Log"]?.["Verification Status"]}</span>
-                                        </div>
-                                        <div>
-                                          <span className="text-slate-500 block text-[10px] uppercase">CoV Check:</span>
-                                          <span className="text-slate-300">{blueprint["Consensus Validation Log"]?.["Coefficient of Variation Check"]}</span>
-                                        </div>
-                                        <div>
-                                          <span className="text-slate-500 block text-[10px] uppercase">MoE Check:</span>
-                                          <span className="text-slate-300">{blueprint["Consensus Validation Log"]?.["Margin of Error (95%) Check"]}</span>
-                                        </div>
-                                        <div>
-                                          <span className="text-slate-500 block text-[10px] uppercase">Audit Stamp:</span>
-                                          <span className="text-slate-300 font-mono text-[10px]">{blueprint["Consensus Validation Log"]?.["Audit Integrity Stamp"]}</span>
-                                        </div>
-                                      </div>
+                                    <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-850">
+                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Compliance OS (Clawpatrol)</p>
+                                      <p className="text-xs text-slate-300 leading-relaxed">
+                                        {blueprint["Technical Product Value Proposition Alignment"]?.["Agent Security Firewall (Clawpatrol) Alignment"]}
+                                      </p>
                                     </div>
                                   </div>
                                 </div>
                               );
                             } catch (e) {
-                              console.error("Failed to render assigned requirements:", e);
                               return null;
                             }
                           })()}
@@ -873,11 +1239,11 @@ function AgentPortalContent() {
                     );
                   })()
                 ) : (
-                  <GlassPanel tilt={false} className="border-slate-700/50">
-                    <CardContent className="py-16 text-center">
-                      <Users className="h-20 w-20 text-slate-700 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-slate-300 mb-1">Select a requirement</h3>
-                      <p className="text-slate-500">Choose a requirement from the list to view its matched ICP details</p>
+                  <GlassPanel tilt={false} className="border-slate-800">
+                    <CardContent className="py-20 text-center">
+                      <Users className="h-14 w-14 text-slate-700 mx-auto mb-4" />
+                      <h3 className="text-lg font-bold text-slate-300">Select a requirement</h3>
+                      <p className="text-slate-500 text-xs mt-1">Choose a requirement from the list to view its matched ICP details</p>
                     </CardContent>
                   </GlassPanel>
                 )}
@@ -887,71 +1253,44 @@ function AgentPortalContent() {
 
           {activeTab === "icp-entries" && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-slate-100">Assigned ICP Entries</h2>
+              <h2 className="text-xl font-bold text-slate-100">Assigned ICP Entries</h2>
               {icpEntries.length === 0 ? (
-                <GlassPanel tilt={false} className="border-slate-700/50">
-                  <CardContent className="py-16 text-center">
-                    <FileText className="h-20 w-20 text-slate-700 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-slate-300 mb-1">No ICP entries yet</h3>
-                    <p className="text-slate-500">ICP entries submitted by customers will appear here</p>
+                <GlassPanel tilt={false} className="border-slate-800">
+                  <CardContent className="py-20 text-center">
+                    <FileText className="h-16 w-16 text-slate-700 mx-auto mb-4" />
+                    <h3 className="text-lg font-bold text-slate-300">No ICP entries yet</h3>
+                    <p className="text-slate-500 text-xs mt-1">ICP entries submitted by customers will appear here</p>
                   </CardContent>
                 </GlassPanel>
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {icpEntries.map((entry) => (
-                    <GlassPanel key={entry.id} tilt={true} className="border-slate-700/50">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-xl text-slate-100 font-bold">{entry.name}</CardTitle>
-                          <span className={cn(
-                            "px-3 py-1 rounded-full text-xs font-semibold",
-                            entry.status === "active" ? "bg-green-500/15 text-green-400"
-                              : entry.status === "draft" ? "bg-yellow-500/15 text-yellow-400"
-                              : "bg-slate-500/15 text-slate-400"
-                          )}>{entry.status}</span>
+                    <GlassPanel key={entry.id} tilt={true} className="border-slate-800/80 p-5 rounded-2xl space-y-4">
+                      <CardHeader className="p-0 flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="text-base text-slate-100 font-extrabold">{entry.name}</CardTitle>
+                          <p className="text-xs text-slate-500 mt-1">Submitter: {entry.customerName}</p>
                         </div>
-                        <p className="text-sm text-slate-400 mt-1">
-                          Customer: {entry.customerName}
-                        </p>
+                        <span className={cn(
+                          "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border",
+                          entry.status === "active" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                            : entry.status === "draft" ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                            : "bg-slate-800 border-slate-750 text-slate-400"
+                        )}>{entry.status}</span>
                       </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-slate-300">{entry.description}</p>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <CardContent className="p-0 space-y-3">
+                        <p className="text-xs text-slate-300 leading-relaxed">{entry.description}</p>
+                        <div className="border-t border-slate-850 pt-3 grid grid-cols-2 gap-2 text-[10px] leading-snug">
                           {entry.targetIndustries?.length > 0 && (
-                            <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Target Industries</p>
-                              <p className="text-slate-200">{entry.targetIndustries.join(", ")}</p>
+                            <div>
+                              <span className="text-slate-500 block uppercase font-bold mb-0.5">Industries</span>
+                              <span className="text-slate-300">{entry.targetIndustries.join(", ")}</span>
                             </div>
                           )}
                           {entry.targetCompanySizes?.length > 0 && (
-                            <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Company Sizes</p>
-                              <p className="text-slate-200">{entry.targetCompanySizes.join(", ")}</p>
-                            </div>
-                          )}
-                          {entry.targetGeographicRegions?.length > 0 && (
-                            <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Geographic Regions</p>
-                              <p className="text-slate-200">{entry.targetGeographicRegions.join(", ")}</p>
-                            </div>
-                          )}
-                          {entry.decisionMakers?.length > 0 && (
-                            <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Decision Makers</p>
-                              <p className="text-slate-200">{entry.decisionMakers.join(", ")}</p>
-                            </div>
-                          )}
-                          {entry.painPoints?.length > 0 && (
-                            <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Pain Points</p>
-                              <p className="text-slate-200">{entry.painPoints.join(", ")}</p>
-                            </div>
-                          )}
-                          {entry.valueProposition && (
-                            <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Value Proposition</p>
-                              <p className="text-slate-200">{entry.valueProposition}</p>
+                            <div>
+                              <span className="text-slate-500 block uppercase font-bold mb-0.5">Sizes</span>
+                              <span className="text-slate-300">{entry.targetCompanySizes.join(", ")}</span>
                             </div>
                           )}
                         </div>
@@ -963,297 +1302,812 @@ function AgentPortalContent() {
             </div>
           )}
 
-          {activeTab === "workspace" && (
-            <div className="space-y-8">
-              <GlassPanel tilt={false} className="border-slate-700/50">
-                <CardHeader className="border-b border-slate-800 pb-4">
-                  <CardTitle className="text-2xl text-slate-100 font-bold flex items-center gap-3">
-                    <Briefcase className="h-7 w-7 text-teal-400" />
-                    Marketing & Outreach Workspace
+          {activeTab === "tasks" && (
+            <div className="space-y-6">
+              {/* Task Controls Header */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Interactive Kanban Board</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Drag, click, and manage campaign task milestones</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-64">
+                    <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search tasks..."
+                      className="bg-slate-900 border-slate-850 pl-9 text-xs rounded-xl h-9"
+                    />
+                  </div>
+                  <ExtrudedButton
+                    className="bg-teal-600 hover:bg-teal-700 text-xs gap-1.5 h-9"
+                    onClick={() => {
+                      const demoTask = {
+                        id: `task-new-${Date.now()}`,
+                        title: `Custom SDR Outreach - ${customerName}`,
+                        description: "Initiate outreach sequence targeting newly imported decision makers.",
+                        status: "todo" as const,
+                        assignedAgentId: currentAgentId,
+                        customerId: "customer-demo",
+                        priority: "high" as const,
+                        progressNotes: ["Manually triggered from task planner."],
+                        milestones: [
+                          { id: "m1", title: "Map company decision makers", completed: false },
+                          { id: "m2", title: "Draft outreach script templates", completed: false }
+                        ],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                      };
+                      setTasks([demoTask, ...tasks]);
+                      showToast("success", "Task Created", "Appended new item to your Todo column.");
+                    }}
+                  >
+                    <Plus className="h-4 w-4" /> Add Task
+                  </ExtrudedButton>
+                </div>
+              </div>
+
+              {/* 3-Column Kanban Board Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Column lists (10 cols combined) */}
+                <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  
+                  {/* Column 1: TODO */}
+                  <div className="bg-slate-950/60 border border-slate-850 rounded-2xl p-4 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-850 pb-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-2 w-2 rounded-full bg-slate-500" />
+                        <span className="text-xs font-bold text-slate-300">To Do</span>
+                      </div>
+                      <span className="text-[10px] bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 font-bold">
+                        {agentTasks.filter(t => t.status === "todo").length}
+                      </span>
+                    </div>
+                    <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                      {agentTasks.filter(t => t.status === "todo").map(t => (
+                        <div
+                          key={t.id}
+                          onClick={() => setSelectedTaskId(t.id)}
+                          className={cn(
+                            "p-4 rounded-xl border bg-slate-900/60 transition-all cursor-pointer hover:border-slate-650",
+                            selectedTaskId === t.id ? "border-teal-500 bg-slate-800/40" : "border-slate-850"
+                          )}
+                        >
+                          <h4 className="text-xs font-bold text-white line-clamp-1">{t.title}</h4>
+                          <p className="text-[10px] text-slate-400 mt-1.5 line-clamp-2">{t.description}</p>
+                          <div className="mt-3 flex items-center justify-between text-[9px]">
+                            <span className="bg-red-500/10 border border-red-500/25 px-2 py-0.5 rounded-full text-red-400 font-extrabold uppercase">
+                              {t.priority}
+                            </span>
+                            <span className="text-slate-500">
+                              {t.milestones.filter((m: any) => m.completed).length}/{t.milestones.length} milestones
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Column 2: IN PROGRESS & BLOCKED */}
+                  <div className="bg-slate-950/60 border border-slate-850 rounded-2xl p-4 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-850 pb-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-2 w-2 rounded-full bg-amber-500" />
+                        <span className="text-xs font-bold text-amber-300">In Progress</span>
+                      </div>
+                      <span className="text-[10px] bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 font-bold">
+                        {agentTasks.filter(t => t.status === "in-progress" || t.status === "blocked").length}
+                      </span>
+                    </div>
+                    <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                      {agentTasks.filter(t => t.status === "in-progress" || t.status === "blocked").map(t => (
+                        <div
+                          key={t.id}
+                          onClick={() => setSelectedTaskId(t.id)}
+                          className={cn(
+                            "p-4 rounded-xl border bg-slate-900/60 transition-all cursor-pointer hover:border-slate-650",
+                            selectedTaskId === t.id ? "border-teal-500 bg-slate-800/40" : "border-slate-850"
+                          )}
+                        >
+                          <h4 className="text-xs font-bold text-white line-clamp-1">{t.title}</h4>
+                          <p className="text-[10px] text-slate-400 mt-1.5 line-clamp-2">{t.description}</p>
+                          <div className="mt-3 flex items-center justify-between text-[9px]">
+                            <span className={cn(
+                              "px-2 py-0.5 rounded-full font-extrabold uppercase border",
+                              t.status === "blocked" ? "bg-rose-500/10 border-rose-500/20 text-rose-400" : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                            )}>
+                              {t.status === "blocked" ? "Blocked" : t.priority}
+                            </span>
+                            <span className="text-slate-500">
+                              {t.milestones.filter((m: any) => m.completed).length}/{t.milestones.length} milestones
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Column 3: COMPLETED */}
+                  <div className="bg-slate-950/60 border border-slate-850 rounded-2xl p-4 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-850 pb-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                        <span className="text-xs font-bold text-emerald-300">Completed</span>
+                      </div>
+                      <span className="text-[10px] bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 font-bold">
+                        {agentTasks.filter(t => t.status === "completed").length}
+                      </span>
+                    </div>
+                    <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                      {agentTasks.filter(t => t.status === "completed").map(t => (
+                        <div
+                          key={t.id}
+                          onClick={() => setSelectedTaskId(t.id)}
+                          className={cn(
+                            "p-4 rounded-xl border bg-slate-900/60 transition-all cursor-pointer hover:border-slate-650 opacity-75",
+                            selectedTaskId === t.id ? "border-teal-500 bg-slate-800/40" : "border-slate-850"
+                          )}
+                        >
+                          <h4 className="text-xs font-bold text-white line-clamp-1 line-through">{t.title}</h4>
+                          <p className="text-[10px] text-slate-500 mt-1.5 line-clamp-2">{t.description}</p>
+                          <div className="mt-3 flex items-center justify-between text-[9px]">
+                            <span className="bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-full text-emerald-400 font-extrabold uppercase">
+                              Done
+                            </span>
+                            <span className="text-slate-500">
+                              All done
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Task Inspector Sidebar (4 cols) */}
+                <div className="lg:col-span-4">
+                  {selectedTaskId ? (
+                    (() => {
+                      const task = tasks.find((t) => t.id === selectedTaskId);
+                      if (!task) return null;
+                      return (
+                        <GlassPanel tilt={false} className="border-slate-855 p-5 space-y-5">
+                          <div className="flex items-start justify-between border-b border-slate-850 pb-4">
+                            <div>
+                              <h4 className="text-sm font-extrabold text-white leading-snug">{task.title}</h4>
+                              <p className="text-[9px] text-slate-500 font-mono mt-1">ID: {task.id}</p>
+                            </div>
+                            <button
+                              onClick={() => setSelectedTaskId(null)}
+                              className="text-slate-500 hover:text-white"
+                            >
+                              <X className="h-4.5 w-4.5" />
+                            </button>
+                          </div>
+
+                          {/* Quick details */}
+                          <div className="space-y-3">
+                            <label className="text-[9px] text-slate-500 uppercase tracking-widest font-semibold block">Task Description</label>
+                            <p className="text-xs text-slate-300 leading-normal bg-slate-950 p-3 rounded-lg border border-slate-900">{task.description}</p>
+                          </div>
+
+                          {/* Status selectors */}
+                          <div className="space-y-2">
+                            <label className="text-[9px] text-slate-500 uppercase tracking-widest font-semibold block">Workflow Status</label>
+                            <select
+                              value={task.status}
+                              onChange={(e) => updateTaskStatus(task.id, e.target.value as TaskStatus)}
+                              className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                            >
+                              <option value="todo">To Do</option>
+                              <option value="in-progress">In Progress</option>
+                              <option value="completed">Completed</option>
+                              <option value="blocked">Blocked</option>
+                            </select>
+                          </div>
+
+                          {/* Milestones list */}
+                          <div className="space-y-2">
+                            <label className="text-[9px] text-slate-500 uppercase tracking-widest font-semibold block">Requirement Checklists</label>
+                            <div className="space-y-2">
+                              {task.milestones.map((m: any) => (
+                                <button
+                                  key={m.id}
+                                  onClick={() => toggleMilestone(task.id, m.id)}
+                                  className="w-full text-left flex items-center gap-2.5 p-2 bg-slate-950/60 hover:bg-slate-900 border border-slate-900 rounded-lg text-xs transition-colors"
+                                >
+                                  <div className={cn(
+                                    "h-4 w-4 rounded border flex items-center justify-center",
+                                    m.completed ? "bg-emerald-500/20 border-emerald-500 text-emerald-400" : "border-slate-700"
+                                  )}>
+                                    {m.completed && <Check className="h-3 w-3" />}
+                                  </div>
+                                  <span className={cn(m.completed && "line-through text-slate-500")}>{m.title}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Progress notes */}
+                          <div className="space-y-3">
+                            <label className="text-[9px] text-slate-500 uppercase tracking-widest font-semibold block">SDR Log Notes</label>
+                            <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                              {task.progressNotes.map((note: string, i: number) => (
+                                <div key={i} className="p-2.5 bg-slate-950/90 text-[11px] border border-slate-900 rounded-lg text-slate-300 leading-normal">
+                                  {note}
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex gap-1.5 mt-2">
+                              <Input
+                                value={newNote}
+                                onChange={(e) => setNewNote(e.target.value)}
+                                placeholder="Add note..."
+                                className="bg-slate-950 border-slate-850 text-xs rounded-xl h-8 py-0"
+                              />
+                              <Button
+                                onClick={handleAddNote}
+                                disabled={isAddingNote || !newNote.trim()}
+                                className="bg-slate-800 hover:bg-slate-700 h-8 text-[11px] px-3 font-semibold rounded-xl"
+                              >
+                                Log
+                              </Button>
+                            </div>
+                          </div>
+                        </GlassPanel>
+                      );
+                    })()
+                  ) : (
+                    <GlassPanel tilt={false} className="border-slate-850 p-6 text-center h-48 flex flex-col items-center justify-center">
+                      <CheckCircle2 className="h-10 w-10 text-slate-700 mb-2" />
+                      <p className="text-slate-400 text-xs font-semibold">Select a task card</p>
+                      <p className="text-slate-550 text-[10px] max-w-[150px] mt-1 mx-auto leading-normal">
+                        Click on any card in the Kanban columns to inspect and complete milestones.
+                      </p>
+                    </GlassPanel>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "chat" && (
+            <GlassPanel tilt={false} className="border-slate-850 h-[650px] flex flex-col overflow-hidden">
+              <CardHeader className="border-b border-slate-850 p-5 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-slate-100 flex items-center gap-2 font-black text-lg">
+                    <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Secure Customer Console
                   </CardTitle>
-                  <p className="text-slate-400 text-sm mt-1">
-                    Comprehensive library of outreach, content, and engagement strategies
-                  </p>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-8">
-                  {/* Outreach & Direct Engagement */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-5 w-5 text-teal-400" />
-                      <h3 className="text-xl font-bold text-slate-100">Outreach & Direct Engagement</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                      {[
-                        "Cold email outreach (sequences, personalization at scale)",
-                        "LinkedIn outreach / social selling",
-                        "Cold calling / SDR outreach",
-                        "Account-based marketing (ABM) campaigns"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-teal-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
+                  <p className="text-slate-400 text-xs">Chatting with {customerName} (Online)</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-slate-400">
+                    ID: {currentAgentId}
+                  </span>
+                </div>
+              </CardHeader>
+
+              <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+                {/* Message Log */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin">
+                  {chatMessages.map((msg) => {
+                    const isSelf = msg.senderId === currentAgentId;
+                    return (
+                      <div
+                        key={msg.id}
+                        className={cn("flex", isSelf ? "justify-end" : "justify-start")}
+                      >
+                        <div className={cn(
+                          "max-w-[70%] p-4 rounded-2xl shadow-lg border",
+                          isSelf
+                            ? "bg-teal-600/10 border-teal-500/20 text-teal-200 rounded-tr-sm"
+                            : "bg-slate-900 border-slate-850 text-slate-100 rounded-tl-sm"
+                        )}>
+                          <p className="text-[9px] font-extrabold opacity-75 uppercase tracking-widest mb-1.5">{msg.senderName}</p>
+                          <p className="text-xs leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                          
+                          {msg.attachments && msg.attachments.length > 0 && (
+                            <div className="mt-3 space-y-1.5">
+                              {msg.attachments.map((file: any) => (
+                                <a
+                                  key={file.id}
+                                  href={file.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 p-2 bg-slate-950 border border-slate-850 rounded-lg hover:border-slate-650 transition-colors"
+                                >
+                                  <FileText className="h-4.5 w-4.5 text-teal-400" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[11px] font-bold truncate text-slate-200">{file.fileName}</p>
+                                    <p className="text-[9px] text-slate-500">{formatFileSize(file.fileSize)}</p>
+                                  </div>
+                                  <Download className="h-3.5 w-3.5 text-slate-400" />
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                          <p className="text-[8px] text-slate-500 mt-2 text-right">
+                            {new Date(msg.timestamp || "").toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
                         </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Selected File Attachments */}
+                {selectedFiles.length > 0 && (
+                  <div className="px-5 py-2.5 border-t border-slate-850 bg-slate-950/80 flex flex-wrap gap-2">
+                    {selectedFiles.map((file, i) => (
+                      <div key={i} className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-[10px]">
+                        <FileText className="h-3.5 w-3.5 text-teal-400" />
+                        <span className="truncate max-w-[120px] font-medium">{file.name}</span>
+                        <button onClick={() => removeFile(i)} className="text-slate-500 hover:text-white">
+                          <XCircle className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Editor Footer */}
+                <div className="p-4 border-t border-slate-850 bg-slate-900/60 backdrop-blur-md">
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      className="hidden"
+                      onChange={handleFileSelect}
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-10 w-10 border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white"
+                      title="Attach documents"
+                    >
+                      <Upload className="h-4.5 w-4.5" />
+                    </Button>
+                    <Input
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Send message to client..."
+                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
+                      className="bg-slate-950 border-slate-850 text-xs rounded-xl h-10 focus:border-teal-500 flex-1"
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={isSendingMessage || (!newMessage.trim() && selectedFiles.length === 0)}
+                      className="bg-teal-600 hover:bg-teal-500 text-xs font-bold rounded-xl h-10 px-5 flex items-center justify-center gap-1.5"
+                    >
+                      {isSendingMessage ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send"}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </GlassPanel>
+          )}
+
+          {activeTab === "calls" && (
+            <GlassPanel tilt={false} className="border-slate-850">
+              <CardHeader className="border-b border-slate-850 p-5">
+                <CardTitle className="text-slate-100 font-black text-lg">Integrated Outbound SDR Dialer</CardTitle>
+                <p className="text-xs text-slate-400 mt-1">Initiate high-performance AI calls and manage active voice states</p>
+              </CardHeader>
+              
+              <CardContent className="pt-6 space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  {/* Interactive phone dials (7 cols) */}
+                  <div className="lg:col-span-7 flex flex-col md:flex-row items-center justify-center gap-10 bg-slate-950/60 p-6 rounded-2xl border border-slate-850">
+                    
+                    {/* Ringing animations or Standby display */}
+                    <div className="text-center space-y-4">
+                      <div className="relative flex items-center justify-center">
+                        {outboundCallState !== "idle" && (
+                          <div className="absolute inset-0 rounded-full border border-teal-500/20 animate-ping pointer-events-none scale-150" />
+                        )}
+                        <div className={cn(
+                          "w-48 h-48 rounded-full border flex items-center justify-center transition-all duration-500 shadow-2xl relative",
+                          outboundCallState === "ringing" ? "border-amber-500/40 bg-amber-950/20 shadow-amber-500/5 animate-pulse" :
+                          outboundCallState === "connected" ? "border-emerald-500/40 bg-emerald-950/20 shadow-emerald-500/5" :
+                          "border-slate-800 bg-slate-900 shadow-black/60"
+                        )}>
+                          <Phone className={cn(
+                            "h-20 w-20",
+                            outboundCallState === "ringing" ? "text-amber-400" :
+                            outboundCallState === "connected" ? "text-emerald-400" :
+                            "text-slate-600"
+                          )} />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-base font-extrabold text-white">{customerName}</h4>
+                        <p className="text-[11px] text-slate-500 font-mono mt-1">{dialedNumber || "+1 (555) SDR-DIAL"}</p>
+                        
+                        {outboundCallState !== "idle" && (
+                          <div className="mt-3 flex flex-col items-center gap-1">
+                            <span className={cn(
+                              "text-xs font-bold px-3 py-0.5 rounded-full uppercase border",
+                              outboundCallState === "ringing" ? "bg-amber-500/10 border-amber-500/20 text-amber-400" : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                            )}>
+                              {outboundCallState}
+                            </span>
+                            {outboundCallState === "connected" && (
+                              <span className="text-xs font-mono text-slate-400 mt-1">
+                                Duration: {Math.floor(outboundCallDuration / 60)}:{(outboundCallDuration % 60).toString().padStart(2, "0")}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Touch dial pad */}
+                    <div className="w-60 grid grid-cols-3 gap-3">
+                      {["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"].map((digit) => (
+                        <button
+                          key={digit}
+                          onClick={() => appendDialDigit(digit)}
+                          disabled={outboundCallState !== "idle"}
+                          className="h-14 rounded-xl border border-slate-850 bg-slate-900/50 hover:bg-slate-800 text-sm font-bold text-slate-200 transition-all flex items-center justify-center outline-none focus:ring-1 focus:ring-teal-500 active:scale-95 disabled:opacity-50"
+                        >
+                          {digit}
+                        </button>
                       ))}
+                      <button
+                        onClick={() => setDialedNumber("")}
+                        disabled={outboundCallState !== "idle"}
+                        className="h-10 text-[10px] text-slate-500 hover:text-slate-300 font-bold col-span-3 border border-slate-900 bg-slate-950 rounded-lg text-center"
+                      >
+                        Reset Number
+                      </button>
                     </div>
                   </div>
 
-                  {/* Influencer & Creator Partnerships */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Users2 className="h-5 w-5 text-purple-400" />
-                      <h3 className="text-xl font-bold text-slate-100">Influencer & Creator Partnerships</h3>
+                  {/* Outbound call controls (5 cols) */}
+                  <div className="lg:col-span-5 space-y-6">
+                    <div className="bg-slate-900/40 p-5 rounded-2xl border border-slate-850 space-y-5">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Voice Call Controller</h4>
+                      
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Phone (e.g. +1 555 000 0000)"
+                          value={dialedNumber}
+                          onChange={(e) => setDialedNumber(e.target.value)}
+                          disabled={outboundCallState !== "idle"}
+                          className="bg-slate-950 border-slate-850 text-xs rounded-xl h-10 font-mono"
+                        />
+                        {outboundCallState === "idle" ? (
+                          <Button
+                            onClick={() => {
+                              if (!dialedNumber.trim()) {
+                                showToast("error", "Dial Required", "Please dial a number first.");
+                                return;
+                              }
+                              setOutboundCallState("ringing");
+                              showToast("success", "Connecting Call", `SDR channel calling ${dialedNumber}...`);
+                              // Simulate connection
+                              setTimeout(() => {
+                                setOutboundCallState("connected");
+                              }, 3000);
+                            }}
+                            className="bg-green-600 hover:bg-green-500 h-10 px-5 text-xs font-bold rounded-xl flex items-center gap-1.5"
+                          >
+                            <Phone className="h-4 w-4" /> Dial
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => {
+                              setOutboundCallState("idle");
+                              showToast("info", "Call Terminated", "Voice connection closed.");
+                            }}
+                            className="bg-rose-600 hover:bg-rose-500 h-10 px-5 text-xs font-bold rounded-xl flex items-center gap-1.5"
+                          >
+                            <PhoneOff className="h-4 w-4" /> Hangup
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Interactive audio switches */}
+                      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-850">
+                        <button
+                          onClick={() => {
+                            setIsMuted(!isMuted);
+                            showToast("info", isMuted ? "Mic Unmuted" : "Mic Muted", "");
+                          }}
+                          disabled={outboundCallState !== "connected"}
+                          className={cn(
+                            "py-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors",
+                            isMuted ? "bg-red-500/10 border-red-500/35 text-red-400 animate-pulse" : "bg-slate-950 border-slate-900 text-slate-400 hover:bg-slate-900"
+                          )}
+                        >
+                          {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                          {isMuted ? "Muted" : "Mute"}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsHeld(!isHeld);
+                            showToast("info", isHeld ? "Call Retrieved" : "Call on Hold", "");
+                          }}
+                          disabled={outboundCallState !== "connected"}
+                          className={cn(
+                            "py-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors",
+                            isHeld ? "bg-amber-500/10 border-amber-500/35 text-amber-400 animate-pulse" : "bg-slate-950 border-slate-900 text-slate-400 hover:bg-slate-900"
+                          )}
+                        >
+                          {isHeld ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                          {isHeld ? "On Hold" : "Hold"}
+                        </button>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {[
-                        "Affiliate marketing programs",
-                        "PR outreach / journalist pitching (HARO, etc.)"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-purple-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
-                        </div>
-                      ))}
-                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </GlassPanel>
+          )}
+
+          {activeTab === "metrics" && agentMetrics && (
+            <div className="space-y-6">
+              {/* Numerical summary metrics */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <GlassPanel tilt={true} className="border-slate-850 p-5 rounded-2xl relative overflow-hidden group">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Tasks Resolved</span>
+                    <CheckCircle2 className="h-5 w-5 text-teal-400" />
+                  </div>
+                  <p className="text-4xl font-black text-white">{agentMetrics.tasksCompleted}</p>
+                  <p className="text-[10px] text-slate-500 mt-2 font-mono">Total scope: {agentMetrics.totalTasks} tasks assigned</p>
+                </GlassPanel>
+
+                <GlassPanel tilt={true} className="border-slate-850 p-5 rounded-2xl relative overflow-hidden group">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">SDR Avg Speed</span>
+                    <Clock className="h-5 w-5 text-cyan-400" />
+                  </div>
+                  <p className="text-4xl font-black text-white">{Math.round(agentMetrics.averageResolutionTime / 60)}h</p>
+                  <p className="text-[10px] text-slate-500 mt-2 font-mono">Target benchmark: under 24 hours</p>
+                </GlassPanel>
+
+                <GlassPanel tilt={true} className="border-slate-850 p-5 rounded-2xl relative overflow-hidden group">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">CSAT Rating</span>
+                    <Star className="h-5 w-5 text-amber-400 fill-amber-400" />
+                  </div>
+                  <p className="text-4xl font-black text-white">{agentMetrics.averageRating.toFixed(1)}</p>
+                  <p className="text-[10px] text-slate-500 mt-2 font-mono">Consensus: 5-star lead rating</p>
+                </GlassPanel>
+
+                <GlassPanel tilt={true} className="border-slate-850 p-5 rounded-2xl relative overflow-hidden group">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Outreach Touches</span>
+                    <MessageSquare className="h-5 w-5 text-purple-400" />
+                  </div>
+                  <p className="text-4xl font-black text-white">{agentMetrics.totalInteractions}</p>
+                  <p className="text-[10px] text-slate-500 mt-2 font-mono">Total emails, calls & chats logged</p>
+                </GlassPanel>
+              </div>
+
+              {/* Responsive SVG Charts section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* SVG Area Chart: Monthly Outreach Volumes */}
+                <GlassPanel tilt={false} className="border-slate-850 p-5 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-850 pb-3">
+                    <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest">SDR Interactions Volume (Last 6 Months)</h4>
+                    <span className="text-[10px] text-teal-400 font-bold bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20">Active</span>
+                  </div>
+                  
+                  <div className="h-60 w-full relative flex items-center justify-center">
+                    <svg className="w-full h-full" viewBox="0 0 500 220" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.45" />
+                          <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.0" />
+                        </linearGradient>
+                      </defs>
+                      {/* Grid Lines */}
+                      <line x1="50" y1="30" x2="480" y2="30" stroke="#1e293b" strokeDasharray="3" />
+                      <line x1="50" y1="80" x2="480" y2="80" stroke="#1e293b" strokeDasharray="3" />
+                      <line x1="50" y1="130" x2="480" y2="130" stroke="#1e293b" strokeDasharray="3" />
+                      <line x1="50" y1="180" x2="480" y2="180" stroke="#0f172a" />
+                      
+                      {/* Y-Axis Labels */}
+                      <text x="15" y="35" fill="#64748b" fontSize="9" fontWeight="bold">150</text>
+                      <text x="15" y="85" fill="#64748b" fontSize="9" fontWeight="bold">100</text>
+                      <text x="15" y="135" fill="#64748b" fontSize="9" fontWeight="bold">50</text>
+                      <text x="15" y="185" fill="#64748b" fontSize="9" fontWeight="bold">0</text>
+
+                      {/* Area Path */}
+                      <path
+                        d="M 50 180 Q 120 120 150 90 T 250 110 T 350 50 T 450 60 T 480 180 Z"
+                        fill="url(#areaGrad)"
+                      />
+
+                      {/* Line Path */}
+                      <path
+                        d="M 50 180 Q 120 120 150 90 T 250 110 T 350 50 T 450 60 T 480 70"
+                        fill="none"
+                        stroke="#14b8a6"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                      />
+
+                      {/* Data Dots */}
+                      <circle cx="150" cy="90" r="5" fill="#0f172a" stroke="#14b8a6" strokeWidth="2.5" />
+                      <circle cx="250" cy="110" r="5" fill="#0f172a" stroke="#14b8a6" strokeWidth="2.5" />
+                      <circle cx="350" cy="50" r="5" fill="#0f172a" stroke="#14b8a6" strokeWidth="2.5" />
+                      <circle cx="450" cy="60" r="5" fill="#0f172a" stroke="#14b8a6" strokeWidth="2.5" />
+
+                      {/* X-Axis Labels */}
+                      <text x="45" y="205" fill="#64748b" fontSize="9" fontWeight="bold">Jan</text>
+                      <text x="135" y="205" fill="#64748b" fontSize="9" fontWeight="bold">Feb</text>
+                      <text x="235" y="205" fill="#64748b" fontSize="9" fontWeight="bold">Mar</text>
+                      <text x="335" y="205" fill="#64748b" fontSize="9" fontWeight="bold">Apr</text>
+                      <text x="435" y="205" fill="#64748b" fontSize="9" fontWeight="bold">May</text>
+                    </svg>
+                  </div>
+                </GlassPanel>
+
+                {/* SVG Bar Chart: Task Resolution Speeds by Category */}
+                <GlassPanel tilt={false} className="border-slate-850 p-5 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-850 pb-3">
+                    <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest">SDR Campaign Task Speed (Hours)</h4>
+                    <span className="text-[10px] text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">Target: &lt;24h</span>
                   </div>
 
-                  {/* Written Content */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="h-5 w-5 text-blue-400" />
-                      <h3 className="text-xl font-bold text-slate-100">Written Content</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {[
-                        "Blog posts (educational, SEO-focused, thought leadership)",
-                        "Guest posting on other sites",
-                        "Case studies / customer success stories",
-                        "Whitepapers & ebooks (gated for lead gen)",
-                        "Newsletters (email digests)",
-                        "Press releases",
-                        "Comparison pages (\"X vs Y\" content for SEO)",
-                        "Glossary / definition pages (SEO long-tail)",
-                        "Documentation-as-marketing (great docs that rank in search)"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-blue-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <div className="h-60 w-full relative flex items-center justify-center">
+                    <svg className="w-full h-full" viewBox="0 0 500 220" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#06b6d4" />
+                          <stop offset="100%" stopColor="#0891b2" />
+                        </linearGradient>
+                      </defs>
+                      
+                      {/* Grid Lines */}
+                      <line x1="120" y1="20" x2="120" y2="180" stroke="#1e293b" />
+                      <line x1="210" y1="20" x2="210" y2="180" stroke="#1e293b" strokeDasharray="3" />
+                      <line x1="300" y1="20" x2="300" y2="180" stroke="#1e293b" strokeDasharray="3" />
+                      <line x1="390" y1="20" x2="390" y2="180" stroke="#1e293b" strokeDasharray="3" />
+                      <line x1="480" y1="20" x2="480" y2="180" stroke="#1e293b" strokeDasharray="3" />
 
-                  {/* Social Media Posts */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="h-5 w-5 text-pink-400" />
-                      <h3 className="text-xl font-bold text-slate-100">Social Media Posts</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {[
-                        "LinkedIn posts (company page + founder/employee personal brand)",
-                        "Twitter/X threads",
-                        "Instagram posts/reels",
-                        "Facebook posts/ads",
-                        "Reddit engagement (organic, community-driven)",
-                        "Quora answers"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-pink-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                      {/* Bar 1 */}
+                      <text x="10" y="45" fill="#94a3b8" fontSize="10" fontWeight="bold">Outreach</text>
+                      <rect x="120" y="32" width="280" height="18" fill="url(#barGrad)" rx="4" />
+                      <text x="410" y="45" fill="#06b6d4" fontSize="10" fontWeight="bold">14 hrs</text>
 
-                  {/* Video Content */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <VideoIcon className="h-5 w-5 text-emerald-400" />
-                      <h3 className="text-xl font-bold text-slate-100">Video Content</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                      {[
-                        "Auto video generation (AI tools turning blog posts/scripts into videos)",
-                        "Explainer videos / product demos",
-                        "YouTube tutorials",
-                        "Short-form video (Reels, TikTok, YouTube Shorts)",
-                        "Webinars (live + recorded)",
-                        "Customer testimonial videos",
-                        "Founder vlogs / behind-the-scenes",
-                        "Animated product walkthroughs"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-emerald-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                      {/* Bar 2 */}
+                      <text x="10" y="85" fill="#94a3b8" fontSize="10" fontWeight="bold">Written</text>
+                      <rect x="120" y="72" width="180" height="18" fill="url(#barGrad)" rx="4" />
+                      <text x="310" y="85" fill="#06b6d4" fontSize="10" fontWeight="bold">9 hrs</text>
 
-                  {/* Audio */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Music2 className="h-5 w-5 text-yellow-400" />
-                      <h3 className="text-xl font-bold text-slate-100">Audio</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {[
-                        "Podcasts (own podcast + guest appearances)",
-                        "AI-generated audio summaries of content"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-yellow-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                      {/* Bar 3 */}
+                      <text x="10" y="125" fill="#94a3b8" fontSize="10" fontWeight="bold">Social Media</text>
+                      <rect x="120" y="112" width="340" height="18" fill="url(#barGrad)" rx="4" />
+                      <text x="470" y="125" fill="#06b6d4" fontSize="10" fontWeight="bold">18 hrs</text>
 
-                  {/* Visual/Design Content */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <PenTool className="h-5 w-5 text-indigo-400" />
-                      <h3 className="text-xl font-bold text-slate-100">Visual/Design Content</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {[
-                        "Infographics",
-                        "Carousel posts (LinkedIn/Instagram)",
-                        "Memes (industry-specific humor)",
-                        "Data visualizations / original research graphics",
-                        "Slide decks shared publicly (SlideShare-style)"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-indigo-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
-                        </div>
-                      ))}
-                    </div>
+                      {/* Bar 4 */}
+                      <text x="10" y="165" fill="#94a3b8" fontSize="10" fontWeight="bold">Audio/Video</text>
+                      <rect x="120" y="152" width="220" height="18" fill="url(#barGrad)" rx="4" />
+                      <text x="350" y="165" fill="#06b6d4" fontSize="10" fontWeight="bold">11 hrs</text>
+                      
+                      {/* Scale Labels */}
+                      <text x="115" y="200" fill="#64748b" fontSize="8" fontWeight="bold">0h</text>
+                      <text x="205" y="200" fill="#64748b" fontSize="8" fontWeight="bold">6h</text>
+                      <text x="295" y="200" fill="#64748b" fontSize="8" fontWeight="bold">12h</text>
+                      <text x="385" y="200" fill="#64748b" fontSize="8" fontWeight="bold">18h</text>
+                      <text x="470" y="200" fill="#64748b" fontSize="8" fontWeight="bold">24h</text>
+                    </svg>
                   </div>
+                </GlassPanel>
 
-                  {/* AI-Generated / Automated Content */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Brain className="h-5 w-5 text-purple-400" />
-                      <h3 className="text-xl font-bold text-slate-100">AI-Generated / Automated Content</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                      {[
-                        "AI blog post generation (then human-edited)",
-                        "AI video generation (Synthesia, HeyGen-style avatar videos)",
-                        "AI image generation for visuals",
-                        "AI-personalized email content",
-                        "Auto-generated social posts from long-form content (repurposing)",
-                        "AI voiceovers for videos",
-                        "Chatbot-driven content delivery"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-purple-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              </div>
+            </div>
+          )}
 
-                  {/* SEO-Specific Tactics */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <SearchIcon className="h-5 w-5 text-green-400" />
-                      <h3 className="text-xl font-bold text-slate-100">SEO-Specific Tactics</h3>
+          {activeTab === "credits" && agentCredits && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Credits Overview */}
+              <div className="lg:col-span-1 space-y-6">
+                <GlassPanel tilt={true} className="border-violet-800/40">
+                  <CardContent className="pt-8 pb-6 p-5">
+                    <div className="text-center space-y-4">
+                      <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-violet-600/10 border border-violet-500/20">
+                        <Zap className="h-10 w-10 text-violet-400 animate-pulse" />
+                      </div>
+                      <div>
+                        <p className="text-violet-300 text-xs uppercase tracking-wider font-extrabold">Available Credits</p>
+                        <p className="text-6xl font-black text-white mt-1.5">{agentCredits.balance}</p>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                      {[
-                        "Keyword-targeted landing pages",
-                        "Programmatic SEO (auto-generated pages at scale, e.g., \"best tool for X city/industry\")",
-                        "Backlink building campaigns",
-                        "Internal linking strategy content"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-green-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
-                        </div>
-                      ))}
+                    <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-slate-850 text-center">
+                      <div>
+                        <p className="text-slate-500 text-[10px] uppercase tracking-wider font-bold">Total Earned</p>
+                        <p className="text-lg font-extrabold text-emerald-400 mt-1">{agentCredits.totalEarned}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 text-[10px] uppercase tracking-wider font-bold">Total Spent</p>
+                        <p className="text-lg font-extrabold text-rose-400 mt-1">{agentCredits.totalSpent}</p>
+                      </div>
                     </div>
-                  </div>
+                    <ExtrudedButton className="w-full mt-6 bg-violet-600 hover:bg-violet-500 h-11 text-xs gap-2">
+                      Purchase Resource Credits
+                    </ExtrudedButton>
+                  </CardContent>
+                </GlassPanel>
+              </div>
 
-                  {/* Paid Promotion */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-5 w-5 text-orange-400" />
-                      <h3 className="text-xl font-bold text-slate-100">Paid Promotion</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {[
-                        "Google Ads / search ads",
-                        "LinkedIn Ads",
-                        "Retargeting ads",
-                        "Sponsored newsletter placements",
-                        "Podcast sponsorships"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-orange-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
+              {/* Transactions list */}
+              <div className="lg:col-span-2">
+                <GlassPanel tilt={false} className="border-slate-850 p-5 rounded-2xl">
+                  <CardHeader className="p-0 flex flex-row items-center justify-between mb-5">
+                    <CardTitle className="text-slate-100 font-extrabold text-base">Transaction Logs</CardTitle>
+                    <ExtrudedButton variant="outline" size="sm" className="gap-1.5 h-8 text-[11px]">
+                      <Filter className="h-3.5 w-3.5" />
+                      Filter Logs
+                    </ExtrudedButton>
+                  </CardHeader>
+                  <CardContent className="divide-y divide-slate-900 p-0">
+                    {agentCredits.transactions.map((tx) => (
+                      <div
+                        key={tx.id}
+                        className="flex items-center justify-between py-4 first:pt-0 last:pb-0 text-xs"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "h-9.5 w-9.5 rounded-full flex items-center justify-center border",
+                            tx.amount > 0 ? "bg-emerald-500/10 border-emerald-500/20" : "bg-rose-500/10 border-rose-500/20"
+                          )}>
+                            <Zap className={cn(
+                              "h-4 w-4",
+                              tx.amount > 0 ? "text-emerald-400" : "text-rose-400"
+                            )} />
+                          </div>
+                          <div>
+                            <p className="text-slate-200 font-bold">{tx.description}</p>
+                            <p className="text-slate-500 text-[10px] mt-1">
+                              {new Date(tx.createdAt).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </p>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Community-Driven Content */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Users3 className="h-5 w-5 text-cyan-400" />
-                      <h3 className="text-xl font-bold text-slate-100">Community-Driven Content</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                      {[
-                        "User-generated content (UGC) campaigns",
-                        "Review site presence (G2, Capterra, TrustRadius)",
-                        "Community Q&A / forums",
-                        "Open-source contributions (if applicable) as marketing"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-cyan-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Events */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <CalendarCheck className="h-5 w-5 text-rose-400" />
-                      <h3 className="text-xl font-bold text-slate-100">Events</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                      {[
-                        "Webinars",
-                        "Virtual summits / conferences",
-                        "Local meetups",
-                        "Trade show presence"
-                      ].map((item, i) => (
-                        <div key={i} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 hover:border-rose-500/40 transition-all">
-                          <p className="text-sm text-slate-200">{item}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </GlassPanel>
+                        <p className={cn(
+                          "text-base font-extrabold",
+                          tx.amount > 0 ? "text-emerald-400" : "text-rose-400"
+                        )}>
+                          {tx.amount > 0 ? "+" : ""}{tx.amount}
+                        </p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </GlassPanel>
+              </div>
             </div>
           )}
 
           {activeTab === "playbook" && (
-            <GlassPanel tilt={false} className="border-slate-700/50">
-              <CardHeader className="border-b border-slate-800 pb-4 flex flex-row items-center justify-between flex-wrap gap-4">
+            <GlassPanel tilt={false} className="border-slate-850 p-6 rounded-2xl">
+              <CardHeader className="border-b border-slate-850 pb-5 p-0 flex flex-row items-center justify-between flex-wrap gap-4 mb-5">
                 <div>
-                  <CardTitle className="text-2xl text-slate-100 font-bold flex items-center gap-3">
-                    {selectedLead ? `${selectedLead.companyName} ICP Playbook` : "ICP Playbook"}
-                    {selectedLead && (
-                      <span className="text-xs font-semibold text-teal-400 border border-teal-500/30 bg-teal-500/15 px-2.5 py-1 rounded-full">
-                        Custom
-                      </span>
-                    )}
+                  <CardTitle className="text-lg text-slate-100 font-black flex items-center gap-2">
+                    {selectedLead ? `${selectedLead.companyName} Custom ICP Playbook` : "Playbook Guidelines"}
                   </CardTitle>
-                  <p className="text-slate-400 text-sm mt-1">
-                    {selectedLead 
-                      ? `Dynamic ICP Playbook for ${selectedLead.companyName}` 
-                      : "Read the official DealFlow ICP Playbook guidelines"}
+                  <p className="text-slate-400 text-xs mt-1">
+                    SDR compliance guidelines and verified outreach templates
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {selectedLead && (
                     <ExtrudedButton
-                      className="bg-gradient-to-r from-violet-600 to-pink-600 text-white font-semibold"
+                      className="bg-gradient-to-r from-violet-600 to-pink-600 text-white font-bold h-9 text-xs"
                       onClick={() => {
                         try {
                           const content = generateICPDocument(selectedLead as any);
@@ -1270,958 +2124,143 @@ function AgentPortalContent() {
                       }}
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Export Playbook
+                      Export Playbook JSON
                     </ExtrudedButton>
                   )}
-                  <a
-                    href="/docs/DealFlow-ICP-Playbook-FINAL.pdf"
-                    download
-                    className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-semibold px-4 py-2 rounded-xl transition-colors shadow-lg shadow-teal-600/20"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download PDF
-                  </a>
                 </div>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="p-0">
                 {selectedLead ? (
                   <div className="space-y-6">
-                    {/* Dynamic GTM Blueprint */}
-                    {(() => {
-                      try {
-                        const content = generateICPDocument(selectedLead as any);
-                        return (
-                          <div className="space-y-4">
-                            <div className="bg-gradient-to-br from-slate-900/70 to-slate-950/80 border border-slate-700/60 rounded-2xl p-6 space-y-5">
-                              <div className="flex items-center gap-2">
-                                <Zap className="h-5 w-5 text-teal-400 animate-pulse" />
-                                <h3 className="text-lg font-bold text-slate-100">Dynamic ICP & GTM Blueprint</h3>
+                    <div className="bg-slate-900 border border-slate-850 rounded-2xl p-5 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-4 w-4 text-teal-400 animate-pulse" />
+                        <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest">Playbook Metadata Analysis</h4>
+                      </div>
+                      
+                      {(() => {
+                        try {
+                          const content = generateICPDocument(selectedLead as any);
+                          return (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                              <div className="p-3 bg-slate-950 rounded-xl border border-slate-900 leading-relaxed">
+                                <strong className="text-slate-400 block mb-1">Hermes OS Alignment:</strong>
+                                {content["Technical Product Value Proposition Alignment"]?.["Memory OS (Hermes) Alignment"]}
                               </div>
-                              
-                              {/* Technical Alignment */}
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
-                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Memory OS (Hermes)</h4>
-                                  <p className="text-sm text-slate-300 leading-relaxed">
-                                    {content["Technical Product Value Proposition Alignment"]?.["Memory OS (Hermes) Alignment"] || "Aligning memory parameters..."}
-                                  </p>
-                                </div>
-                                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
-                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Agent Security</h4>
-                                  <p className="text-sm text-slate-300 leading-relaxed">
-                                    {content["Technical Product Value Proposition Alignment"]?.["Agent Security Firewall (Clawpatrol) Alignment"] || "Applying compliance firewalls..."}
-                                  </p>
-                                </div>
-                                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
-                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Multi-Agent Framework</h4>
-                                  <p className="text-sm text-slate-300 leading-relaxed">
-                                    {content["Technical Product Value Proposition Alignment"]?.["Multi-Agent Framework Alignment"] || "Orchestrating agent collaboration..."}
-                                  </p>
-                                </div>
-                              </div>
-
-                              {/* Market Analysis */}
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
-                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">TAM Estimates</h4>
-                                  <p className="text-sm text-slate-300">
-                                    <strong>TAM 2026:</strong> {content["Market Sizing & Competitor Estimates"]?.["TAM 2026 Consensus"] || "Calculating..."}<br/>
-                                    <strong>CAGR:</strong> {content["Market Sizing & Competitor Estimates"]?.["Consensus Growth CAGR"] || "Analyzing..."}<br/>
-                                    <strong>Competitors:</strong> {content["Market Sizing & Competitor Estimates"]?.["Competitor Market Shares"] || "Identifying..."}
-                                  </p>
-                                </div>
-                                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
-                                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Consensus Validation</h4>
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                      <span className="text-slate-500 block text-[10px] uppercase">Status</span>
-                                      <span className="text-green-400 font-semibold">{content["Consensus Validation Log"]?.["Verification Status"] || "Pending"}</span>
-                                    </div>
-                                    <div>
-                                      <span className="text-slate-500 block text-[10px] uppercase">CoV Check</span>
-                                      <span className="text-slate-300">{content["Consensus Validation Log"]?.["Coefficient of Variation Check"] || "N/A"}</span>
-                                    </div>
-                                    <div>
-                                      <span className="text-slate-500 block text-[10px] uppercase">MoE Check</span>
-                                      <span className="text-slate-300">{content["Consensus Validation Log"]?.["Margin of Error (95%) Check"] || "N/A"}</span>
-                                    </div>
-                                    <div>
-                                      <span className="text-slate-500 block text-[10px] uppercase">Audit Stamp</span>
-                                      <span className="text-slate-300 font-mono text-[10px]">{content["Consensus Validation Log"]?.["Audit Integrity Stamp"] || "Pending"}</span>
-                                    </div>
-                                  </div>
-                                </div>
+                              <div className="p-3 bg-slate-950 rounded-xl border border-slate-900 leading-relaxed">
+                                <strong className="text-slate-400 block mb-1">Clawpatrol Compliance:</strong>
+                                {content["Technical Product Value Proposition Alignment"]?.["Agent Security Firewall (Clawpatrol) Alignment"]}
                               </div>
                             </div>
-
-                            {/* Company Info */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                              <div className="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5 space-y-3">
-                                <h4 className="text-md font-semibold text-teal-400">Company Overview</h4>
-                                <p className="text-sm text-slate-200"><strong>Offer:</strong> {selectedLead.offerPromise || "Not specified"}</p>
-                                <p className="text-sm text-slate-200"><strong>Pain Point:</strong> {selectedLead.painPoint || "Not specified"}</p>
-                                <p className="text-sm text-slate-200"><strong>Website:</strong> {selectedLead.websiteUrl || selectedLead.website || "Not provided"}</p>
-                              </div>
-                              <div className="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5 space-y-3">
-                                <h4 className="text-md font-semibold text-teal-400">Target Profile</h4>
-                                <p className="text-sm text-slate-200"><strong>Industries:</strong> {Array.isArray(selectedLead.targetIndustries) ? selectedLead.targetIndustries.join(", ") : selectedLead.targetIndustries || "Not specified"}</p>
-                                <p className="text-sm text-slate-200"><strong>Company Sizes:</strong> {Array.isArray(selectedLead.targetCompanySizes) ? selectedLead.targetCompanySizes.join(", ") : selectedLead.targetCompanySizes || "Not specified"}</p>
-                                <p className="text-sm text-slate-200"><strong>Decision Makers:</strong> {Array.isArray(selectedLead.decisionMakers) ? selectedLead.decisionMakers.join(", ") : selectedLead.decisionMakers || "Not specified"}</p>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      } catch (e) {
-                        console.error(e);
-                        return <div className="text-slate-400">Failed to generate dynamic playbook</div>;
-                      }
-                    })()}
+                          );
+                        } catch (e) {
+                          return null;
+                        }
+                      })()}
+                    </div>
                   </div>
                 ) : (
-                  <div className="prose prose-invert max-w-none bg-slate-950/50 border border-slate-800/80 p-6 md:p-8 rounded-2xl max-h-[600px] overflow-y-auto font-mono text-xs leading-relaxed whitespace-pre-wrap text-slate-300">
-                    {playbookContent || "Select a company from the Requirements tab to view their custom ICP Playbook, or view the general guidelines below."}
+                  <div className="prose prose-invert max-w-none bg-slate-950/60 border border-slate-850 p-6 rounded-xl font-mono text-xs leading-relaxed whitespace-pre-wrap text-slate-400">
+                    {playbookContent || "Select a client lead in the Requirements tab to construct their custom playbook."}
                   </div>
                 )}
               </CardContent>
             </GlassPanel>
-          )}
-
-          {activeTab === "tasks" && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Task List */}
-              <div className="lg:col-span-1 space-y-4">
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-xl font-semibold text-slate-100">Your Tasks</h3>
-                    <ExtrudedButton
-                      className="bg-teal-600 hover:bg-teal-700 gap-2 transition-transform active:scale-95"
-                      onClick={() => showToast("info", "Coming Soon", "Task creation feature is under development")}
-                    >
-                      <Plus className="h-4 w-4" />
-                      New Task
-                    </ExtrudedButton>
-                  </div>
-                  <div className="relative">
-                    <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                    <Input
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search tasks..."
-                      className="bg-slate-900 border-slate-800 pl-9 text-sm rounded-xl"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {agentTasks.length === 0 ? (
-                    <GlassPanel tilt={false} className="border-slate-700/50">
-                      <CardContent className="py-10 text-center">
-                        <CheckCircle2 className="h-12 w-12 text-slate-700 mx-auto mb-3" />
-                        <p className="text-slate-400 font-medium">No tasks found</p>
-                        <p className="text-slate-600 text-xs mt-1">Try a different search term</p>
-                      </CardContent>
-                    </GlassPanel>
-                  ) : (
-                    agentTasks.map((task) => (
-                      <GlassPanel
-                        key={task.id}
-                        tilt={true}
-                        className={cn(
-                          "cursor-pointer border-slate-700/50 hover:border-teal-500/50 transition-all duration-200 hover:shadow-md",
-                          selectedTaskId === task.id ? "border-teal-500 shadow-lg shadow-teal-500/20" : ""
-                        )}
-                        onClick={() => setSelectedTaskId(task.id)}
-                      >
-                        <CardHeader className="pb-2">
-                          <div className="flex items-center justify-between gap-3">
-                            <CardTitle className="text-lg text-slate-100 font-bold">{task.title}</CardTitle>
-                            <span
-                              className={cn(
-                                "px-3 py-1 rounded-full text-xs font-semibold capitalize whitespace-nowrap",
-                                task.status === "completed"
-                                  ? "bg-green-500/15 text-green-400"
-                                  : task.status === "in-progress"
-                                  ? "bg-yellow-500/15 text-yellow-400"
-                                  : task.status === "blocked"
-                                  ? "bg-red-500/15 text-red-400"
-                                  : "bg-slate-500/15 text-slate-400"
-                              )}
-                            >
-                              {task.status}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1">
-                            Updated {new Date(task.updatedAt).toLocaleDateString(undefined, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })}
-                          </p>
-                        </CardHeader>
-                      </GlassPanel>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* Task Details */}
-              <div className="lg:col-span-2">
-                {selectedTaskId ? (
-                  (() => {
-                    const task = agentTasks.find((t) => t.id === selectedTaskId);
-                    if (!task) return null;
-                    return (
-                      <GlassPanel tilt={false} className="border-slate-700/50">
-                        <CardHeader>
-                          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                            <CardTitle className="text-2xl text-slate-100 font-bold">{task.title}</CardTitle>
-                            <select
-                              value={task.status}
-                              onChange={(e) => updateTaskStatus(task.id, e.target.value as TaskStatus)}
-                              className="bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            >
-                              <option value="todo">To Do</option>
-                              <option value="in-progress">In Progress</option>
-                              <option value="completed">Completed</option>
-                              <option value="blocked">Blocked</option>
-                            </select>
-                          </div>
-                          <p className="text-slate-300 leading-relaxed">{task.description}</p>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          {/* Status Actions */}
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <ExtrudedButton
-                              variant="outline"
-                              onClick={() => updateTaskStatus(task.id, "todo")}
-                              className="border-slate-600 hover:border-slate-500 hover:bg-slate-700/50 gap-2"
-                            >
-                              <Clock className="h-4 w-4" />
-                              To Do
-                            </ExtrudedButton>
-                            <ExtrudedButton
-                              variant="outline"
-                              onClick={() => updateTaskStatus(task.id, "in-progress")}
-                              className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10 hover:border-yellow-500 gap-2"
-                            >
-                              <Clock className="h-4 w-4" />
-                              In Progress
-                            </ExtrudedButton>
-                            <ExtrudedButton
-                              variant="outline"
-                              onClick={() => updateTaskStatus(task.id, "completed")}
-                              className="border-green-500/50 text-green-400 hover:bg-green-500/10 hover:border-green-500 gap-2"
-                            >
-                              <CheckCircle2 className="h-4 w-4" />
-                              Complete
-                            </ExtrudedButton>
-                            <ExtrudedButton
-                              variant="outline"
-                              className="border-slate-600 hover:border-slate-500 hover:bg-slate-700/50 gap-2"
-                              onClick={() => showToast("info", "Coming Soon", "Call customer feature is under development")}
-                            >
-                              <Phone className="h-4 w-4" />
-                              Call Customer
-                            </ExtrudedButton>
-                          </div>
-
-                          {/* Milestones */}
-                          <div className="space-y-3">
-                            <h4 className="text-lg font-semibold text-slate-100">Milestones</h4>
-                            <div className="space-y-2">
-                              {task.milestones.map((milestone) => (
-                                <div
-                                  key={milestone.id}
-                                  className="flex items-center justify-between p-4 bg-slate-700/30 rounded-xl border border-slate-700/50"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <button
-                                      onClick={() => toggleMilestone(task.id, milestone.id)}
-                                      className={cn(
-                                        "flex items-center justify-center h-6 w-6 rounded-full border-2 transition-all duration-200 hover:scale-110",
-                                        milestone.completed
-                                          ? "bg-green-500 border-green-500"
-                                          : "border-slate-500 hover:border-teal-500"
-                                      )}
-                                    >
-                                      {milestone.completed && <Check className="h-4 w-4 text-white" />}
-                                    </button>
-                                    <span
-                                      className={cn(
-                                        "font-medium transition-all duration-200",
-                                        milestone.completed ? "text-slate-400 line-through" : "text-slate-100"
-                                      )}
-                                    >
-                                      {milestone.title}
-                                    </span>
-                                  </div>
-                                  {milestone.completedAt && (
-                                    <span className="text-xs text-slate-500">
-                                      {new Date(milestone.completedAt).toLocaleDateString()}
-                                    </span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Notes */}
-                          <div className="space-y-3">
-                            <h4 className="text-lg font-semibold text-slate-100">Progress Notes</h4>
-                            <div className="space-y-3 mb-4 max-h-48 overflow-y-auto pr-2">
-                              {task.progressNotes.length === 0 ? (
-                                <p className="text-sm text-slate-500 italic">No progress notes yet</p>
-                              ) : (
-                                task.progressNotes.map((note, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="p-4 bg-slate-700/30 rounded-xl text-sm text-slate-200 border border-slate-700/30"
-                                  >
-                                    {note}
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                            <div className="flex gap-2">
-                              <Textarea
-                                value={newNote}
-                                onChange={(e) => setNewNote(e.target.value)}
-                                placeholder="Add a progress note..."
-                                className="bg-slate-700/50 border-slate-600 focus:border-teal-500 resize-none rounded-xl"
-                                rows={2}
-                              />
-                              <ExtrudedButton
-                                onClick={handleAddNote}
-                                disabled={isAddingNote || !newNote.trim()}
-                                className="bg-teal-600 hover:bg-teal-700 gap-2 min-w-[100px] transition-all disabled:opacity-50"
-                              >
-                                {isAddingNote ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  "Add Note"
-                                )}
-                              </ExtrudedButton>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </GlassPanel>
-                    );
-                  })()
-                ) : (
-                  <GlassPanel tilt={false} className="border-slate-700/50">
-                    <CardContent className="py-16 text-center">
-                      <CheckCircle2 className="h-20 w-20 text-slate-700 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-slate-300 mb-1">Select a task to view details</h3>
-                      <p className="text-slate-500">Choose a task from the list on the left to get started</p>
-                    </CardContent>
-                  </GlassPanel>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === "chat" && (
-            <GlassPanel tilt={false} className="border-slate-700/50 h-[650px] flex flex-col overflow-hidden">
-              <CardHeader className="border-b border-slate-700/50 flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-slate-100 flex items-center gap-2 font-bold">
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    Chat with {customerName}
-                  </CardTitle>
-                  <p className="text-slate-500 text-sm mt-1">Online</p>
-                </div>
-                <ExtrudedButton variant="outline" size="sm">
-                  <Users className="h-4 w-4 mr-2" />
-                  Info
-                </ExtrudedButton>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col p-0">
-                {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {chatMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={cn(
-                        "flex",
-                        msg.senderId === currentAgentId ? "justify-end" : "justify-start"
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          "max-w-[80%] p-4 rounded-2xl shadow-sm",
-                          msg.senderId === currentAgentId
-                            ? "bg-teal-600 text-white rounded-tr-md"
-                            : "bg-slate-700 text-slate-100 rounded-tl-md"
-                        )}
-                      >
-                        <p className="font-semibold text-xs mb-1 opacity-90">{msg.senderName}</p>
-                        {msg.content && <p className="leading-relaxed">{msg.content}</p>}
-                        {msg.attachments && msg.attachments.length > 0 && (
-                          <div className="mt-3 space-y-2">
-                            {msg.attachments.map((attachment) => (
-                              <a
-                                key={attachment.id}
-                                href={attachment.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={cn(
-                                  "flex items-center gap-2 p-3 rounded-xl border",
-                                  msg.senderId === currentAgentId
-                                    ? "bg-teal-700 border-teal-500 hover:bg-teal-800"
-                                    : "bg-slate-800 border-slate-600 hover:bg-slate-900"
-                                )}
-                              >
-                                <FileText className="h-6 w-6" />
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium truncate">{attachment.fileName}</p>
-                                  <p className="text-xs opacity-70">{formatFileSize(attachment.fileSize)}</p>
-                                </div>
-                                <Download className="h-5 w-5" />
-                              </a>
-                            ))}
-                          </div>
-                        )}
-                        <p className="text-xs mt-2 opacity-70 text-right">
-                          {new Date(msg.timestamp || "").toLocaleTimeString(undefined, {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {/* Selected Files Preview */}
-                {selectedFiles.length > 0 && (
-                  <div className="px-4 py-2 border-t border-slate-700/50 bg-slate-800/30">
-                    <div className="flex flex-wrap gap-2">
-                      {selectedFiles.map((file, index) => (
-                        <div key={index} className="flex items-center gap-2 bg-slate-700 px-3 py-1 rounded-full text-sm">
-                          <FileText className="h-4 w-4" />
-                          <span className="truncate max-w-[150px]">{file.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeFile(index)}
-                            className="text-slate-400 hover:text-white"
-                          >
-                            <XCircle className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {/* Chat Input */}
-                <div className="p-4 border-t border-slate-700/50 bg-slate-800/50">
-                  <div className="flex gap-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      className="hidden"
-                      onChange={handleFileSelect}
-                    />
-                    <ExtrudedButton
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Attach
-                    </ExtrudedButton>
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Type your message..."
-                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
-                      className="bg-slate-700 border-slate-600 focus:border-teal-500 flex-1 rounded-xl"
-                    />
-                    <ExtrudedButton
-                      onClick={handleSendMessage}
-                      disabled={isSendingMessage || (!newMessage.trim() && selectedFiles.length === 0)}
-                      className="bg-teal-600 hover:bg-teal-700 gap-2 min-w-[100px] disabled:opacity-50"
-                    >
-                      {isSendingMessage ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Send"
-                      )}
-                    </ExtrudedButton>
-                  </div>
-                </div>
-              </CardContent>
-            </GlassPanel>
-          )}
-
-          {activeTab === "calls" && (
-            <GlassPanel tilt={false} className="border-slate-700/50">
-              <CardHeader>
-                <CardTitle className="text-slate-100 font-bold">Start a New Call</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="text-center">
-                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 w-56 h-56 rounded-full mx-auto mb-6 flex items-center justify-center border border-slate-700/50 shadow-2xl">
-                      <Users className="h-28 w-28 text-slate-600" />
-                    </div>
-                    <h4 className="text-xl font-semibold text-slate-100 mb-2">{customerName}</h4>
-                    <p className="text-slate-400 mb-6 max-w-xs mx-auto">Click to start a call with {customerName}</p>
-                    <div className="flex justify-center gap-4 flex-wrap">
-                      <ExtrudedButton
-                        className="bg-green-600 hover:bg-green-700 px-8 h-12 gap-2 transition-transform active:scale-95 shadow-lg shadow-green-600/10"
-                        onClick={() => showToast("info", "Coming Soon", "Call feature is under development")}
-                      >
-                        <Phone className="h-5 w-5" />
-                        Start Call
-                      </ExtrudedButton>
-                      <ExtrudedButton
-                        variant="outline"
-                        className="px-8 h-12 gap-2"
-                        onClick={() => setActiveTab("chat")}
-                      >
-                        <MessageSquare className="h-5 w-5" />
-                        Message
-                      </ExtrudedButton>
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    <h4 className="text-lg font-semibold text-slate-100">Call Controls</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <ExtrudedButton
-                        variant="outline"
-                        className="h-14 gap-2"
-                        onClick={() => showToast("info", "Coming Soon", "Mute feature is under development")}
-                      >
-                        <Phone className="h-5 w-5" />
-                        Mute/Unmute
-                      </ExtrudedButton>
-                      <ExtrudedButton
-                        variant="outline"
-                        className="h-14 gap-2"
-                        onClick={() => showToast("info", "Coming Soon", "Video toggle is under development")}
-                      >
-                        <Users className="h-5 w-5" />
-                        Toggle Video
-                      </ExtrudedButton>
-                      <ExtrudedButton
-                        variant="outline"
-                        className="h-14 gap-2"
-                        onClick={() => showToast("info", "Coming Soon", "Add participant is under development")}
-                      >
-                        <Users className="h-5 w-5" />
-                        Add Participant
-                      </ExtrudedButton>
-                      <ExtrudedButton
-                        className="bg-red-600 hover:bg-red-700 h-14 gap-2"
-                        onClick={() => showToast("info", "Coming Soon", "End call feature is under development")}
-                      >
-                        <Check className="h-5 w-5" />
-                        End Call
-                      </ExtrudedButton>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </GlassPanel>
-          )}
-
-          {activeTab === "metrics" && agentMetrics && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <GlassPanel tilt={true} className="border-slate-700/50">
-                <CardHeader>
-                  <CardTitle className="text-slate-100 flex items-center gap-2 font-bold">
-                    <CheckCircle2 className="h-5 w-5 text-teal-500" />
-                    Tasks Completed
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-5xl font-extrabold text-teal-400">{agentMetrics.tasksCompleted}</p>
-                  <p className="text-slate-500 text-sm mt-2">
-                    out of {agentMetrics.totalTasks} total tasks
-                  </p>
-                </CardContent>
-              </GlassPanel>
-
-              <GlassPanel tilt={true} className="border-slate-700/50">
-                <CardHeader>
-                  <CardTitle className="text-slate-100 flex items-center gap-2 font-bold">
-                    <Clock className="h-5 w-5 text-blue-500" />
-                    Avg Resolution Time
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-5xl font-extrabold text-blue-400">
-                    {Math.round(agentMetrics.averageResolutionTime / 60)}h
-                  </p>
-                  <p className="text-slate-500 text-sm mt-2">
-                    per task on average
-                  </p>
-                </CardContent>
-              </GlassPanel>
-
-              <GlassPanel tilt={true} className="border-slate-700/50">
-                <CardHeader>
-                  <CardTitle className="text-slate-100 flex items-center gap-2 font-bold">
-                    <Star className="h-5 w-5 text-amber-500" />
-                    Average Rating
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-baseline gap-2">
-                  <p className="text-5xl font-extrabold text-amber-400">
-                    {agentMetrics.averageRating.toFixed(1)}
-                  </p>
-                  <Star className="h-10 w-10 text-amber-400 fill-amber-400" />
-                </CardContent>
-              </GlassPanel>
-
-              <GlassPanel tilt={true} className="border-slate-700/50">
-                <CardHeader>
-                  <CardTitle className="text-slate-100 flex items-center gap-2 font-bold">
-                    <MessageSquare className="h-5 w-5 text-purple-500" />
-                    Total Interactions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-5xl font-extrabold text-purple-400">
-                    {agentMetrics.totalInteractions}
-                  </p>
-                  <p className="text-slate-500 text-sm mt-2">
-                    calls & messages combined
-                  </p>
-                </CardContent>
-              </GlassPanel>
-            </div>
-          )}
-
-          {activeTab === "credits" && agentCredits && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Credits Overview */}
-              <div className="lg:col-span-1 space-y-6">
-                <GlassPanel tilt={true} className="border-violet-700/30">
-                  <CardContent className="pt-8 pb-6">
-                    <div className="text-center space-y-4">
-                      <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-violet-600/20 border border-violet-500/30">
-                        <Zap className="h-10 w-10 text-violet-400" />
-                      </div>
-                      <div>
-                        <p className="text-violet-300 text-sm uppercase tracking-wider font-semibold">Available Credits</p>
-                        <p className="text-6xl font-black text-white mt-1">{agentCredits.balance}</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-slate-700">
-                      <div className="text-center">
-                        <p className="text-slate-400 text-xs uppercase tracking-wider">Earned</p>
-                        <p className="text-xl font-bold text-green-400">{agentCredits.totalEarned}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-slate-400 text-xs uppercase tracking-wider">Spent</p>
-                        <p className="text-xl font-bold text-red-400">{agentCredits.totalSpent}</p>
-                      </div>
-                    </div>
-                    <ExtrudedButton className="w-full mt-6 bg-violet-600 hover:bg-violet-500 h-12 gap-2">
-                      Add Credits
-                    </ExtrudedButton>
-                  </CardContent>
-                </GlassPanel>
-              </div>
-
-              {/* Transactions */}
-              <div className="lg:col-span-2">
-                <GlassPanel tilt={false} className="border-slate-700/50">
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-slate-100 font-bold">Transaction History</CardTitle>
-                    <ExtrudedButton variant="outline" size="sm" className="gap-2">
-                      <Filter className="h-4 w-4" />
-                      Filter
-                    </ExtrudedButton>
-                  </CardHeader>
-                  <CardContent className="divide-y divide-slate-700">
-                    {agentCredits.transactions.map((tx) => (
-                      <div
-                        key={tx.id}
-                        className="flex items-center justify-between py-4 first:pt-0 last:pb-0"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className={cn(
-                            "h-10 w-10 rounded-full flex items-center justify-center",
-                            tx.amount > 0 ? "bg-green-500/10" : "bg-red-500/10"
-                          )}>
-                            <Zap className={cn(
-                              "h-5 w-5",
-                              tx.amount > 0 ? "text-green-400" : "text-red-400"
-                            )} />
-                          </div>
-                          <div>
-                            <p className="text-slate-200 font-medium">{tx.description}</p>
-                            <p className="text-slate-500 text-xs">
-                              {new Date(tx.createdAt).toLocaleDateString(undefined, {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                        <p className={cn(
-                          "text-lg font-bold",
-                          tx.amount > 0 ? "text-green-400" : "text-red-400"
-                        )}>
-                          {tx.amount > 0 ? "+" : ""}{tx.amount}
-                        </p>
-                      </div>
-                    ))}
-                  </CardContent>
-                </GlassPanel>
-              </div>
-            </div>
           )}
 
           {activeTab === "voice-whatsapp" && (
-            <div className="space-y-8">
-              {/* ─── Agent Settings Section ─── */}
-              <GlassPanel tilt={false} className="border-teal-700/30">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-slate-100 font-bold flex items-center gap-2">
+            <div className="space-y-6">
+              {/* Settings configuration form */}
+              <GlassPanel tilt={false} className="border-slate-850 p-5 rounded-2xl">
+                <CardHeader className="p-0 flex flex-row items-center justify-between border-b border-slate-850 pb-5 mb-5">
+                  <CardTitle className="text-slate-100 font-black text-lg flex items-center gap-2">
                     <Settings className="h-5 w-5 text-teal-400" />
-                    Voice & WhatsApp Configuration
+                    System Configuration
                   </CardTitle>
                   <ExtrudedButton
-                    className="bg-teal-600 hover:bg-teal-700 gap-2"
+                    className="bg-teal-600 hover:bg-teal-700 text-xs font-bold h-9 gap-1.5"
                     onClick={handleSaveSettings}
                     disabled={isSavingSettings}
                   >
                     {isSavingSettings ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                    Save Settings
+                    Save Config
                   </ExtrudedButton>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Phone Number with Country Dropdown */}
+
+                <CardContent className="p-0 space-y-5">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Your Agent Phone Number</label>
-                    <div className="flex gap-2 relative">
-                      {/* Country Dropdown Trigger */}
+                    <label className="text-xs text-slate-300 font-bold uppercase">Agent Caller ID Prefix</label>
+                    <div className="flex gap-2">
                       <div className="relative">
                         <button
                           type="button"
-                          className="h-10 px-3 rounded-xl bg-slate-800 border border-slate-700 hover:border-teal-500 text-slate-100 text-sm flex items-center gap-2 min-w-[140px] transition-colors"
-                          onClick={() => setShowCountryDropdown(p => !p)}
+                          onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                          className="h-10 px-4 bg-slate-950 border border-slate-850 hover:border-slate-700 text-slate-300 text-xs font-bold rounded-xl flex items-center gap-2 min-w-[120px]"
                         >
-                          <span className="font-mono text-teal-300">{selectedCountry.prefix}</span>
-                          <span className="text-slate-400 text-xs">{selectedCountry.code}</span>
-                          <ChevronDown className="h-3 w-3 ml-auto text-slate-500" />
+                          <span className="font-mono">{selectedCountry.prefix}</span>
+                          <ChevronDown className="h-3.5 w-3.5 ml-auto text-slate-500" />
                         </button>
                         {showCountryDropdown && (
-                          <div className="absolute top-12 left-0 z-50 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
-                            <div className="p-2 border-b border-slate-700">
-                              <div className="flex items-center gap-2 bg-slate-800 rounded-lg px-3 py-2">
-                                <Search className="h-4 w-4 text-slate-400" />
-                                <input
-                                  type="text"
-                                  className="bg-transparent text-sm text-slate-100 placeholder-slate-500 outline-none w-full"
-                                  placeholder="Search country..."
-                                  value={countrySearch}
-                                  onChange={(e) => setCountrySearch(e.target.value)}
-                                  autoFocus
-                                />
-                              </div>
-                            </div>
-                            <div className="max-h-48 overflow-y-auto">
+                          <div className="absolute top-11 left-0 z-50 w-60 bg-slate-900 border border-slate-850 rounded-xl shadow-2xl p-1">
+                            <Input
+                              value={countrySearch}
+                              onChange={(e) => setCountrySearch(e.target.value)}
+                              placeholder="Search country..."
+                              className="bg-slate-950 border-slate-850 text-[11px] h-8 mb-1 py-1 px-3"
+                            />
+                            <div className="max-h-40 overflow-y-auto">
                               {filteredCountries.map(c => (
                                 <button
                                   key={c.code}
-                                  type="button"
-                                  className={cn(
-                                    "w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-slate-800 transition-colors",
-                                    selectedCountry.code === c.code && "bg-teal-600/20 text-teal-300"
-                                  )}
                                   onClick={() => {
                                     setSelectedCountry(c);
                                     setShowCountryDropdown(false);
-                                    setCountrySearch("");
-                                    setPhoneInput(""); // Reset masking on country change
+                                    setPhoneInput("");
                                   }}
+                                  className="w-full text-left px-3 py-2 text-[11px] font-medium hover:bg-slate-850 rounded-lg text-slate-300 hover:text-white"
                                 >
-                                  <span className="font-mono text-teal-400 w-14 shrink-0">{c.prefix}</span>
-                                  <span className="text-slate-300">{c.name}</span>
+                                  {c.name} ({c.prefix})
                                 </button>
                               ))}
-                              {filteredCountries.length === 0 && (
-                                <p className="text-slate-500 text-sm text-center py-4">No countries found</p>
-                              )}
                             </div>
                           </div>
                         )}
                       </div>
-                      {/* Masked Phone Input */}
                       <Input
                         placeholder={selectedCountry.placeholder}
                         value={phoneInput}
-                        onChange={(e) => {
-                          const formatted = formatPhoneNumber(e.target.value, selectedCountry.mask);
-                          setPhoneInput(formatted);
-                        }}
-                        className={cn(
-                          "flex-1 bg-slate-800 border-slate-700 focus:border-teal-500 text-white placeholder-slate-500 rounded-xl font-mono",
-                          phoneInput && !isPhoneValid(phoneInput, selectedCountry.mask) && "border-amber-500/50"
-                        )}
+                        onChange={(e) => setPhoneInput(formatPhoneNumber(e.target.value, selectedCountry.mask))}
+                        className="bg-slate-950 border-slate-850 text-xs rounded-xl h-10 font-mono"
                       />
                     </div>
-                    {phoneInput && !isPhoneValid(phoneInput, selectedCountry.mask) && (
-                      <p className="text-amber-400 text-xs flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" />
-                        Format: {selectedCountry.mask.replace(/9/g, "0")}
-                      </p>
-                    )}
-                    {phoneInput && isPhoneValid(phoneInput, selectedCountry.mask) && (
-                      <p className="text-teal-400 text-xs flex items-center gap-1">
-                        <Check className="h-3 w-3" />
-                        Valid number — Full: {selectedCountry.prefix} {phoneInput}
-                      </p>
-                    )}
                   </div>
 
-                  {/* Call Conversation Framework */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                      <PhoneCall className="h-4 w-4 text-green-400" />
-                      Call Conversation Framework
-                    </label>
-                    <p className="text-xs text-slate-500">Define talking points, objectives, pain points, and mandatory disclosures for AI voice calls.</p>
+                    <label className="text-xs text-slate-300 font-bold uppercase">Voice Conversation Framework</label>
                     <Textarea
-                      rows={6}
-                      placeholder={`Core Objectives:\n- Introduce DealFlow AI\n- Identify revenue challenges\n\nMandatory Disclosures:\n- Call is recorded for quality assurance`}
                       value={callFramework}
                       onChange={(e) => setCallFramework(e.target.value)}
-                      className="bg-slate-800 border-slate-700 focus:border-teal-500 text-white placeholder-slate-600 rounded-xl resize-none"
+                      placeholder="Enter conversational directives..."
+                      rows={5}
+                      className="bg-slate-950 border-slate-850 text-xs rounded-xl"
                     />
-                    <p className="text-slate-600 text-xs text-right">{callFramework.length} characters</p>
                   </div>
 
-                  {/* WhatsApp Message Parameters */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4 text-green-400" />
-                      WhatsApp Message Parameters
-                    </label>
-                    <p className="text-xs text-slate-500">Specify tone, call-to-action, personalization rules, and brand guidelines for AI-generated WhatsApp messages.</p>
+                    <label className="text-xs text-slate-300 font-bold uppercase">WhatsApp Message Framework</label>
                     <Textarea
-                      rows={5}
-                      placeholder={`Tone: Professional, friendly\nCTA: Schedule a 15-minute discovery call\nPersonalization: Address by first name\nBrand: DealFlow AI — data-driven, consultative`}
                       value={whatsAppParams}
                       onChange={(e) => setWhatsAppParams(e.target.value)}
-                      className="bg-slate-800 border-slate-700 focus:border-teal-500 text-white placeholder-slate-600 rounded-xl resize-none"
-                    />
-                    <p className="text-slate-600 text-xs text-right">{whatsAppParams.length} characters</p>
-                  </div>
-                </CardContent>
-              </GlassPanel>
-
-              {/* ─── Initiate AI Voice Call ─── */}
-              <GlassPanel tilt={false} className="border-green-700/30">
-                <CardHeader>
-                  <CardTitle className="text-slate-100 font-bold flex items-center gap-2">
-                    <PhoneCall className="h-5 w-5 text-green-400" />
-                    AI Voice Call — Initiate Outbound Call
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {activeCallSession && (
-                    <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center gap-3">
-                      <div className="h-3 w-3 bg-green-400 rounded-full animate-pulse" />
-                      <div>
-                        <p className="text-green-300 font-medium text-sm">Call Active — {activeCallSession.status}</p>
-                        <p className="text-slate-500 text-xs font-mono">Session: {activeCallSession.sessionId}</p>
-                      </div>
-                      <ExtrudedButton size="sm" variant="outline" className="ml-auto text-red-400 border-red-500/30 hover:bg-red-500/10" onClick={() => setActiveCallSession(null)}>
-                        <X className="h-4 w-4 mr-1" /> End
-                      </ExtrudedButton>
-                    </div>
-                  )}
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Recipient phone (e.g. +1 555 000 0000)"
-                      value={callToPhone}
-                      onChange={(e) => setCallToPhone(e.target.value)}
-                      className="flex-1 bg-slate-800 border-slate-700 focus:border-green-500 text-white placeholder-slate-500 rounded-xl font-mono"
-                    />
-                    <ExtrudedButton
-                      className="bg-green-600 hover:bg-green-700 gap-2 px-6"
-                      onClick={handleInitiateCall}
-                      disabled={isInitiatingCall}
-                    >
-                      {isInitiatingCall ? <Loader2 className="h-4 w-4 animate-spin" /> : <PhoneCall className="h-4 w-4" />}
-                      {isInitiatingCall ? "Connecting..." : "Start AI Call"}
-                    </ExtrudedButton>
-                  </div>
-                  <p className="text-slate-600 text-xs">The AI agent will call this number and conduct a conversation using your Call Conversation Framework above.</p>
-                </CardContent>
-              </GlassPanel>
-
-              {/* ─── Send AI WhatsApp Message ─── */}
-              <GlassPanel tilt={false} className="border-emerald-700/30">
-                <CardHeader>
-                  <CardTitle className="text-slate-100 font-bold flex items-center gap-2">
-                    <Send className="h-5 w-5 text-emerald-400" />
-                    AI WhatsApp Message — Compose & Send
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm text-slate-300">Recipient Phone Number</label>
-                      <Input
-                        placeholder="+91 98765 43210"
-                        value={waToPhone}
-                        onChange={(e) => setWaToPhone(e.target.value)}
-                        className="bg-slate-800 border-slate-700 focus:border-emerald-500 text-white placeholder-slate-500 rounded-xl font-mono"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm text-slate-300">Customer Name (for personalization)</label>
-                      <Input
-                        placeholder="e.g. Anil Kumar"
-                        value={waCustomerName}
-                        onChange={(e) => setWaCustomerName(e.target.value)}
-                        className="bg-slate-800 border-slate-700 focus:border-emerald-500 text-white placeholder-slate-500 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm text-slate-300">Custom Message (optional — leave blank for AI-generated)</label>
-                    <Textarea
+                      placeholder="Specify WhatsApp templates..."
                       rows={4}
-                      placeholder="Leave blank to let the AI generate a message based on your WhatsApp parameters above..."
-                      value={waCustomContent}
-                      onChange={(e) => setWaCustomContent(e.target.value)}
-                      className="bg-slate-800 border-slate-700 focus:border-emerald-500 text-white placeholder-slate-600 rounded-xl resize-none"
+                      className="bg-slate-950 border-slate-850 text-xs rounded-xl"
                     />
                   </div>
-                  <ExtrudedButton
-                    className="bg-emerald-600 hover:bg-emerald-700 gap-2"
-                    onClick={handleSendWhatsApp}
-                    disabled={isSendingWhatsApp}
-                  >
-                    {isSendingWhatsApp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    {isSendingWhatsApp ? "Sending..." : "Send WhatsApp Message"}
-                  </ExtrudedButton>
-
-                  {/* Recent sent messages */}
-                  {waSentMessages.length > 0 && (
-                    <div className="space-y-2 pt-4 border-t border-slate-700/50">
-                      <p className="text-sm font-medium text-slate-300">Recently Sent</p>
-                      {waSentMessages.slice(0, 3).map((msg, i) => (
-                        <div key={i} className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/30">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs text-slate-400 font-mono">{msg.messageId}</span>
-                            <span className="text-xs px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-full">{msg.status}</span>
-                          </div>
-                          <p className="text-sm text-slate-300 line-clamp-2">{msg.content}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </CardContent>
               </GlassPanel>
             </div>
           )}
+
         </div>
       </div>
       <Unibox />
@@ -2232,7 +2271,13 @@ function AgentPortalContent() {
 export default function AgentPortal() {
   return (
     <AuthProvider allowedRoles={["agent"]}>
-      <AgentPortalContent />
+      <React.Suspense fallback={
+        <div className="flex items-center justify-center min-h-[50vh] immersive-scene">
+          <div className="text-white text-sm font-semibold tracking-wide animate-pulse">Loading platform workspace...</div>
+        </div>
+      }>
+        <AgentPortalContent />
+      </React.Suspense>
     </AuthProvider>
   );
 }
