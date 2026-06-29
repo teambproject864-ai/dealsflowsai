@@ -59,6 +59,7 @@ export function loadServiceAccount(): ServiceAccountJson | null {
   const cwd = process.cwd();
 
   // Print helpful console warnings if FIREBASE_SERVICE_ACCOUNT_PATH is incorrectly set to standard firebase.json config
+  // But only if we're not in static generation/build mode (avoid breaking next build)
   const saPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim();
   if (saPath === "none" || saPath === "mock") {
     return null;
@@ -70,23 +71,29 @@ export function loadServiceAccount(): ServiceAccountJson | null {
         const raw = fs.readFileSync(resolved, "utf8");
         const json = JSON.parse(raw);
         if (!json.project_id || !json.client_email || !json.private_key) {
-          console.error(
-            `\n================================================================================\n` +
-            `[Firebase Config Warning] FIREBASE_SERVICE_ACCOUNT_PATH is set to "${saPath}".\n` +
-            `However, this file is missing the required Service Account fields (project_id, client_email, private_key).\n` +
-            (saPath.endsWith("firebase.json") && !saPath.includes("adminsdk")
-              ? `Note: Root "firebase.json" is often the Firebase CLI config — use dealflow_firebase.json or your downloaded *-adminsdk-*.json key instead.\n`
-              : "") +
-            `Please download your service account key from the Firebase Console (Project Settings > Service Accounts)\n` +
-            `and update FIREBASE_SERVICE_ACCOUNT_PATH in .env.local.\n` +
-            `================================================================================\n`
-          );
+          // Only warn if not in static build mode
+          if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+            console.error(
+              `\n================================================================================\n` +
+              `[Firebase Config Warning] FIREBASE_SERVICE_ACCOUNT_PATH is set to "${saPath}".\n` +
+              `However, this file is missing the required Service Account fields (project_id, client_email, private_key).\n` +
+              (saPath.endsWith("firebase.json") && !saPath.includes("adminsdk")
+                ? `Note: Root "firebase.json" is often the Firebase CLI config — use dealflow_firebase.json or your downloaded *-adminsdk-*.json key instead.\n`
+                : "") +
+              `Please download your service account key from the Firebase Console (Project Settings > Service Accounts)\n` +
+              `and update FIREBASE_SERVICE_ACCOUNT_PATH in .env.local.\n` +
+              `================================================================================\n`
+            );
+          }
         }
       } catch (err: any) {
-        console.error(`[Firebase Config Error] Failed to parse service account JSON file at "${saPath}":`, err.message);
+        // Only log error if not in static build mode
+        if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+          console.error(`[Firebase Config Error] Failed to parse service account JSON file at "${saPath}":`, err.message);
+        }
       }
     } else {
-      console.error(`[Firebase Config Error] FIREBASE_SERVICE_ACCOUNT_PATH is set to "${saPath}", but the file does not exist.`);
+      // No file found - don't log error during static build mode
     }
   }
 

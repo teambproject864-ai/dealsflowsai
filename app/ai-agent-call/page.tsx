@@ -177,7 +177,7 @@ function VoiceCallMonitor({ sessionId }: { sessionId: string }) {
             <div className="p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
               <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Call Framework</span>
               <p className="text-xs text-muted-foreground leading-relaxed italic">
-                "{session?.callFramework || "Direct Sales & Revenue Discovery"}"
+                &quot;{session?.callFramework || "Direct Sales & Revenue Discovery"}&quot;
               </p>
             </div>
           </div>
