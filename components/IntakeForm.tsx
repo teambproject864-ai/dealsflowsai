@@ -267,9 +267,6 @@ export function IntakeForm({ onComplete }: { onComplete?: () => void }) {
 
     // Validate against zod schema
     const fullValidation = intakeSchema.safeParse(submissionData);
-    if (fullValidation.success && onComplete) {
-      onComplete(); // Trigger onComplete when form is successfully validated!
-    }
     if (!fullValidation.success) {
       const flatErrors = fullValidation.error.flatten().fieldErrors;
       const e: Record<string, string> = {};

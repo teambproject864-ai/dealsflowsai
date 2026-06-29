@@ -538,14 +538,6 @@ export function LeadAnalysisDashboard({ leadId }: { leadId?: string }) {
                 View Document
               </Button>
               <Button
-                onClick={() => setShowViewer(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                aria-label="View analysis document in viewer"
-              >
-                <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
-                View Document
-              </Button>
-              <Button
                 onClick={handlePrint}
                 className="bg-slate-700 hover:bg-slate-600 text-white"
                 aria-label="Print or save as PDF"
