@@ -37,6 +37,11 @@ export async function POST(req: Request) {
       );
     }
 
+    const db = getDb();
+    if (!db) {
+      return NextResponse.json({ success: true, message: "Consent recorded (Firestore not configured)" });
+    }
+
     const ipRaw = req.headers.get("x-forwarded-for") ?? "unknown";
     const consentRecord = {
       userId:          uid,
@@ -48,7 +53,7 @@ export async function POST(req: Request) {
       userAgent:       req.headers.get("user-agent") ?? "unknown",
     };
 
-    await getDb().collection("user_consent").doc(uid).set(consentRecord, { merge: true });
+    await db.collection("user_consent").doc(uid).set(consentRecord, { merge: true });
 
     // Audit
     await logAuditEvent(req, uid, "CONSENT_RECORDED", { consentVersion, purposes, doNotSell: !!doNotSell });
@@ -74,7 +79,12 @@ export async function GET(req: Request) {
     }
     const uid = user.id;
 
-    const snap = await getDb().collection("user_consent").doc(uid).get();
+    const db = getDb();
+    if (!db) {
+      return NextResponse.json({ success: true, consent: null });
+    }
+
+    const snap = await db.collection("user_consent").doc(uid).get();
     if (!snap.exists) {
       return NextResponse.json({ success: true, consent: null });
     }

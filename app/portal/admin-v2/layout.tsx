@@ -118,7 +118,7 @@ export default function AdminV2Layout({
   }, []);
 
   return (
-    <AuthProvider>
+    <AuthProvider allowedRoles={["admin"]}>
       <div className="min-h-screen bg-slate-950 text-slate-100">
         {/* Header */}
         <header className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-40">

@@ -73,8 +73,14 @@ const nextConfig = {
         ...(config.ignoreWarnings || []),
         { message: /url\.parse/ },
         { message: /DEP0169/ },
+        { module: /rate-limiter-flexible/ },
       ];
     }
+    
+    // Ignore critical dependency warning from rate-limiter-flexible
+    config.module = config.module || {};
+    config.module.exprContextCritical = false;
+    
     return config;
   },
   typescript: {

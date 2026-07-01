@@ -11,7 +11,7 @@ interface AuthProviderProps {
 }
 
 export default function AuthProvider({
-  allowedRoles,
+  allowedRoles = [],
   children,
 }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +19,7 @@ export default function AuthProvider({
   const router = useRouter();
   const pathname = usePathname();
 
-  const rolesKey = allowedRoles.join(",");
+  const rolesKey = (allowedRoles || []).join(",");
 
   useEffect(() => {
     const currentPath = pathname || "";

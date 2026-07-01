@@ -18,6 +18,7 @@ import { Progress } from '@/components/ui/progress';
 import { GlassPanel } from '@/components/immersive';
 import { demoUsers, demoTasks, demoCustomerFeedback, demoAgentMetrics } from '@/lib/portal-demo-data';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function AdminV2Dashboard() {
   const [llmMetrics, setLlmMetrics] = useState<any>(null);
