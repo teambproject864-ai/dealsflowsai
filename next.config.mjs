@@ -1,9 +1,4 @@
 /** @type {import('next').NextConfig} */
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // --- Safeguard: Prevent startup if required environment variables like JWT_SECRET are missing or weak in production ---
 if (process.env.NODE_ENV === "production") {
