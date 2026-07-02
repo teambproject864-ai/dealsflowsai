@@ -3,8 +3,8 @@ import assert from "assert";
 import { db } from "@/lib/firebase-admin";
 import { TwilioService } from "@/lib/twilio-service";
 
-// Backup original db.collection
-const originalCollection = db.collection;
+// Backup original db.collection (may be null in CI where no service account is configured)
+const originalCollection = db?.collection ?? null;
 let mockStore: Record<string, Record<string, any>> = {};
 
 function resetMockStore() {
