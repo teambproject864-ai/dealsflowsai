@@ -1,6 +1,5 @@
 // tests/voice-confirmation.test.ts
 import assert from "assert";
-import { db } from "@/lib/firebase-admin";
 import {
   formatE164,
   formatUrlForSpeech,
@@ -10,8 +9,6 @@ import {
   triggerVoiceFallback,
 } from "@/lib/voice-confirmation";
 
-// Backup original db.collection
-const originalCollection = db.collection;
 let mockStore: Record<string, Record<string, any>> = {};
 
 function resetMockStore() {
